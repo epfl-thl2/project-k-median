@@ -12,6 +12,6 @@ import Formalization195.ProfileConstruction
 import Formalization195.UpperBound
 import Formalization195.ValueConstraints
 
-#print axioms Formalization195.familyUpperBound_195
+#print axioms Formalization195.originalPrimalUpperBound_153_div_125_exact
 
 #print axioms Formalization195.originalPrimalUpperBound_195

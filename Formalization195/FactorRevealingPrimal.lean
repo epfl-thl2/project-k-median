@@ -2183,10 +2183,19 @@ theorem originalPrimalUpperBound_of_familyUpperBound
       (x := x.toLinearized gamma) (y := y) hxLin hy (le_trans zero_le_one hγ)
   exact le_trans hbridge (le_trans hweak hρ)
 
+theorem originalPrimalUpperBound_153_div_125_exact :
+    OriginalPrimalUpperBound ((153 : ℝ) / 125)
+      (2 - (((153 : ℝ) / 125) - 1) ^ 2) := by
+  apply originalPrimalUpperBound_of_familyUpperBound familyUpperBound_153_div_125_exact
+  norm_num
+
 theorem originalPrimalUpperBound_195 :
     OriginalPrimalUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
-  apply originalPrimalUpperBound_of_familyUpperBound familyUpperBound_195
-  norm_num
+  intro n hn x hx
+  have hExact := originalPrimalUpperBound_153_div_125_exact n hn x hx
+  have hbound : 2 - (((153 : ℝ) / 125) - 1) ^ 2 ≤ (39 : ℝ) / 20 := by
+    norm_num
+  exact le_trans hExact hbound
 
 end
 

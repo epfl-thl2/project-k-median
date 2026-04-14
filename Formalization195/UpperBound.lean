@@ -497,39 +497,6 @@ def RestrictedProfileFamilyFromTwo (Mcoeff : ℝ) : Prop :=
     ∃ Γ : Advice (ProcedureInput.forced Mcoeff bidding),
       Γ.Admissible ∧ Nonempty (ProfileData (ProcedureInput.forced Mcoeff bidding) Γ)
 
-def RestrictedGoodAdvicePathFamilyFromTwo (Mcoeff : ℝ) : Prop :=
-  ∀ n, ∀ _ : NeZero n, n ≠ 1 → ∀ bidding : BiddingMatrix n,
-    let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-    ∃ P : SectionRawOutputPath n I,
-      P.EndpointCompatible ∧
-      (∀ ℓ, ContinuousOn (P.value ℓ) (Set.Icc (0 : ℝ) 1)) ∧
-      P.firstOutput.R0 ≤ 1 ∧
-      1 ≤ P.lastOutput.R0
-
-def RestrictedGoodAdviceCertificateFamilyFromTwo (Mcoeff : ℝ) : Prop :=
-  ∀ n, ∀ _ : NeZero n, n ≠ 1 → ∀ bidding : BiddingMatrix n,
-    let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-    Nonempty (GoodAdvicePathCertificate n I)
-
-def RestrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo (Mcoeff : ℝ) : Prop :=
-  ∀ n, ∀ _ : NeZero n, n ≠ 1 → ∀ bidding : BiddingMatrix n,
-    let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-    Nonempty (GoodAdvicePathLocalCertificate n I)
-
-def RestrictedGoodAdvicePointCaseFamilyFromTwo (Mcoeff : ℝ) : Prop :=
-  ∀ n, ∀ _ : NeZero n, n ≠ 1 → ∀ bidding : BiddingMatrix n,
-    let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-    ∃ hγlo : 1 ≤ I.program.Mcoeff,
-      ∃ hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125,
-        ∃ Q : ∀ ℓ : Idx n, SectionRawOutputChoice n I ℓ,
-          (∀ {ℓ : Idx n} (hℓ : ℓ < lastIdx n),
-            ((Q ℓ).output ⟨1, by constructor <;> norm_num⟩).toNextSectionLeft hℓ =
-              (Q (succIdx ℓ hℓ)).output ⟨0, by constructor <;> norm_num⟩) ∧
-          (∀ ℓ, ∀ lam, lam ∈ Set.Icc (0 : ℝ) 1 →
-            Nonempty (SectionRawOutputChoice.LocalCase (I := I) (ℓ := ℓ) (Q ℓ) lam)) ∧
-          ((((Q (firstIdx n)).output ⟨0, by constructor <;> norm_num⟩).R0 ≤ 1)) ∧
-          (1 ≤ (((Q (lastIdx n)).output ⟨1, by constructor <;> norm_num⟩).R0))
-
 def RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo (Mcoeff : ℝ) : Prop :=
   ∀ n, ∀ _ : NeZero n, n ≠ 1 → ∀ bidding : BiddingMatrix n,
     let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
@@ -539,28 +506,6 @@ def RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo (Mcoeff : ℝ) : Prop :
         ContinuousWithinAt (P.value ℓ) (Set.Icc (0 : ℝ) 1) lam) ∧
       P.firstOutput.R0 ≤ 1 ∧
       1 ≤ P.lastOutput.R0
-
-def RestrictedGoodAdvicePointwiseRunCaseFamilyFromTwo (Mcoeff : ℝ) : Prop :=
-  ∀ n, ∀ _ : NeZero n, n ≠ 1 → ∀ bidding : BiddingMatrix n,
-    let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-    ∃ P : SectionRawOutputPath n I,
-      P.EndpointCompatible ∧
-      (∀ ℓ, ∀ lam, lam ∈ Set.Icc (0 : ℝ) 1 →
-        Nonempty (P.PointwiseRunCase ℓ lam)) ∧
-      P.firstOutput.R0 ≤ 1 ∧
-      1 ≤ P.lastOutput.R0
-
-def RestrictedGoodAdviceLocalCaseFamilyFromTwo (Mcoeff : ℝ) : Prop :=
-  ∀ n, ∀ _ : NeZero n, n ≠ 1 → ∀ bidding : BiddingMatrix n,
-    let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-    ∃ hγlo : 1 ≤ I.program.Mcoeff,
-      ∃ K : ∀ ℓ : Idx n, SectionLocalCase n I ℓ,
-        (∀ {ℓ : Idx n} (hℓ : ℓ < lastIdx n),
-          (((K ℓ).choice hγlo).output
-              ⟨1, by constructor <;> norm_num⟩).toNextSectionLeft hℓ =
-            ((K (succIdx ℓ hℓ)).choice hγlo).output ⟨0, by constructor <;> norm_num⟩) ∧
-        ((((K (firstIdx n)).choice hγlo).output ⟨0, by constructor <;> norm_num⟩).R0 ≤ 1) ∧
-        (1 ≤ (((K (lastIdx n)).choice hγlo).output ⟨1, by constructor <;> norm_num⟩).R0)
 
 namespace DualSolution
 
@@ -742,184 +687,12 @@ theorem restrictedSuccessfulFamilyFromTwo_of_restrictedProfileFamilyFromTwo
         (by simp [I, ProcedureInput.forced, DualProgram.forceFinalRowOne, hγlo])
   exact successfulInput_of_admissible_profile hΓ C hγlo' hγhi' hθpos
 
-theorem familyUpperBound_of_restrictedProfileFamilyFromTwo
-    {Mcoeff bound : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hMbound : Mcoeff ≤ bound)
-    (hρbound : 2 - (Mcoeff - 1) ^ 2 ≤ bound)
-    (hprof : RestrictedProfileFamilyFromTwo Mcoeff) :
-    FamilyUpperBound Mcoeff bound := by
-  apply familyUpperBound_of_restrictedSuccessfulFamilyFromTwo hγlo hγhi hMbound hρbound
-  exact restrictedSuccessfulFamilyFromTwo_of_restrictedProfileFamilyFromTwo hγlo hγhi hprof
-
 theorem familyUpperBound_195_of_restrictedProfileFamilyFromTwo
     (hprof : RestrictedProfileFamilyFromTwo ((153 : ℝ) / 125)) :
     FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
   apply familyUpperBound_195_of_restrictedSuccessfulFamilyFromTwo
   exact restrictedSuccessfulFamilyFromTwo_of_restrictedProfileFamilyFromTwo
     (by nlinarith) (by linarith) hprof
-
-theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePathFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hpath : RestrictedGoodAdvicePathFamilyFromTwo Mcoeff) :
-    RestrictedProfileFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hpath n inferInstance hn1 bidding with ⟨P, hcompat, hcont, hleft, hright⟩
-  rcases P.exists_profileData_of_compatible (I := I) hγlo hcont hcompat hleft hright with
-    ⟨Γ, hΓ, hprof⟩
-  exact ⟨Γ, hΓ, hprof⟩
-
-theorem familyUpperBound_of_restrictedGoodAdvicePathFamilyFromTwo
-    {Mcoeff bound : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hMbound : Mcoeff ≤ bound)
-    (hρbound : 2 - (Mcoeff - 1) ^ 2 ≤ bound)
-    (hpath : RestrictedGoodAdvicePathFamilyFromTwo Mcoeff) :
-    FamilyUpperBound Mcoeff bound := by
-  apply familyUpperBound_of_restrictedProfileFamilyFromTwo hγlo hγhi hMbound hρbound
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePathFamilyFromTwo hγlo hpath
-
-theorem familyUpperBound_195_of_restrictedGoodAdvicePathFamilyFromTwo
-    (hpath : RestrictedGoodAdvicePathFamilyFromTwo ((153 : ℝ) / 125)) :
-    FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
-  apply familyUpperBound_195_of_restrictedProfileFamilyFromTwo
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePathFamilyFromTwo
-    (by nlinarith) hpath
-
-theorem restrictedGoodAdvicePathFamilyFromTwo_of_restrictedGoodAdviceCertificateFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hcert : RestrictedGoodAdviceCertificateFamilyFromTwo Mcoeff) :
-    RestrictedGoodAdvicePathFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hcert n inferInstance hn1 bidding with ⟨G⟩
-  refine ⟨G.path, G.compatible, ?_, G.left_le_one, G.right_ge_one⟩
-  exact G.path.continuous_of_sectionCertificates
-    (by simp [ProcedureInput.forced, DualProgram.forceFinalRowOne, le_of_lt hγlo])
-    (by simp [ProcedureInput.forced, DualProgram.forceFinalRowOne, hγhi])
-    G.sections
-
-theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceCertificateFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hcert : RestrictedGoodAdviceCertificateFamilyFromTwo Mcoeff) :
-    RestrictedProfileFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hcert n inferInstance hn1 bidding with ⟨G⟩
-  rcases G.exists_profileData
-      (hγlo := by simpa [I, ProcedureInput.forced, DualProgram.forceFinalRowOne] using hγlo)
-      (hγhi := by simpa [I, ProcedureInput.forced, DualProgram.forceFinalRowOne] using hγhi) with
-    ⟨Γ, hΓ, hprof⟩
-  exact ⟨Γ, hΓ, hprof⟩
-
-theorem familyUpperBound_of_restrictedGoodAdviceCertificateFamilyFromTwo
-    {Mcoeff bound : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hMbound : Mcoeff ≤ bound)
-    (hρbound : 2 - (Mcoeff - 1) ^ 2 ≤ bound)
-    (hcert : RestrictedGoodAdviceCertificateFamilyFromTwo Mcoeff) :
-    FamilyUpperBound Mcoeff bound := by
-  apply familyUpperBound_of_restrictedProfileFamilyFromTwo hγlo hγhi hMbound hρbound
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceCertificateFamilyFromTwo
-    hγlo hγhi hcert
-
-theorem familyUpperBound_195_of_restrictedGoodAdviceCertificateFamilyFromTwo
-    (hcert : RestrictedGoodAdviceCertificateFamilyFromTwo ((153 : ℝ) / 125)) :
-    FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
-  apply familyUpperBound_195_of_restrictedProfileFamilyFromTwo
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceCertificateFamilyFromTwo
-    (by nlinarith) (by linarith) hcert
-
-theorem
-    restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hcert : RestrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo Mcoeff) :
-    RestrictedProfileFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hcert n inferInstance hn1 bidding with ⟨G⟩
-  rcases G.exists_profileData
-      (hγlo := by
-        simpa [I, ProcedureInput.forced, DualProgram.forceFinalRowOne] using hγlo) with
-    ⟨Γ, hΓ, hprof⟩
-  exact ⟨Γ, hΓ, hprof⟩
-
-theorem
-    familyUpperBound_of_restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo
-    {Mcoeff bound : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hMbound : Mcoeff ≤ bound)
-    (hρbound : 2 - (Mcoeff - 1) ^ 2 ≤ bound)
-    (hcert : RestrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo Mcoeff) :
-    FamilyUpperBound Mcoeff bound := by
-  apply familyUpperBound_of_restrictedProfileFamilyFromTwo hγlo hγhi hMbound hρbound
-  exact
-    restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo
-    hγlo hcert
-
-theorem
-    familyUpperBound_195_of_restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo
-    (hcert : RestrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo ((153 : ℝ) / 125)) :
-    FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
-  apply familyUpperBound_195_of_restrictedProfileFamilyFromTwo
-  exact
-    restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo
-    (by nlinarith) hcert
-
-theorem restrictedLocalCertFamilyFromTwo_of_restrictedPointCaseFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hpoint : RestrictedGoodAdvicePointCaseFamilyFromTwo Mcoeff) :
-    RestrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hpoint n inferInstance hn1 bidding with
-    ⟨hγlo, hγhi, Q, hcompat, hlocal, hleft, hright⟩
-  exact
-    ⟨GoodAdvicePathLocalCertificate.ofSectionChoices
-      (I := I) hγlo hγhi Q hcompat
-      (fun ℓ lam hlam => Classical.choice (hlocal ℓ lam hlam)) hleft hright⟩
-
-theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointCaseFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hpoint : RestrictedGoodAdvicePointCaseFamilyFromTwo Mcoeff) :
-    RestrictedProfileFamilyFromTwo Mcoeff := by
-  apply
-    restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo
-    hγlo
-  exact
-    restrictedLocalCertFamilyFromTwo_of_restrictedPointCaseFamilyFromTwo hpoint
-
-theorem restrictedPointwiseContinuityFamilyFromTwo_of_restrictedPointCaseFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hpoint : RestrictedGoodAdvicePointCaseFamilyFromTwo Mcoeff) :
-    RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hpoint n inferInstance hn1 bidding with
-    ⟨hγlo, hγhi, Q, hcompat, hlocal, hleft, hright⟩
-  refine ⟨SectionRawOutputPath.ofSectionChoices (I := I) Q, ?_, ?_, ?_, ?_⟩
-  · exact SectionRawOutputPath.endpointCompatible_of_sectionEndpoint_eq (I := I) Q hcompat
-  · intro ℓ lam hlam
-    simpa [SectionRawOutputPath.ofSectionChoices, SectionRawOutputPath.value,
-      SectionRawOutputPath.sectionChoice, SectionRawOutputChoice.value] using
-      (SectionRawOutputChoice.LocalCase.toLocalContinuityWitness
-        (K := Classical.choice (hlocal ℓ lam hlam)) hγlo hγhi).continuousWithinAt hlam
-  · simpa [SectionRawOutputPath.ofSectionChoices, SectionRawOutputPath.firstOutput,
-      Advice.gammaZero] using hleft
-  · simpa [SectionRawOutputPath.ofSectionChoices, SectionRawOutputPath.lastOutput,
-      Advice.gammaOne] using hright
 
 theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
     {Mcoeff : ℝ}
@@ -936,64 +709,12 @@ theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseContinuit
     ⟨Γ, hΓ, hprof⟩
   exact ⟨Γ, hΓ, hprof⟩
 
-theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseRunCaseFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hγ : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hcases : RestrictedGoodAdvicePointwiseRunCaseFamilyFromTwo Mcoeff) :
-    RestrictedProfileFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hcases n inferInstance hn1 bidding with ⟨P, hcompat, hpoint, hleft, hright⟩
-  have hγlo' : 1 ≤ I.program.Mcoeff := by
-    simp [I, ProcedureInput.forced, DualProgram.forceFinalRowOne, le_of_lt hγ]
-  have hγhi' : I.program.Mcoeff ≤ (153 : ℝ) / 125 := by
-    simpa [I, ProcedureInput.forced, DualProgram.forceFinalRowOne] using hγhi
-  rcases P.exists_profileData_of_compatible_pointwiseRunCases
-      (I := I)
-      (hγ := by simpa [I, ProcedureInput.forced, DualProgram.forceFinalRowOne] using hγ)
-      hγlo' hγhi' (fun ℓ lam hlam => Classical.choice (hpoint ℓ lam hlam))
-      hcompat hleft hright with
-    ⟨Γ, hΓ, hprof⟩
-  exact ⟨Γ, hΓ, hprof⟩
-
-theorem familyUpperBound_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
-    {Mcoeff bound : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hMbound : Mcoeff ≤ bound)
-    (hρbound : 2 - (Mcoeff - 1) ^ 2 ≤ bound)
-    (hpoint : RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo Mcoeff) :
-    FamilyUpperBound Mcoeff bound := by
-  apply familyUpperBound_of_restrictedProfileFamilyFromTwo hγlo hγhi hMbound hρbound
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
-    hγlo hpoint
-
-theorem familyUpperBound_of_restrictedGoodAdvicePointwiseRunCaseFamilyFromTwo
-    {Mcoeff bound : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hMbound : Mcoeff ≤ bound)
-    (hρbound : 2 - (Mcoeff - 1) ^ 2 ≤ bound)
-    (hpoint : RestrictedGoodAdvicePointwiseRunCaseFamilyFromTwo Mcoeff) :
-    FamilyUpperBound Mcoeff bound := by
-  apply familyUpperBound_of_restrictedProfileFamilyFromTwo hγlo hγhi hMbound hρbound
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseRunCaseFamilyFromTwo
-    hγlo hγhi hpoint
-
 theorem familyUpperBound_195_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
     (hpoint : RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo ((153 : ℝ) / 125)) :
     FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
   apply familyUpperBound_195_of_restrictedProfileFamilyFromTwo
   exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
     (by nlinarith) hpoint
-
-theorem familyUpperBound_195_of_restrictedGoodAdvicePointwiseRunCaseFamilyFromTwo
-    (hpoint : RestrictedGoodAdvicePointwiseRunCaseFamilyFromTwo ((153 : ℝ) / 125)) :
-    FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
-  apply familyUpperBound_195_of_restrictedProfileFamilyFromTwo
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseRunCaseFamilyFromTwo
-    (by nlinarith) (by linarith) hpoint
 
 theorem restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_153_div_125 :
     RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo ((153 : ℝ) / 125) := by
@@ -1011,82 +732,29 @@ theorem restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_153_div_125 :
   · exact canonicalPath_firstOutput_R0_le_one (I := I) hγ hγhi
   · exact canonicalPath_lastOutput_R0_ge_one (I := I) hγlo hγhi
 
+theorem familyUpperBound_153_div_125_exact :
+    FamilyUpperBound ((153 : ℝ) / 125)
+      (2 - (((153 : ℝ) / 125) - 1) ^ 2) := by
+  refine familyUpperBound_of_restrictedSuccessfulFamilyFromTwo ?_ ?_ ?_ ?_ ?_
+  · nlinarith
+  · linarith
+  · nlinarith
+  · exact le_rfl
+  · exact
+      restrictedSuccessfulFamilyFromTwo_of_restrictedProfileFamilyFromTwo
+        (by nlinarith) (by linarith)
+        (restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
+          (by nlinarith)
+          restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_153_div_125)
+
 theorem familyUpperBound_195 :
     FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
-  exact
-    familyUpperBound_195_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
-      restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_153_div_125
-
-theorem
-    familyUpperBound_of_restrictedGoodAdvicePointCaseFamilyFromTwo
-    {Mcoeff bound : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hMbound : Mcoeff ≤ bound)
-    (hρbound : 2 - (Mcoeff - 1) ^ 2 ≤ bound)
-    (hpoint : RestrictedGoodAdvicePointCaseFamilyFromTwo Mcoeff) :
-    FamilyUpperBound Mcoeff bound := by
-  apply familyUpperBound_of_restrictedProfileFamilyFromTwo hγlo hγhi hMbound hρbound
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointCaseFamilyFromTwo hγlo hpoint
-
-theorem
-    familyUpperBound_195_of_restrictedGoodAdvicePointCaseFamilyFromTwo
-    (hpoint : RestrictedGoodAdvicePointCaseFamilyFromTwo ((153 : ℝ) / 125)) :
-    FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
-  apply familyUpperBound_195_of_restrictedProfileFamilyFromTwo
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointCaseFamilyFromTwo
-    (by nlinarith) hpoint
-
-theorem restrictedGoodAdvicePointCaseFamilyFromTwo_of_restrictedGoodAdviceLocalCaseFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hlocal : RestrictedGoodAdviceLocalCaseFamilyFromTwo Mcoeff) :
-    RestrictedGoodAdvicePointCaseFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hlocal n inferInstance hn1 bidding with ⟨hγlo, K, hcompat, hleft, hright⟩
-  refine ⟨hγlo, ?_, (fun ℓ => (K ℓ).choice hγlo), hcompat, ?_, hleft, hright⟩
-  · simpa [I, ProcedureInput.forced, DualProgram.forceFinalRowOne] using hγhi
-  · intro ℓ lam hlam
-    exact ⟨(K ℓ).pointwiseLocalCase hγlo hlam⟩
-
-theorem restrictedGoodAdviceCertificateFamilyFromTwo_of_restrictedGoodAdviceLocalCaseFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hlocal : RestrictedGoodAdviceLocalCaseFamilyFromTwo Mcoeff) :
-    RestrictedGoodAdviceCertificateFamilyFromTwo Mcoeff := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hlocal n inferInstance hn1 bidding with ⟨hγlo, K, hcompat, hleft, hright⟩
-  exact ⟨GoodAdvicePathCertificate.ofSectionCases (I := I) K hγlo hcompat hleft hright⟩
-
-theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalCaseFamilyFromTwo
-    {Mcoeff : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hlocal : RestrictedGoodAdviceLocalCaseFamilyFromTwo Mcoeff) :
-    RestrictedProfileFamilyFromTwo Mcoeff := by
-  apply restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceCertificateFamilyFromTwo hγlo hγhi
-  exact restrictedGoodAdviceCertificateFamilyFromTwo_of_restrictedGoodAdviceLocalCaseFamilyFromTwo
-    hlocal
-
-theorem familyUpperBound_of_restrictedGoodAdviceLocalCaseFamilyFromTwo
-    {Mcoeff bound : ℝ}
-    (hγlo : 1 < Mcoeff)
-    (hγhi : Mcoeff ≤ (153 : ℝ) / 125)
-    (hMbound : Mcoeff ≤ bound)
-    (hρbound : 2 - (Mcoeff - 1) ^ 2 ≤ bound)
-    (hlocal : RestrictedGoodAdviceLocalCaseFamilyFromTwo Mcoeff) :
-    FamilyUpperBound Mcoeff bound := by
-  apply familyUpperBound_of_restrictedProfileFamilyFromTwo hγlo hγhi hMbound hρbound
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalCaseFamilyFromTwo
-    hγlo hγhi hlocal
-
-theorem familyUpperBound_195_of_restrictedGoodAdviceLocalCaseFamilyFromTwo
-    (hlocal : RestrictedGoodAdviceLocalCaseFamilyFromTwo ((153 : ℝ) / 125)) :
-    FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by
-  apply familyUpperBound_195_of_restrictedProfileFamilyFromTwo
-  exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalCaseFamilyFromTwo
-    (by nlinarith) (by linarith) hlocal
+  intro n hn bidding
+  rcases familyUpperBound_153_div_125_exact n hn bidding with ⟨x, hx, hρx⟩
+  refine ⟨x, hx, ?_⟩
+  have hbound : 2 - (((153 : ℝ) / 125) - 1) ^ 2 ≤ (39 : ℝ) / 20 := by
+    norm_num
+  exact le_trans hρx hbound
 
 end
 
