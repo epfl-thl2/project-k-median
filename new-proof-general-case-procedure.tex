@@ -1,0 +1,560 @@
+This section is the proof of Lemma~\ref{lem:general-case-procedure}. Thus, 
+throughout the section, we assume that for all given values $b_{i,j} \in \{0, 1\}$ a good choice of auxiliary variables exists and is chosen. This implies that for this choice of auxiliary variables, Algorithm~\ref{alg:general-case-procedure-hgi} finishes without returning $\perp$. We will show that setting $\rho=\Mrho$ is feasible.
+
+For the first step, we need to prove that the algorithm is valid and can return a solution. The main problem is proving that the properties for $\delta$ and $\sigma$ can be satisfied. We thus need to prove the following two lemmas:
+\begin{lemma}\label{lem:delta-existence}
+It is possible to assign values $\delta_{i,j}$ that satisfy Property~\ref{property:delta}.
+\end{lemma}
+\begin{lemma}\label{lem:sigma-existence}
+It is possible to assign values $\sigma_{i,j}$ that satisfy Property~\ref{property:sigma}.
+\end{lemma}
+To prove them, we need some observation around the procedure. Algorithm~\ref{alg:general-case-procedure-hgi} computes a profile for $\hg_i$ and computes a pair of thresholds $t_1$ and $t_2$ using the input variables. For such thresholds, we can observe the following:
+\begin{observation}
+\label{obs:thresholds}
+We have $R_{t_3^\star} = 0$, $R_{t_2 - 1} \geq \MRttwo$, $R_{t_1 - 1} \geq \MRtone$, and $R_0 = 1$. Also, if $t_2 \neq n$ then $R_{t_2} < \MRttwo$, and if $t_1 \neq n$ then $R_{t_1} < \MRtone$.
+Also, we have that $R_j$ is non-increasing in $j$.
+\end{observation}
+\begin{observation}
+We have $\hg_{t_1} > 0$ and $\hg_{t_2} > 0$.
+\end{observation}
+where the former observation follows trivially from the definitions in Algorithm~\ref{alg:general-case-procedure-hgi} and, for the latter, the claims for $t_1 < n$ and $t_2 < n$ follow trivially from Observation~\ref{obs:thresholds} and the claim for $t_1 = n$ and the claim for $t_2 = n$ are trivially checked. With this, we are able to prove the lemmas:
+\begin{proof}[Proof of Lemmas~\ref{lem:delta-existence} and \ref{lem:sigma-existence}]
+For $\delta$, it suffices to prove that, for all $1 \leq j \leq t_1$,
+\[\sum_{i=f_j+1}^{t_3^\star} \hg_i \geq \Mcoeffmone \cdot \left[1 -\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right]\,.\]
+Note that the left-hand side is equal to $R_{f_j} - R_{t_3^\star} = R_{f_j}$.
+Then we consider two cases.
+First, if $R_{f_j} \geq \MRttwo$, we need to prove that $R_{f_j} \geq \Mcoeffmone$, which is trivially true since $\Mcoeffmone\leq \MRttwo$ from Property~\ref{property:thresholds}.
+Second, if $R_{f_j} < \MRttwo$, we need to prove that $R_{f_j} \geq \Mcoeffmone \cdot \frac{R_{f_j}}{\MRttwo}$, which is again trivially true.
+Therefore one can choose $\delta_{i,j}$ greedily to satisfy the desired properties.
+
+For $\sigma$, it suffices to prove that, for all $1 \leq j \leq t_1$,
+\[\sum_{i=j}^{f_j} \hg_i \geq \left[\MRttwo - R_{f_j}\right]^+\,.\]
+Note that the left-hand side is equal to $R_{j - 1} - R_{f_j}$.
+Then note that, because $j \leq t_1$, we have $R_{j - 1} \geq \MRtone$ from the observations, so $R_{j-1} - R_{f_j} \geq \MRtone - R_{f_j}\geq \MRttwo - R_{f_j}$, and the claim follows trivially as the left-hand side is nonnegative.
+Therefore one can choose $\sigma_{i,j}$ greedily to satisfy the desired properties.
+\end{proof}
+
+We now have to prove that for the given existing solution, it satisfies the constraints of the factor-revealing dual. We restate it here for convenience:
+
+\deffrdual*
+
+Non-negativeness of the variables is satisfied in our algorithm, but we defer the proof in Appendix~\ref{sec:dual-deferred-proofs}:
+\begin{restatable}{lemma}{lemnonneg}\label{lem:nonneg}
+We have $\hg_i, g_{i,j}, t_{i,j}, s_{i,j} \geq 0$ for all valid $i, j$.
+\end{restatable}
+To work with the rest of the constraints, we first present some intuition about the problem.
+We look at the program above from Definition~\ref{def:frdual} as a process consisting of $n$ "clients" and a central pool, each having some credit that is generated and transferred around through some specific mechanism.
+This credit evolves in this mechanism through $n$ iterations, where in each iteration each client has a constraint on the minimal amount of credit that they must have at that point.
+With these constraints set, the goal is to minimize an objective function that depends on how the credit is generated and transferred.
+
+Let us first define what we mean by credit for the clients and for the central pool:
+\begin{restatable}{definition}{defcreditij}\label{def:credit-ij}
+    The amount of credit a client $j$ has at iteration $i$ for $j \leq i$ is:
+    \begin{equation*}
+        \text{credit}_{i,j} = \sum_{j'=j+1}^n g_{j,j'} + \sum_{i' = j}^{i} \left(g_{i',j} + t_{i',j} - s_{i',j}\right)\,.
+    \end{equation*}
+    Note that this is the left-hand side of the $(r_{j,i})$ constraint.
+\end{restatable}
+\begin{definition}\label{def:pool-credit}
+    The amount of credit that the central pool has at iteration $i$ is:
+    \begin{equation*}
+        \text{pool\_credit}_i = \sum_{i'=1}^i \sum_{j=1}^{i'} \left(s_{i',j} - t_{i',j}\right)\,.
+    \end{equation*}
+    Note that this is the left-hand side of the $(m_i)$ constraint.
+\end{definition}  
+Every time step, these quantities changes by the following amount:
+\begin{observation}
+    The difference in credit between two different timesteps $i-1$ and $i$ for a client $j<i$ for $i \geq 2$ is:
+    \begin{equation*}
+        \Delta \text{credit}_{i,j} = \text{credit}_{i,j} - \text{credit}_{i-1,j} = g_{i,j} - s_{i,j} + t_{i,j}\,.
+    \end{equation*}
+\end{observation}
+Similarly, we can make the following observation for $\text{pool\_credit}_i$:
+\begin{observation}
+    The difference in the central pool credit between timesteps $i-1$ and $i$ for $i \geq 1$ is:
+    \begin{equation*}
+        \Delta\text{pool\_credit}_i = \text{pool\_credit}_i - \text{pool\_credit}_{i-1} = \sum_{j=1}^{i} \left(s_{i,j} - t_{i,j}\right)\,.
+    \end{equation*}
+\end{observation}
+The variables $s_{i,j}$ and $t_{i,j}$ act as the amount of credit sent to and taken from the central credit pool by client $j$ at timestep $i$. On the other hand, the variables $g_{i,j}$ correspond to the generated credit, the amount $\sum_{j'=j}^n g_{j,j'}$ being an initial amount given to $j$, and the terms $g_{i,j}$ for $j<i$ being the credit at timestep $i$ that goes to client $j$. All the generated credit comes just from the $g_{i,j}$ variables. 
+
+The procedure defined in Section~\ref{sec:general-case-procedure} is one way to assign values to the variables $g_{i,j}$, $s_{i,j}$ and $t_{i,j}$ in a way that bounds the objective value to $\Mrho$. It works by separating clients into different groups $A$, $B$, $C$ and $D$ and treating each group differently. There are two exceptions, two clients that might be part of a group and part of another. We define the memberships through $\mu_j^X$ to define how much one belongs to group $X$. 
+From Equation~\ref{eq:membership-assignment}, these groups are created based on the thresholds $t_1$, $t_2$ and $t_3^\star$ for which we can observe the following:
+\begin{observation}\label{obs:mu-sum}
+If $j < t_1$, then $\mu_j^A + \mu_j^D = 1$.
+If $j = t_1$, then $\mu_j^A + \mu_j^B + \mu_j^D = 1$.
+If $t_1 < j \leq t_2$, then $\mu_j^B + \mu_j^D = 1$.
+If $t_2 < j \leq t_3^\star$, then $\mu_j^C + \mu_j^D = 1$.
+If $j > t_3^\star$, then $\mu_j^D = 1$.
+\end{observation}
+More specifically, for clients in group $D$, we have that:
+\begin{observation}
+If $j<n$, we have $\hg_j = 0$ if and only if $\mu_j^D = 1$.
+%or if $j = t_3^\star = n$ and $\hg_n^\star = 0$. Except if $t_3^\star = n$ and $j = n$, if $\hg_j = 0$ then also $\mu_j^A = \mu_j^B = \mu_j^C = 0$.
+\end{observation}
+\begin{proof}
+For $j<t_3^\star$ and $j=t_3^*<n$, it follows by the assignment formulas, and for $j>t_3^\star$, all $\hg_j=0$ and all $j$ have $\mu_j^D=1$; proving the statement.
+% The statement about $\hg_j$ follows trivially from Algorithm~\ref{alg:general-case-procedure-hgi}, and the statement about $\mu_j^A$, $\mu_j^B$, and $\mu_j^C$ follows trivially from Table~\ref{tab:general-case-procedure}.
+\end{proof}
+This last proof is important because it implies that at such a step $j$, since $g_{j,k}\leq \hg_j$ by the $(\gamma_{i,j}\text{ and }\beta_{i,j})$ constraint, we have that no new credit is generated at that iteration. This constraint states that per each iteration $i$, there is a maximum amount of credit $\hg_i$ that every client can generate, and it is a constraint that our algorithm does indeed follow:
+\begin{lemma}\label{lem:gamma-beta-constraints}
+    The $(\gamma_{i,j} / \beta_{i,j})$ constraints are satisfied for all $1 \leq i,j \leq n$, i.e., $g_{i,j} \leq \hat{g}_i$ for all $i,j$.
+\end{lemma}
+\begin{proof}
+    The claim follows trivially from the assignments of $g_{i,j}$ in Table~\ref{tab:general-case-procedure} for integral clients, and the rest is proven by convexity.
+\end{proof}
+This constraint is strong when combined with the $(f)$ one, which constrains the total maximum amount of generated credit, capping it at $1$ unit in total throughout all iterations; which we satisfy:
+\begin{lemma}\label{lem:f-constraint}
+    The $(f)$ constraint is satisfied, i.e., $\sum_{i=1}^n \hg_i \leq 1$. 
+\end{lemma}
+\begin{proof}
+The claim follows trivially from the fact that $\sum_{i=1}^n \hg_i = R_0 = 1$.
+\end{proof}
+
+For the credit in our procedure, we can exactly pinpoint the amount of credit that each client has at every point, which has a different behavior for the different groups.
+
+\begin{restatable}{proposition}{obscreditijvalues-early}\label{prop:credit-ij-values-early}
+    For $j \leq i < f_j$, the credit that client $j$ has at iteration $i$ is:
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = 
+        \ \begin{cases}
+            1 - [\MRttwo - R_{f_j}]^+ + \sum_{i'=j}^i \sigma_{i',j}, 
+            & \text{if $j \in A$}\,,\\
+            \Mtone + \min\{R_{j-1},\MRtone\}, 
+            & \text{if $j \in B$}\,,\\
+            \Mtone + R_{j-1}, 
+            & \text{if $j \in C$}\,,\\
+            R_{j-1} - R_i,
+            & \text{if $j \in D$}\,,\\
+        \end{cases}
+    \end{equation*}
+    where the expression for a fractional split client $j$ is the corresponding convex combination of the expressions for the integral cases, i.e.,
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j}
+        = \mu_j^A \text{\emph{credit}}_{i,j}^A
+        + \mu_j^B \text{\emph{credit}}_{i,j}^B
+        + \mu_j^C \text{\emph{credit}}_{i,j}^C
+        + \mu_j^D \text{\emph{credit}}_{i,j}^D\,.
+    \end{equation*}
+    where $\text{\emph{credit}}_{i,j}^A$, $\text{\emph{credit}}_{i,j}^B$, $\text{\emph{credit}}_{i,j}^C$, and $\text{\emph{credit}}_{i,j}^D$ are the expressions defined in the first four cases.
+\end{restatable}
+\begin{proof}
+The four integral cases are exactly Lemmas \ref{lem:credit-A-before}, \ref{lem:credit-B-before}, \ref{lem:credit-C-before}, and \ref{lem:credit-D-before}. The proof for the fractional cases being a convex combination is in Lemma \ref{lem:credit-fractional-before}. All these lemmas and their proofs are deferred to Appendix~\ref{sec:dual-deferred-proofs}.
+% The non-negativity then follows from the four integral formulas.
+\end{proof}
+
+\begin{restatable}{proposition}{obscreditijvalues}\label{prop:credit-ij-values}
+    For $i \geq f_j$, the credit that client $j$ has at iteration $i$ is:
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = 
+        \ \begin{cases}
+            1 - \sum_{i'=f_j+1}^i \delta_{i',j},
+            & \text{if $j \in A$}\,,\\
+            1 - \ind[i > f_j] \cdot \Mcoeffmone,
+            & \text{if $j \in B$}\,,\\
+            1 - \ind[i > f_j] \cdot \Mcoeffmone,
+            & \text{if $j \in C$}\,,\\
+            1,
+            & \text{if $j \in D$}\,,\\
+        \end{cases}
+    \end{equation*}
+    where the expression for a fractional split client $j$ is the corresponding convex combination of the expressions for the integral cases, i.e.,
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j}
+        = \mu_j^A \text{\emph{credit}}_{i,j}^A
+        + \mu_j^B \text{\emph{credit}}_{i,j}^B
+        + \mu_j^C \text{\emph{credit}}_{i,j}^C
+        + \mu_j^D \text{\emph{credit}}_{i,j}^D\,.
+    \end{equation*}
+    where $\text{\emph{credit}}_{i,j}^A$, $\text{\emph{credit}}_{i,j}^B$, $\text{\emph{credit}}_{i,j}^C$, and $\text{\emph{credit}}_{i,j}^D$ are the expressions defined in the first four cases.
+\end{restatable}
+\begin{proof}
+The four integral cases are exactly Lemmas \ref{lem:credit-A-after}, \ref{lem:credit-B-after}, \ref{lem:credit-C-after}, and \ref{lem:credit-D-after}. The proof for the fractional cases being a convex combination is in Lemma \ref{lem:credit-fractional-after}. All these lemmas and their proofs are deferred to Appendix~\ref{sec:dual-deferred-proofs}.
+\end{proof}
+From where we can observe that:
+\begin{restatable}{observation}{obscreditnonnegative}\label{obs:credit-non-negative}
+    The credit that each client $j$ has at iteration $i$ (as defined in Definition~\ref{def:credit-ij}) is always non-negative.
+\end{restatable}
+\begin{proof}
+For $i \geq f_j$, the claim follows from the proof of Proposition~\ref{prop:credit-ij-values}.
+For $i < f_j$, the proof follows by Proposition~\ref{prop:credit-ij-values-early}.
+\end{proof}
+With these observations, we can now check that the requirements on the clients' credits are satisfied, i.e., we can check the $(r_{j,i})$ constraints.
+\begin{lemma}\label{lem:rij-constraints}
+    The $(r_{j,i})$ constraints are satisfied for all $1 \leq j \le i \leq n$, i.e. 
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} \ge b_{i,j} - \Mcoeffmone \cdot \sum_{p=j}^{i-1} b_{p,j}\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    From Observation~\ref{obs:credit-non-negative}, we can see that if the right hand side is $0$ (which happens when $i<f_j$), then the constraint is satisfied. Thus, we only need to check the case $i \geq f_j$. We will split the cases into the different groups $A$, $B$, $C$, and $D$ of clients using Proposition \ref{prop:credit-ij-values}. 
+    
+    We will have to analyze two cases, when $i=f_j$ so that the right hand side is $1$ (since $b_{f_j,j} = 1$ and $b_{p,j} = 0$ for $p < f_j$), and when $i > f_j$ so that the right hand side is at most $1-\Mcoeffmone$ (since $b_{f_j,j} = 1$ and $b_{i,j} \leq 1$).
+
+    For an integral client $j\in A$, for $i=f_j$, the left-hand side of the lemma's inequality is $1$ from Proposition \ref{prop:credit-ij-values}, since $\sum_{i'=f_j+1}^i \delta_{i',j} = 0$ as $i=f_j$. The right hand side of the lemma's inequality is also $1$ as stated in the first paragraph, which satisfies the constraint. For $i > f_j$, we have that $\sum_{i'=f_j+1}^i \delta_{i',j} \leq \Mcoeffmone \cdot \left[1 -\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right]$ by Property \ref{property:delta}, which itself is at most $\Mcoeffmone$, so that the left-hand side is at least $1 - \Mcoeffmone$. On the other hand, the right hand side is at most $1 - \Mcoeffmone$ and thus the constraint is satisfied.
+
+    For $j\in B$ or $j\in C$, for $i=f_j$, the left-hand side of the lemma's inequality is $1$ from Proposition \ref{prop:credit-ij-values}, since $\ind[i > f_j] = 0$ as $i=f_j$. The right hand side of the lemma's inequality is also $1$ as stated in the first paragraph, which satisfies the constraint. For $i > f_j$, we have that $\ind[i > f_j] = 1$, so that the left-hand side is at least $1 - \Mcoeffmone$. On the other hand, the right hand side is at most $1 - \Mcoeffmone$ and thus the constraint is satisfied.
+
+    For $j\in D$, for both $i=f_j$ and $i > f_j$, the left-hand side of the lemma's inequality is $1$ from Proposition \ref{prop:credit-ij-values}, thus the constraint is satisfied as it is bigger than the right hand side which is at most $1$ at any point. 
+
+    Finally, for fractionally assigned clients, the left-hand side of the lemma's inequality is a convex combination of the left-hand sides for the integral cases, and the right hand side is the same in all cases, so that the constraint is satisfied as well.
+\end{proof}
+
+For the rest of the proof, we will also be interested in how much credit has been generated by client $j$ during all timesteps $i$, whose behavior also differs depending on the membership of $j$. Do note that, by the mechanism of the dual, not all this credit is kept by the client: for iterations $i<j$ this credit goes to the clients $k<j$ and after that, it can be that the client sends it to the central pool.
+\begin{restatable}{lemma}{obssumofgeneratedcreditcolumn}\label{obs:sum-of-generated-credit-column}
+    Let
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j} = 
+        \ \begin{cases}
+            1 - \Mcoeffmone \cdot \left(1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo}\right),
+            & \text{if $j \in A$}\,,\\
+            1,
+            & \text{if $j \in B$}\,,\\
+            1,
+            & \text{if $j \in C$}\,,\\
+            1 - \Mcoeffmone \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+.
+            & \text{if $j \in D$}\,,\\
+        \end{cases}
+    \end{equation*}
+    where the expression for a fractional split client $j$ is the corresponding convex combination of the expressions for the integral cases, i.e.,
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j} = \mu_j^A G_j^A + \mu_j^B G_j^B + \mu_j^C G_j^C + \mu_j^D G_j^D\,.
+    \end{equation*}
+    with $G^A$, $G^B$, $G^C$, and $G^D$ being the expressions defined in the first four cases for $\sum_{i=1}^n g_{i,j}$.
+\end{restatable}
+\begin{proof}
+We analyze each specific case in Lemmas \ref{lem:gen-A}, \ref{lem:gen-B}, \ref{lem:gen-C}, and \ref{lem:gen-D}, and the fractional case is then argued in Lemma \ref{lem:gen-fractional}. All these lemmas and their proofs are deferred to Appendix~\ref{sec:dual-deferred-proofs}.
+\end{proof}
+Finally, it will also be interesting to define a specific credit profile $\hg_i$ that is generated in the second phase for clients in $B$ and $C$, which we will call $\hg'_i$. This will be very useful with the analysis of the $(m_i)$ constraint.
+\begin{definition}
+We define $\hg'_i = \hg_i$ if $i \neq t_1$ and $\hg'_{t_1} = \hg_{t_1}^B$ (except in the special case $t_1 = n$, where we define $\hg'_{n} = \hat{g}_n^\star$). We also define $R'_i = \sum_{i'=i+1}^n \hg'_{i'}$.
+\end{definition}
+
+Although Proposition~\ref{prop:credit-ij-values} gives exact formulas for client credit, doing the same for the pool is a lot more involved. However, we can still analyze the behavior of the credit of the central pool through the iterations, which is what is used to prove the next lemma. Its proof is the most involved in this section.
+\begin{lemma}\label{lem:mi-constraints}
+    The $(m_{i})$ constraints are satisfied for all $1 \leq i \leq n$:
+    \begin{equation*}
+        \text{\emph{pool\_credit}}_i \geq 0\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}    
+    For a general case, we can rewrite $\text{pool\_credit}_{i}$ as
+    \begin{equation}\label{eq:mi-rewrite}
+        \begin{aligned}
+            \text{pool\_credit}_{i} &= 
+            \sum_{p=1}^i \sum_{j=1}^p s_{p,j} - \sum_{p=1}^i \sum_{j=1}^p t_{p,j}
+            = \sum_{j=1}^i \sum_{p=j}^i s_{p,j} - \sum_{j=1}^i t_{f_j, j} \cdot \ind [f_j \leq i]
+        \end{aligned}
+    \end{equation}
+    using the fact that $t_{p,j} \neq 0$ only for $p = f_j$. We will split up our analysis depending on where this $i$ is related to the threshold values.
+
+    \smallskip
+    \noindent\textbf{Case 1: $i<t_1$.} For $i < t_1$, since we have $\mu_j^A + \mu_j^D = 1$ by Observation \ref{obs:mu-sum} we can substitute the value of $t_{f_j,j}$: 
+    \begin{equation*}
+        t_{f_j, j} \cdot \ind [f_j \leq i] = \mu_j^D \cdot (1-R_{j-1}) \cdot \ind [f_j \leq i] = 0
+    \end{equation*}
+    because $\mu_j^D>0$ only if $f_j \geq t_3^\star \geq t_1 > i$, so in that case $\ind [f_j \leq i] =0$. So, the resulting inequality only has the term $\sum_{j=1}^i \sum_{p=j}^i s_{p,j}$ which is non-negative, and thus the $(m_i)$ constraint for $i<t_1$ is satisfied.
+
+    \smallskip
+    \noindent\textbf{Case 2: $i=t_1$.} For $i = t_1$, we have the same except for $j=t_1$ for which we get that $t_{f_{t_1},t_1} = \mu_{t_1}^B [1-R_{t_1-1}-\Mtone]^+ + \mu_{t_1}^D (1-R_{t_1-1})$. For such an index we have $R_{t_1-1}\geq \MRtone$ by Observation \ref{obs:thresholds}, so its contribution to $t$ from $B$ is still $0$. Thus, we still have for all $j\leq t_1$: $t_{f_{j}, j} \cdot \ind[f_j \leq i] = \mu_j^D \cdot (1 - R_{j - 1}) \cdot \ind[f_j \leq i]$. 
+    Such a term can now be non-zero, but only if $f_j \geq t_3^\star \geq t_1 = i$, which allows $\mu_j^D > 0$.
+    But then $\ind[f_j \leq i] \neq 0$ only if $t_1 = t_2 = t_3^\star$, and we will postpone the analysis for such a case when analyzing directly $t_3^\star$ below in case 4.
+    % \toni{this is just a repeat of the $t_3^\star$ argument?}
+    % So, going forward, we assume $t_1 = t_3^\star$, as otherwise the case is identical to the one for $i < t_1$.
+    % Note that $t_1 = t_3^\star$ implies that $\hg_{t_3^\star} \geq \MRtone$, which cannot happen if $t_3^\star < n$ as it is too big of a jump, so we are in fact in the case $i = f_{t_1} = t_1 = t_2 = t_3^\star = n$.
+    % % Note that $t_1 = n$ also implies that $z=0$, $\alpha = 1$, and $\mu_n^D = 1$.
+    % Let us then add, for all $j\leq n$, $\text{credit}_{n,j}$, which we know thanks to Proposition~\ref{prop:credit-ij-values} is equal to
+    % \begin{align*}
+    %     \text{credit}_{n,j} &=  \sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{n} \left(g_{p,j} - s_{p,j} + t_{p,j}\right) = 1 - \mu_j^A \cdot \sum_{i'=f_j+1}^n \delta_{i', j} - \mu_j^B \cdot \ind [n > f_j] \cdot  \Mcoeffmone\,.
+    % \end{align*}
+    % Then, since all the $s_{i,j}$ and $t_{i,j}$ terms cancel out, we only need to prove that
+    % \[\sum_{j=1}^{n} \left(\sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{n} g_{p,j} \right) \geq n - \Mcoeffmone \cdot \sum_{j=1}^n \mu_j^A \cdot \left[1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo}\right] - \Mcoeffmone \cdot \sum_{j=1}^n \mu_j^B \cdot \ind[n > f_j]\,.\]
+    % Note that, by Lemma~\ref{obs:sum-of-generated-credit-column},
+    % \begin{align*}
+    %     \sum_{j=1}^{n} \left(\sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{n} g_{p,j} \right)
+    %     &= \sum_{p=1}^n \sum_{j=1}^n g_{p,j}
+    %     = n - \Mcoeffmone \cdot \sum_{j=1}^n \mu_j^A \cdot \left[ 1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo} \right]\,.
+    % \end{align*}
+    % which clearly upper bounds the previous right-hand side, so the constraint holds for $i = t_1$. Here we have used that $1 - \Mcoeffmone \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+ = 1$ for $j \in D$ because $R_{j-1} \geq R_{n-1} = \hg_n \geq \MRtone \geq \MRttwo$ because of our assumptions and by Property~\ref{property:thresholds}. 
+
+    \smallskip
+    \noindent\textbf{Case 3: $t_1<i<t_3^\star$.} For $t_1 < i < t_3^\star$, starting from Equation~\ref{eq:mi-rewrite}, we first separate the sums into two parts, one for $p < t_1$ and another for $p \geq t_1$:
+    \begin{align*}
+        \sum_{j=1}^i \sum_{p=j}^i s_{p,j} - \sum_{j=1}^i t_{f_j, j} \cdot \ind [f_j \leq i] 
+        &= \left(\sum_{j=1}^{t_1 - 1} \sum_{p=j}^i s_{p,j} - \sum_{j=1}^{t_1 - 1} t_{f_j, j} \cdot \ind [f_j \leq i]\right) + \sum_{j=t_1}^i \sum_{p=j}^i s_{p,j} - \sum_{j=t_1}^i t_{f_j, j} \cdot \ind [f_j \leq i] \\
+        &\geq\sum_{j=t_1}^i \sum_{p=j}^i s_{p,j} - \sum_{j=t_1}^i t_{f_j, j} \cdot \ind [f_j \leq i]\,.
+    \end{align*}
+    We can drop the first term because for $j < t_1$ we have $t_{f_j, j} \cdot \ind[f_j \leq i] = \mu_j^D \cdot (1 - R_{j - 1}) \cdot \ind[f_j \leq i] = 0$, which is because $\mu_j^D = 0$ unless $f_j \geq t_3^\star$ but $i < t_3^\star$ so $\ind[f_j \leq i] = 0$.
+    
+    Next, we substitute the values of $s_{i,j}$ and $t_{i,j}$. We first lower-bound the $s$-term. For $t_1\leq j<t_3^\star$ and $p>j$ we have $s_{p,j} \geq (\mu_j^B + \mu_j^C) \cdot (\hg_p + \Mcoeffmone\cdot \ind[p=f_j+1])$. Thus, we have:
+    \begin{align*}
+        \sum_{j=t_1}^i \sum_{p=j}^i s_{p,j} 
+        &\geq \sum_{j=t_1}^{i-1} \sum_{p=j+1}^{i} (\mu_j^B + \mu_j^C) \cdot \left(\hg_{p} + \Mcoeffmone\cdot \ind[p=f_j+1]\right)  \\
+        &\geq \sum_{j=t_1}^{i-1} (\mu_j^B + \mu_j^C) \cdot \sum_{p=j+1}^{i} \hg_{p}
+        = \sum_{j=t_1}^{i-1} (\mu_j^B + \mu_j^C) \cdot (R_j-R_i)\,.
+    \end{align*}
+    Then, we upper-bound the $t$-term. We first observe that $t_{f_{t_1}, t_1} \cdot \ind[f_{t_1} \leq i] = (1-R_{t_1-1}) \cdot \mu_{t_1}^D \cdot \ind[f_{t_1} \leq i] = 0$ because $\mu_{t_1}^B [1-R_{t_1-1}-\Mtone]^+ =0$ (as seen in the $i=t_1$ part of the proof) and $\mu_{t_1}^D \cdot \ind[f_{t_1} \leq i]=0$ because $t_1<t_3^\star$. Then, we have:
+    \begin{align*}
+        \sum_{j=t_1}^i t_{f_j, j} \cdot \ind [f_j \leq i]
+        &= \sum_{j=t_1+1}^i \left((\mu_j^B+\mu_j^C)\cdot \left(1-\sum_{p=j}^{n} \hg_{p}-\Mtone\right) + \mu_j^D \cdot (1-R_{j-1})\right) \cdot \ind [f_j \leq i] \\
+        &= \sum_{j=t_1+1}^i \left(1- \sum_{p=j}^{n} \hg_{p}-\Mtone \right)\cdot(\mu_j^B+\mu_j^C)\cdot \ind [f_j \leq i]\\
+        &\leq \sum_{j=t_1+1}^i \left(1- \sum_{p=j}^{n} \hg_{p}-\Mtone \right)\cdot(\mu_j^B+\mu_j^C) \\
+        &= \sum_{j=t_1+1}^i \sum_{p=t_1}^{j-1} \hg'_p \cdot(\mu_j^B+\mu_j^C)
+        = \sum_{p=t_1}^{i-1} \hg'_p \sum_{j=p+1}^{i} (\mu_j^B+\mu_j^C)\,,
+    \end{align*}
+    where we used that $\mu_j^D\cdot \ind[f_j \leq i]=0$ for $i<t_3^\star$, that $1- \sum_{p=j}^{n} \hg_{p}-\Mtone = \MRtone - R_{j-1} > 0$ for $j \geq t_1 + 1$, and that $R'_{t_1 - 1} = R_{t_1} + \hg_{t_1}^B = \MRtone$.
+
+    Thus, the following inequality is sufficient to satisfy the $(m_i)$ constraint in these ranges:
+    \begin{equation*}
+        \sum_{j=t_1}^{i-1} \left((\mu_j^B + \mu_j^C) \cdot (R_j-R_i) - \hg'_j \sum_{p=j+1}^{i} (\mu_p^B+\mu_p^C) \right) \geq 0\,.
+    \end{equation*}
+    To prove the inequality, we prove that each $j$-th term is indeed non-negative. Rearranging, this is equivalent to proving:
+    \begin{equation}\label{eq:mi-phase2-inequality}
+        (R_i+\Mtone) \leq (R_j+\Mtone) - \hg'_j \cdot \frac{\sum_{p=j+1}^{i} (\mu_p^B + \mu_p^C)}{\mu_j^B+\mu_j^C}\,.
+    \end{equation}
+    Note that $\hg'_{t_1} = (\mu_{t_1}^B + \mu_{t_1}^C) \cdot \frac{R_{t_1}+\Mtone}{n-t_1}$.
+    We divided by $\mu_j^B + \mu_j^C$ because we have assumed that this value is greater than $0$. If it is in fact $0$, one can directly check that the inequality (without dividing by $\mu_j^B+\mu_j^C$) is satisfied because $\hg'_j \propto \mu_j^B + \mu_j^C$ for $j \geq t_1$ by the definition of the algorithm.
+
+    Substituting the value of $\hg'_j = (\mu_j^B+\mu_j^C)\cdot \frac{R_j+\Mtone}{n-j}$, and rearranging we get that we want to prove:
+    \begin{equation*}
+        (R_i+\Mtone) \leq (R_j+\Mtone) \cdot \frac{n-j - \sum_{p=j+1}^{i} (\mu_p^B+\mu_p^C)}{n-j}\,.
+    \end{equation*}
+
+    Note that $i < t_3^\star$, so in particular $i < n$.
+    We will now use the following claim:
+    \begin{restatable}{claim}{claimphasetworiproduct}\label{claim:phase-2-ri-product}
+        For $t_1\leq j\leq i \leq \min(t_3^\star, n - 1)$ we have the following equality that relates $R_j$ to $R_i$:
+        \begin{equation*}
+            R_j+\Mtone = (R_i + \Mtone) \cdot \frac{n-j - \sum_{\ell=j+1}^i \mu_\ell^D \cdot \frac{R_j+\Mtone}{R_{\ell-1}+\Mtone}}{n-i}\,.
+        \end{equation*}
+    \end{restatable}
+    The proof can be found in Section~\ref{sec:appendix-deriving-dual}.
+    Using Claim~\ref{claim:phase-2-ri-product}, we have that the following is true:
+    \begin{equation*}
+        (R_j + \Mtone)\cdot(n-i) = (R_i+\Mtone) \cdot (n-j) - \sum_{\ell=j+1}^i \mu_\ell^D \cdot \frac{(R_j+\Mtone)\cdot (R_i+\Mtone)}{R_{\ell-1}+\Mtone}\,.
+    \end{equation*}
+    Rearranging gives:
+    \begin{align*}
+        R_i+\Mtone 
+        &= (R_j + \Mtone)\cdot\frac{n-i+\sum_{\ell=j+1}^i \mu_\ell^D \cdot \frac{R_i+\Mtone}{R_{\ell-1}+\Mtone}}{n-j} 
+        \leq (R_j + \Mtone)\cdot\frac{n-i+\sum_{\ell=j+1}^i \mu_\ell^D}{n-j}\\
+        &= (R_j + \Mtone)\cdot\frac{n-j-\sum_{\ell=j+1}^i (1-\mu_\ell^D)}{n-j} 
+        = (R_j + \Mtone)\cdot\frac{n-j-\sum_{\ell=j+1}^i (\mu_\ell^B+\mu_\ell^C)}{n-j}\,,
+    \end{align*}
+    where we have used that $R_i\leq R_{\ell-1}$ if $\ell\leq i$, and that $1-\mu_\ell^D = \mu_\ell^B + \mu_\ell^C$ by Observation \ref{obs:mu-sum}. This is exactly the inequality we wanted to prove,
+    which proves that the $(m_i)$ constraint is satisfied for $t_1 < i < t_3^\star$.
+    
+    \smallskip
+    \noindent\textbf{Case 4: $i=t_3^\star$.} For $i=t_3^\star$, we want to prove that:
+    \begin{equation*}
+        \text{pool\_credit}_{t_3^\star} = \sum_{p=1}^{t_3^\star} \sum_{j=1}^p \left(s_{p,j} - t_{p,j}\right) \geq 0\,.
+    \end{equation*}
+    Let us now add, for all $j\leq t_3^\star$, $\text{credit}_{t_3^\star,j}$ which we know the exact value of thanks to Proposition~\ref{prop:credit-ij-values-early} and Proposition~\ref{prop:credit-ij-values}. Also note that if $f_j > t_3^\star$ then $\mu_j^D = 1$. 
+    % Then, also, $\sum_{i'=j}^{t_3^\star} \sigma_{i',j}\cdot \mu_j^A \cdot \ind[f_j > t_3^\star] = 0$ for all $j \leq t_3^\star$, since $\mu_j^A = 0$ when $f_j > t_3^\star$, because $\mu_j^D=1$ so $\mu_j^A=0$. 
+    Using the propositions, then we have:
+    \begin{align*}
+        \sum_{j=1}^{t_3^\star} \text{credit}_{t_3^\star,j} &= \sum_{j=1}^{t_3^\star}\Paren{ \sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{t_3^\star} \left(g_{p,j} - s_{p,j} + t_{p,j}\right)} \\
+        &= \sum_{j=1}^{t_3^\star} \text{credit}_{t_3^\star,j} \cdot \ind[f_j \leq t_3^\star] + \sum_{j=1}^{t_3^\star} \text{credit}_{t_3^\star,j} \cdot \ind[f_j > t_3^\star]\\
+        &= \sum_{j=1}^{t_3^\star} \Paren{1 - \Mcoeffmone\cdot \left[1-\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right] \cdot \mu_j^A - \Mcoeffmone\cdot \ind[f_j < t_3^\star] \cdot ( \mu_j^B +  \mu_j^C)} \cdot \ind[f_j \leq t_3^\star]\\
+        &\quad + \sum_{j=1}^{t_3^\star} \Paren{R_{j-1} - R_{t_3^\star}} \cdot \ind[f_j > t_3^\star]\\
+        &= t_3^\star - \Mcoeffmone\cdot \sum_{j=1}^{t_1} \left[1-\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right] \cdot \mu_j^A
+         - \Mcoeffmone \cdot \sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<t_3^\star] \\
+        &\quad - \sum_{j=1}^{t_3^\star}(1-R_{j-1}) \cdot \ind[f_j > t_3^\star]\,.
+    \end{align*}
+    
+    Adding this to our inequality, since all the $s_{i,j}$ and $t_{i,j}$ terms cancel out, we get that we need to prove:
+    \begin{align*}
+        \sum_{j=1}^{t_3^\star} \left(\sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{t_3^\star} g_{p,j} \right)&\geq t_3^\star - \Mcoeffmone\cdot \sum_{j=1}^{t_1}\left[1-\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right] \cdot \mu_j^A 
+        - \Mcoeffmone \cdot \sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<t_3^\star] \\
+        & \- \sum_{j=1}^{t_3^\star}(1-R_{j-1}) \cdot \ind[t_3^\star<f_j]\,.
+    \end{align*}
+    
+    Focusing on the left-hand side, notice that $g_{i,j}\leq \hg_i = 0$ for $i>t_3^\star$, and thus, we can state the following:
+    \begin{align*}
+        \sum_{j=1}^{t_3^\star} &\left(\sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{t_3^\star} g_{p,j} \right) 
+        =\sum_{j=1}^n \left(\sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{n} g_{p,j} \right) 
+        = \sum_{j=1}^n \sum_{p=1}^{n} g_{p,j}= \\
+        &= n - \Mcoeffmone\cdot \sum_{j=1}^{t_1} \mu_j^A \cdot\left[1 -\frac{(\MRttwo-R_{f_j})^+}{\MRttwo}\right] - \Mcoeffmone\cdot \sum_{j=t_1+1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+
+    \end{align*}
+    where we have used Lemma~\ref{obs:sum-of-generated-credit-column} to get the correct values. Thus, the previous inequality reduces to:
+    \begin{align*}
+        n - \Mcoeffmone\cdot &\sum_{j=1}^{t_1} \mu_j^A \cdot\left[1 -\frac{(\MRttwo-R_{f_j})^+}{\MRttwo}\right]- \Mcoeffmone\cdot \sum_{j=t_1+1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+ \geq \\
+        &\geq t_3^\star - \Mcoeffmone\cdot \sum_{j=1}^{t_1}\left[1-\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right] \cdot \mu_j^A 
+        - \Mcoeffmone \cdot \sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<t_3^\star] 
+        - \sum_{j=1}^{t_3^\star}(1-R_{j-1}) \cdot \ind[t_3^\star<f_j]\,.
+    \end{align*}
+    Using the fact that $n-t_3^\star \geq \Mcoeffmone\cdot \sum_{j=t_3^\star+1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+$ because $\Mcoeffmone \leq 1$ and that $\sum_{j=1}^{t_3^\star}(1-R_{j-1})\cdot \ind[t_3^\star<f_j] \geq \Mcoeffmone\cdot \sum_{j=1}^{t_3^\star} \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+ \cdot \ind[t_3^\star<f_j]$ because $(1-R_{j-1})\geq \Mcoeffmone \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+$ as $\Mcoeffmone\leq \MRttwo$, if we cancel things out, using also that $f_j < t_3^\star$ implies $\mu_j^D =0$, it is sufficient to prove that:
+    \begin{align*}
+        \sum_{j=1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<t_3^\star] \geq 
+         \sum_{j=1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+ \cdot \ind[f_j=t_3^\star]\,.
+    \end{align*}
+    At this point we use that inputs satisfy the admissibility property defined in Property~\ref{property:admissible-frontier-input}, which is the following:
+    Let $S = \Set{j \in [n] \mid f_j = t_3^\star}$. Then $\mu_j^D \in \{0, 1\}$ for all $j$ except at most one of them, and also if $j_1, j_2 \in S$ with $j_1 \leq j_2$ then $\mu_{j_1}^D \geq \mu_{j_2}^D$. Let $p^\star$ be the maximum index in $S$ such that $\mu_{p^\star}^D > 0$, and $0$ if no such index exists. Note that $p^\star \leq t_3^\star$.
+    If $p^\star = 0$, then the RHS is zero, so the claim follows trivially.
+    Let then $p^\star > 0$.
+    For the LHS we have 
+    \begin{align*}
+    \sum_{j=1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<t_3^\star]
+    &\geq \sum_{j=1}^{p^\star} (\mu_j^B+\mu_j^C)\cdot \ind[f_j<t_3^\star]
+    = \sum_{j=1}^{p^\star - 1} (\mu_j^B+\mu_j^C) + (\mu_{p^\star}^B + \mu_{p^\star}^C) \cdot \ind[f_{p^\star} < t_3^\star]\\
+    &= \sum_{j=1}^{p^\star - 1} (\mu_j^B+\mu_j^C)
+    \end{align*}
+    where we used that if $j < p^\star$ and $f_j \geq t_3^\star$ then $\mu_j^D = 1$ and hence $\mu_j^B = \mu_j^C = 0$, and also that $f_{p^\star} = t_3^\star$ since $p^\star \in S$.
+    For the RHS we have
+    \begin{align*}
+    \sum_{j=1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+ \cdot \ind[f_j=t_3^\star]
+    &= \sum_{j=1}^{p^\star} \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+ \cdot \ind[f_j=t_3^\star]
+    \leq \sum_{j=1}^{p^\star} \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+\,.
+    \end{align*}
+    Therefore, it suffices to prove that 
+    \[\sum_{j=1}^{p^\star - 1} (\mu_j^B+\mu_j^C) \geq \sum_{j=1}^{p^\star} \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+\,.\]
+    We note that if $j \leq t_2$ then $R_{j-1} \geq \MRttwo$ so we can assume that $p^\star \geq t_2 + 1$, and then what we need to prove is by the same reason equivalent to
+    \[\sum_{j=1}^{p^\star - 1} (\mu_j^B+\mu_j^C) \geq \sum_{j=t_2+1}^{p^\star} \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+\,.\]
+    We use the following two claims.
+    
+    \begin{restatable}{claim}{claimphasetworiproductprime}\label{claim:phase-2-ri-product-prime}
+    For $t_1 - 1\leq j\leq i \leq \min(t_3^\star, n - 1)$ we have the following equality that relates $R'_j$ to $R'_i$:
+    \begin{equation*}
+        R'_j+\Mtone = (R'_i + \Mtone) \cdot \frac{n-j - \sum_{\ell=j+1}^i (1- \mu_{\ell}^B - \mu_{\ell}^C) \cdot \frac{R'_j+\Mtone}{R'_{\ell-1}+\Mtone}}{n-i}\,.
+    \end{equation*}
+    \end{restatable}
+    We prove it in Section~\ref{sec:appendix-deriving-dual}.
+    Then the following claim proves this result.
+    \begin{claim}\label{clm:b-size2}
+    If $p^\star \geq t_2 + 1$, then
+    \[\sum_{j=1}^{p^\star - 1} (\mu_j^B+\mu_j^C) \geq \sum_{j=t_2+1}^{p^\star} \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+\,.\]
+    \end{claim}
+    \begin{proof}
+        We analyze the evolution of the remaining budget during Phase 2.
+        By Claim~\ref{claim:phase-2-ri-product-prime} and choosing $j=t_1 - 1$ and $i=p^\star - 1$, we have that:
+        \begin{equation*}
+            R'_{t_1 - 1} + \Mtone = (R'_{p^\star - 1} + \Mtone) \cdot \frac{n-t_1+1-\sum_{\ell=t_1}^{p^\star - 1} (1-\mu_{\ell}^B-\mu_{\ell}^C) \cdot \frac{R'_{t_1-1}+\Mtone}{R'_{\ell-1}+\Mtone}}{n-p^\star+1}\,.
+        \end{equation*}
+        For the numerator, we can do the following:
+        \begin{align*}
+            &n-t_1+1-\sum_{\ell=t_1}^{p^\star-1} (1-\mu_{\ell}^B-\mu_{\ell}^C) \cdot \frac{R'_{t_1-1}+\Mtone}{R'_{\ell-1}+\Mtone}\\
+            &= n-p^\star+1 + \sum_{\ell=t_1}^{p^\star-1}(\mu_{\ell}^B+\mu_{\ell}^C)-\sum_{\ell=t_1}^{p^\star-1} (1-\mu_{\ell}^B-\mu_{\ell}^C) \cdot \frac{R'_{t_1-1}-R'_{\ell-1}}{R'_{\ell-1}+\Mtone}\,.
+        \end{align*}
+        
+        Let us prove that $\frac{R'_{t_1 - 1}-R'_{\ell-1}}{R'_{\ell-1}+\Mtone} \geq \left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+$ for $t_1 \leq \ell\leq p^\star$. Using the fact that $R'_{t_1 - 1}=\MRtone=1-\Mtone$, we have that the left-hand side is: $\frac{1-\Mtone-R'_{\ell-1}}{R'_{\ell-1}+\Mtone}$. Then it is easily checked that this is lower bounded by $\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+$ for $R'_{\ell - 1} \leq 1-\Mtone$: i.e., that $\frac{1-\Mtone-x}{\Mtone+x} \geq [1-\frac{x}{\MRttwo}]^+$ for $0 \leq x \leq 1-\Mtone$, which is true by Property~\ref{property:function-tau}.
+        
+        Then we get the following:
+        \begin{align*}
+            \sum_{\ell=t_1}^{p^\star-1}\mu_\ell^B +\sum_{\ell=t_1}^{p^\star-1}\mu_\ell^C
+            &\geq \frac{R'_{t_1 - 1}-R'_{p^\star-1}}{R'_{p^\star-1}+\Mtone} \cdot (n-p^\star+1) + \sum_{\ell=t_1}^{p^\star-1} (1-\mu_{\ell}^B-\mu_{\ell}^C)\cdot\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+\\
+            &\geq \frac{R'_{t_1 - 1}-R'_{p^\star-1}}{R'_{p^\star-1}+\Mtone} + \sum_{\ell=t_1}^{p^\star-1} (1-\mu_{\ell}^B-\mu_{\ell}^C)\cdot\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+\\
+            &\geq \left[1-\frac{R'_{p^\star-1}}{\MRttwo}\right]^+ + \sum_{\ell=t_1}^{p^\star-1} (1-\mu_{\ell}^B-\mu_{\ell}^C)\cdot\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+\\
+            &\geq \sum_{\ell=t_2+1}^{p^\star} \mu_{\ell}^D \cdot\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+\,.
+        \end{align*}
+        Then, because $R_{\ell - 1} = R'_{\ell - 1}$ for all $\ell \geq t_2 + 1$, the conclusion follows.
+    \end{proof}
+    
+    
+    \smallskip
+    \noindent\textbf{Case 5: $t_3^\star<i$.} For the case $t_3^\star <i\leq n$, let us observe that the $\text{pool\_credit}_i$ is non-increasing with respect to $i$, i.e.:
+    \begin{equation*}
+        \text{pool\_credit}_i \geq \text{pool\_credit}_{i+1} \geq \dots \geq \text{pool\_credit}_{n}\,.
+    \end{equation*}
+    This is because the positive $s_{i,j}$ terms are zero for $i>t_3^\star+1$, because from $t_3^\star$ onward $\hg_{i} = 0$ and, since $f_j+1 \leq t_3^\star+1$ for $\mu_j^D<1$, the extra $\Mcoeffmone$ added to $s_{f_j+1,j}$ by elements in $B$ and $C$ has already happened. On the other hand, the negative sum of $t_{i,j}$ terms can have new non-zero elements for increasing $i$ after $t_3^\star+1$. Thus, proving the inequality for $\text{pool\_credit}_{n}$ is sufficient:
+    \begin{equation*}
+        \text{pool\_credit}_{n} = \sum_{j=1}^n \sum_{p=j}^n \left(s_{p,j} - t_{p,j}\right) \geq 0\,.
+    \end{equation*}
+    Let us now add, for all $j$, $\text{credit}_{n,j}$, for which we know the exact value thanks to Proposition~\ref{prop:credit-ij-values}. As a refresher, this is:
+    \begin{align*}
+        \sum_{j=1}^{n} \text{credit}_{n,j} &= \sum_{j=1}^{n}\Paren{ \sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{n} \left(g_{p,j} - s_{p,j} + t_{p,j}\right)} \\
+    &= \sum_{j=1}^{n} \Paren{1 - \Mcoeffmone\cdot \left[1-\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right] \cdot \mu_j^A - \Mcoeffmone\cdot \ind[f_j < n] \cdot ( \mu_j^B +  \mu_j^C)}\\
+    &= n - \Mcoeffmone\cdot \sum_{j=1}^{t_1} \left[1-\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right] \cdot \mu_j^A - \Mcoeffmone \cdot \sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<n]\,.
+    \end{align*}
+    Thus, since all the $s_{i,j}$ and $t_{i,j}$ terms cancel out, we get that it is equivalent to prove:
+    \begin{equation*}
+        \sum_{j=1}^n \left(\sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{n} g_{p,j} \right)\geq n - \Mcoeffmone\cdot \sum_{j=1}^{n}\left[1-\frac{[\MRttwo-R_{f_j}]^+}{\MRttwo}\right] \cdot \mu_j^A- \Mcoeffmone \cdot \sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<n]\,.
+    \end{equation*}
+    Now, if we center on the left-hand side, we can reorganize the $g_{i,j}$ terms to see that we in fact have:
+    \begin{align*}
+        \sum_{j=1}^n &\left(\sum_{q=j+1}^{n} g_{j,q} + \sum_{p=j}^{n} g_{p,j} \right) 
+        = \sum_{j=1}^n \sum_{p=1}^{n} g_{p,j}= 
+         n - \Mcoeffmone\cdot \sum_{j=1}^{t_1} \mu_j^A \cdot\left[1 -\frac{(\MRttwo-R_{f_j})^+}{\MRttwo}\right] - \Mcoeffmone\cdot \sum_{j=t_1+1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+
+    \end{align*}
+    where we have used Lemma~\ref{obs:sum-of-generated-credit-column} to get the correct values. So we end up having to prove the following:
+    \begin{align*}
+        n - \Mcoeffmone\cdot \sum_{j=1}^{t_1} \mu_j^A \cdot&\left[1 -\frac{(\MRttwo-R_{f_j})^+}{\MRttwo}\right]- \Mcoeffmone\cdot \sum_{j=t_1+1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+ \\
+        &\geq n - \Mcoeffmone\cdot \sum_{j=1}^{t_1} \mu_j^A \cdot\left[1 -\frac{(\MRttwo-R_{f_j})^+}{\MRttwo}\right] - \Mcoeffmone \cdot \sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<n]
+    \end{align*}
+    which by using the fact that for $j\leq t_1$ we have that $R_{j-1}\geq \MRtone\geq \theta$, we can add their corresponding $\mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+$ as they are $0$, and thus, by simplifying this becomes:
+    \begin{equation*}
+        \sum_{j=1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+ \leq \sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C)\cdot \ind[f_j<n]\,.
+    \end{equation*}
+    Note that $i > t_3^\star$, so $t_3^\star = n$ is impossible.
+    Then we have $(\mu_j^B+\mu_j^C)\cdot \ind[f_j=n] = 0$ because $f_j > t_3^\star$, so equivalently we need to prove that 
+    \begin{equation*}
+        \sum_{j=1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+ \leq \sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C)\,.
+    \end{equation*}
+    Through the following claim, this result is true.
+    \begin{claim}\label{clm:b-size}
+        We have
+        \[\sum_{j=t_1}^{t_3^\star}(\mu_j^B+\mu_j^C) \geq \sum_{j=1}^n \mu_j^D \cdot\left[1 -\frac{R_{j-1}}{\MRttwo}\right]^+\,.\]
+    \end{claim}
+
+    \begin{proof}
+        We analyze the evolution of the remaining budget during Phase 2.
+        By Claim~\ref{claim:phase-2-ri-product-prime} and choosing $j=t_1 - 1$ and $i=t_3^\star$, we have that:
+        \begin{equation*}
+            R'_{t_1 - 1} + \Mtone = (R'_{t_3^\star} + \Mtone) \cdot \frac{n-t_1+1-\sum_{\ell=t_1}^{t_3^\star} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot \frac{R'_{t_1-1}+\Mtone}{R'_{\ell-1}+\Mtone}}{n-t_3^\star}\,.
+        \end{equation*}
+        For the numerator, we can do the following:
+        \begin{align*}
+            &n-t_1+1-\sum_{\ell=t_1}^{t_3^\star} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot \frac{R'_{t_1-1}+\Mtone}{R'_{\ell-1}+\Mtone}\\
+            &= n-t_3^\star + \sum_{\ell=t_1}^{t_3^\star}(\mu_{\ell}^B+\mu_{\ell}^C)-\sum_{\ell=t_1}^{t_3^\star} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot \frac{R'_{t_1 - 1}-R'_{\ell-1}}{R'_{\ell-1}+\Mtone}\,.
+        \end{align*}
+
+        Let us prove that $\frac{R'_{t_1 - 1}-R'_{\ell-1}}{R'_{\ell-1}+\Mtone} \geq \left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+$ for $t_1 \leq \ell\leq t_3^\star$. Using the fact that $R'_{t_1 - 1}=\MRtone=1-\Mtone$, we have that the left-hand side is: $\frac{1-\Mtone-R'_{\ell-1}}{R'_{\ell-1}+\Mtone}$. Then it is easily checked that this is lower bounded by $\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+$ for $R'_{\ell - 1} \leq 1-\Mtone$: i.e., that $\frac{1-\Mtone-x}{\Mtone+x} \geq [1-\frac{x}{\MRttwo}]^+$ for $0 \leq x \leq \MRtone$, which is true by Property~\ref{property:function-tau}.
+        
+        Then, rearranging, we get the following:
+        \begin{equation*}
+            \sum_{\ell=t_1}^{t_3^\star}(\mu_{\ell}^B+\mu_{\ell}^C) \geq \frac{R'_{t_1 - 1}-R'_{t_3^\star}}{R'_{t_3^\star}+\Mtone} \cdot (n-t_3^\star) + \sum_{\ell=t_1}^{t_3^\star} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+\,.
+        \end{equation*}
+        Since $R'_{t_1-1}=\MRtone$ and $R'_{t_3^\star}=0$, the first term on the right is equal to $\frac{\MRtone}{\Mtone}(n-t_3^\star)$, and hence is at least $n-t_3^\star$. Therefore the previous bound implies in particular that
+        \begin{equation*}
+            \sum_{\ell=t_1}^{t_3^\star}(\mu_{\ell}^B+\mu_{\ell}^C) \geq (n-t_3^\star) + \sum_{\ell=t_1}^{t_3^\star} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+\,.
+        \end{equation*}
+        We are nearly done. First, let us see that for $\ell>t_3^\star$, $R'_{\ell-1}=0$, and thus, $\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+=1$, making:
+        \begin{equation*}
+            \sum_{\ell=t_3^\star+1}^{n} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot\left[1-\frac{R_{\ell-1}}{\MRttwo}\right]^+=n-t_3^\star\,.
+        \end{equation*}
+        Then, for $\ell\leq t_1$, we have that $R_{\ell-1}\geq \MRtone\geq \MRttwo$, and thus, 
+        \begin{equation*}
+            \sum_{\ell=1}^{t_1} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot\left[1-\frac{R_{\ell-1}}{\MRttwo}\right]^+=0\,.
+        \end{equation*}
+        Also $R_{\ell - 1} = R'_{\ell - 1}$ for all $\ell \geq t_1 + 1$.
+        Thus, we have that
+        \begin{align*}
+            (n-t_3^\star) + \sum_{\ell=t_1+1}^{t_3^\star} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot\left[1-\frac{R'_{\ell-1}}{\MRttwo}\right]^+
+            &= \sum_{\ell=1}^{n} (1 - \mu_{\ell}^B - \mu_{\ell}^C) \cdot\left[1-\frac{R_{\ell-1}}{\MRttwo}\right]^+
+            \geq \sum_{\ell=1}^{n} \mu_{\ell}^D \cdot\left[1-\frac{R_{\ell-1}}{\MRttwo}\right]^+\,.
+        \end{align*}
+
+    \end{proof}
+
+    Thus, we have proven all the different possible cases, and thus, the constraint $(m_i)$ holds.
+\end{proof}
+
+Finally, we are left with the $(d_j)$ constraints, which are the ones that define the objective function to be minimized.
+
+
+\begin{lemma}\label{lem:d-i-constraints}
+    The $(d_{j})$ constraints are satisfied for all $1 \leq j \leq n$, i.e.:
+    \begin{equation*}
+        \Mcoeff\cdot \sum_{i=1}^n g_{i,j} + \sum_{i=j}^n (s_{i,j} + t_{i,j}) \leq \rho = \Mrho\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    The proof follows by Lemmas \ref{lem:budget-A}, \ref{lem:budget-B}, \ref{lem:budget-C} and \ref{lem:budget-D} for the cases that the client $j$ belongs integrally to $A$, $B$, $C$ or $D$ respectively. For a fractionally assigned client $j$, the proof follows from Lemma \ref{lem:budget-fractional}.
+\end{proof}
+
+The proof of Lemma~\ref{lem:general-case-procedure} follows:
+
+% \generalcaseprocedure*
+
+\begin{proof}[Proof of Lemma~\ref{lem:general-case-procedure}]
+    From Lemma \ref{lem:f-constraint}, \ref{lem:mi-constraints}, \ref{lem:d-i-constraints}, \ref{lem:rij-constraints}, \ref{lem:gamma-beta-constraints} and \ref{lem:nonneg}, we have that all constraints of the linear program are satisfied. Therefore the solution is feasible. We also have that the objective value of the solution is $\Mrho$, and thus the lemma holds.
+\end{proof}

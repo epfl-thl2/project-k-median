@@ -1,0 +1,71 @@
+\section{Upper Bound on the Factor-Revealing Program}\label{sec:195-dual-fitting}
+% The goal of this section is to prove Theorem~\ref{thm:1.95-frp}.
+% \ola{Also the beginning of section 6 is confusing. Why is the goal twofold. Isn’t there one goal: to give a formal proof of the 1.95 upper bound?
+% And I have no idea why we talk about log-adaptive there…
+% Basically the whole point of this section is to prove Thm 4.5
+% Lemma 6.4 is circular. It refers to itself}
+
+The goal of this section is to prove Theorem~\ref{thm:1.95-frp}.
+In Section~\ref{sec:proof-thm-195} we prove Theorem~\ref{thm:1.95-frp} from two key lemmas whose proof we complete in further subsections.
+Section~\ref{sec:general-case-procedure} defines a procedure that adaptively computes a feasible solution based on some input, and Section~\ref{sec:general-case-proof} proves that this procedure indeed gives a feasible solution of value $\Mrho$ for the corresponding inner program of the factor-revealing dual from Definition~\ref{def:frdual}.
+Finally, in Section~\ref{sec:good-aux-existence} we show that there always exists at least one good choice of advice variables used as input for the procedure defined in Section~\ref{sec:general-case-procedure}.
+
+\subsection{Proving a Tight Upper Bound}\label{sec:proof-thm-195}
+% In this section we give the proof of Theorem~\ref{thm:1.95-frp}, deferring the proofs of two lemmas to the next sections. Let us first restate the theorem:
+% \thmupperboundfrp*
+
+The goal is to design feasible solutions of value $\Mrho$ for every inner linear program in the factor-revealing dual as defined in Definition~\ref{def:frdual}, since the equivalence between the factor revealing programs explained in Lemma~\ref{lemma:mathematical-program-1.99} makes it sufficient. Let us restate both the program and the lemma here:
+\deffrdual*
+\lemmamathematicalprogram*
+As stated before, we leave the proofs to Appendix~\ref{sec:appendix-deriving-dual}.
+
+\smallskip First, let us observe that we do not need to treat all the factor-revealing cases:
+\begin{observation}
+\label{obs:n-not-zero}
+For $n=1$ the value of the program in Lemma~\ref{lemma:mathematical-program-1.99} is trivially upper bounded by $\Mcoeff$.
+For the rest of the proof we assume that $n \geq 2$.
+\end{observation}
+\begin{observation}
+\label{obs:b1}
+We assume without loss of generality that $b_{n,j} = 1$ for all $j = 1, \ldots, n$. This is without loss of generality because it can only make the constraints in Lemma~\ref{lemma:mathematical-program-1.99} stronger.
+\end{observation}
+Then, constrained to these cases, the proof follows equally as it was explained in Section~\ref{sec:informal-proof-thm-195}.
+In Section~\ref{sec:general-case-procedure}, we define a procedure that adaptively computes a feasible solution based on some input. More specifically, the procedure takes as input the values of $b_{i,j}$ and some advice variables $\Gamma$ and returns, for some choices of $\Gamma$, an empty output ($\perp$), and for others, a feasible solution of value $\Mrho$ to the dual program in Definition~\ref{def:frdual} for the $b_{i,j}$ values.
+We say that the advice is ``correct'' if the first event does not happen. This is seen in the following lemma:
+
+\begin{restatable}{lemma}{generalcaseprocedure}\label{lem:general-case-procedure}
+    For $n \geq 2$, an assignment of the $b_{i,j}\in\{0,1\}$ values with $b_{n,j} = 1$ for all $j = 1, \ldots, n$, a correct advice $\Gamma$ and a value of $\Mcoeff\in[1,1.224]$, the procedure described in Section~\ref{sec:general-case-procedure} generates a $\Mrho$ feasible solution for the corresponding inner program of the factor-revealing dual from Definition~\ref{def:frdual}.
+\end{restatable}
+
+To be able to use this previous lemma, we will also prove that the always exists at least one correct set of advice variables:
+
+\begin{restatable}{lemma}{goodtauexistence}\label{lem:good-tau-existence}
+    For $n \geq 2$ and any assignment of the $b_{i,j}\in\{0,1\}$ with $b_{n,j} = 1$ for all $j = 1, \ldots, n$, there always exists a correct advice $\Gamma$ with respect to the procedure in Section~\ref{sec:general-case-procedure}.
+\end{restatable}
+
+Thus, if we combine together these two lemmas we can conclude that there always exists a solution:
+
+\begin{corollary}\label{cor:exists-certificate}
+    For $n \geq 2$ and any given values of $b_{i,j}\in\{0,1\}$ with $b_{n,j} = 1$ for all $j = 1, \ldots, n$ with $\Mcoeff\in[1,1.224]$, there exists a $\Mrho$ feasible solution for the dual of the factor-revealing LP using the function $\beta_{\Mcoeff}(\alpha,d) = [\alpha - \Mcoeff d]^{+}$.
+\end{corollary}
+
+Now the proof of the theorem is direct.
+
+\begin{proof}[Proof of Theorem~\ref{thm:1.95-frp}]
+    Using Observation~\ref{obs:n-not-zero}, for $n=1$ we have a bound of $\Mrho$ since $\gamma\leq \Mrho$ for our range. From Observation~\ref{obs:b1}, we see that we can focus on only the cases with $b_{n,j}=1$ for all $j$. Then, from Corollary~\ref{cor:exists-certificate}, we get directly that since there exists a $\Mrho$ feasible solution for each of the inner linear programs, it implies all the whole program is upper-bounded by $\Mrho$. Thus, combining this with Lemma~\ref{lemma:mathematical-program-1.99} proves the theorem.
+\end{proof}
+
+What is left is to prove the two final lemmas which we do in the following sections, Lemma~\ref{lem:general-case-procedure} in Section~\ref{sec:general-case-proof} and Lemma~\ref{lem:good-tau-existence} in Section~\ref{sec:good-aux-existence}. The definition of the procedure follows in the next section.
+
+\subsection{General Case Procedure}\label{sec:general-case-procedure}
+% Define the algorithm/procedure which generates the funciton (given a value of tau)
+\input{factor-revealing/new_procedure.tex}
+
+\subsection{Proof of Lemma~\ref{lem:general-case-procedure}}\label{sec:general-case-proof}
+
+\input{factor-revealing/new-proof-general-case-procedure.tex}
+
+\newpage
+\subsection{Proof of Lemma~\ref{lem:good-tau-existence}}\label{sec:good-aux-existence}
+
+\input{factor-revealing/proof-good-tau-existence.tex}

@@ -1,0 +1,302 @@
+\section{Approximation Guarantees}
+\label{sec:approx_guarantee}
+In this section we develop the approximation analysis for Algorithm~\ref{alg:dual_generalized}. In the classical Greedy analysis of \cite{JMS02,JainMMSV03}, the guarantee is captured by a factor-revealing linear program. For a general bidding function $\beta$, the same high-level approach still applies, but the resulting optimization problem is no longer linear in general. We therefore begin by formulating a factor-revealing mathematical program whose optimum controls the worst-case LMP ratio of the algorithm.
+
+This framework will be used in two complementary ways. First, it allows us to explore simple families of bidding functions computationally and identify candidates that appear to improve on the classical factor-$2$ guarantee. Second, for the one-parameter family $\beta(\alpha,d)=[\alpha-\gamma d]^+$, it provides the starting point for a rigorous dual-fitting argument yielding our provable $1.95$-LMP guarantee. We first state the general factor-revealing program and its implication for the approximation ratio, and then turn to the computational and theoretical results.
+
+\begin{definition}[Factor-revealing Program]
+\label{def:frp}
+\text{Fix $n\ge 1$.}
+\begin{align}
+\max \quad & \sum_{j=1}^n \Paren{\sum_{k=j}^{n} \beta(r_{j,k}, r_{j,k+1}) + r_{j,n+1}} - f
+\label{eq:fr-obj}
+\\
+\text{s.t.}\quad 
+& \sum_{i=1}^{n} d_i \;=\; 1
+\qquad && && \text{(normalization)}
+\label{eq:fr-norm}
+\\
+& r_{j,k+1} \;\le\; r_{j,k}
+\qquad && \forall\, 1\le j \leq k \leq n && \text{(monotonicity of $r$)}
+\label{eq:fr-r-mono}
+\\
+& r_{k,k} \;\le\; r_{j,k} + d_k + d_j
+\qquad && \forall\, 1\le j<k\le n && \text{(triangle constraint)}
+\label{eq:fr-triangle}
+\\
+& r_{j, \ell} \leq r_{k, \ell} + d_k + d_j && \forall\, 1 \leq j \neq k < \ell \leq n + 1 && \text{(metric inequalities of $r$)}
+\label{eq:fr-r-metric}
+\\
+& \sum_{j=1}^{k-1} \beta(r_{j,k},d_j)
+  \;+\;
+  \sum_{j=k}^{n} \beta(r_{k,k},d_j)
+  \;\le\; f
+\qquad && \forall\, 1\le k\le n && \text{(facility constraint)}
+\label{eq:fr-facility}
+\\
+& d_j, f, r_{j,k} \;\ge\; 0
+\qquad && \forall\, j,k \text{ in range.} && \text{(nonnegativity)}
+\label{eq:fr-nonneg}
+\end{align}
+\end{definition}
+
+As in the classical analysis of \cite{JMS02,JainMMSV03}, the analysis can be reduced to a worst-case local configuration around a single facility of an optimal solution. Fix such a facility $i$ and index the clients $D^\prime$ assigned to it. 
+%Assuming the bidding function satisfies the properties discussed above, the same charging argument as in the classical Greedy analysis yields a factor-revealing mathematical program.
+To motivate the definition of the factor-revealing program in Definition~\ref{def:frp}, consider an execution of Algorithm \ref{alg:dual_generalized} where we order the clients in $D^\prime$ from $1$ to $n=|D^\prime|$ in increasing order of their final $\alpha$-values, $\alpha^\star_1 \le \alpha^\star_2 \le \dots \le \alpha^\star_n$. Equivalently, one can order the clients according to the order of events in which they become inactive.
+For the sake of the presentation we assume that no two clients become inactive in the same event.
+
+We set $d_j = d(i,j)$ to be the distance of client $j \in D^\prime$ to the fixed facility $i$. Note that the program is scale-invariant and we can normalize the distances by imposing $\eqref{eq:fr-norm}$. 
+%use variables $r_{j,i}$ to encode the successive connection radii that arise in the execution of Algorithm~\ref{alg:dual_generalized}. 
+For two clients $j < k$, set $r_{j,k} = d(j,S)$ as the connection cost of $j$ at the time of the algorithm just before $k$ becomes inactive. Moreover, $r_{j,j} = \alpha^\star_j$ will be equal to the final $\alpha$-value of a client $j$. 
+The first term of the objective 
+\begin{equation*}
+    \sum_{j=1}^n \Paren{\sum_{k=j}^{n} \beta(r_{j,k}, r_{j,k+1}) + r_{j,n+1}}
+\end{equation*}
+is equal to the cost of Algorithm \ref{alg:dual_generalized} for clients in $D^\prime$.
+For each client $j$, the sum 
+\[
+     \beta(r_{j,j}, r_{j,j+1}) + \sum_{k=j+1}^{n} \beta(r_{j,k}, r_{j,k+1})+ r_{j,n+1}
+\]
+is equal to 
+\[
+    \cost_j(S^\star)
+    =
+    \beta(\alpha_j^\star,d(i_0,j))
+    +
+    \sum_{\ell=0}^{t-1}\beta(d(i_\ell,j),d(i_{\ell+1},j))
+    +
+    d(i_t,j)\,.
+\]
+To verify this claim, remember that we define $r_{j,j} = \alpha^\star_j$ and $r_{j,k}$ to be the connection cost $d(j,S)$ at the time of the algorithm just before client $k$ becomes inactive. Thus, $r_{j,j+1} = d(i_0,j)$ since $j$ is connected to client $i_0$ once it goes inactive and before we open another facility. Similarly, if client $k$ becomes inactive when we open facility $i_{\ell+1}$, then $r_{j,k} = d(j, i_{\ell})$ and $r_{j,k+1} = d(j, i_{\ell+1})$. Remember that we assume that clients do not become inactive in the same event, so there is exactly one such client $k$. 
+Moreover, $r_{j,n+1}$ is equal to the connection cost of that client at the end of the algorithm, $d(i_t,j)$.
+%$\beta(r_{j,j}, r_{j,j+1}) = \beta(\alpha^\star_j, d(j,S))$ is the amount paid when $j$ becomes inactive.
+%Moreover, the sum $\sum_{k=j}^{n} \beta(r_{j,k}, r_{j,k+1})$ corresponds to the clients bids towards the facility opening costs.
+% After opening $i_0$, client $j$ will be inactive and $d(j,S) = d(j,i_0)$. Later, the algorithm will open some other facility $i_{\ell+1}$ setting client $k > j$ inactive. At that time $j$ will be connected to some facility $i_\ell \in S$. Now, the bid of $j$ towards opening the facility $i_{\ell+1}$ will be $\beta(r_{j,k}, r_{j,k+1}) = \beta(d(j,S), d(j,S\cup\{i_\ell\})) = \beta(d(i_\ell,j),d(i_{\ell+1},j))$. Summing up all these contributions in the objective pays for the facility opening cost of the algorithm. 
+
+Next, we will argue that $(r, d, f)$ is indeed feasible for the factor revealing program (Definition \ref{def:frp}).  The monotonicity constraint $\eqref{eq:fr-r-mono}$ follows from the monotonicity of $d(j,S)$. For the triangle constraint \eqref{eq:fr-triangle} note that the algorithm never increases the $\alpha$-value of an active client $j$ past $d(j,S)$. Now, let $i_0 \in S$ be the facility client $k$ is connected to $d(k,S) = d(k,i_0)$. Then,
+\begin{equation*}
+    r_{j,j} = \alpha^\star_j \leq d(j,S) \le d(j,i_0) \le d(j,i) + d(k,i) + d(k,i_0) = r_{j,k} + d_j + d_k\,.
+\end{equation*}
+Similarly, for the metric inequality constraint \eqref{eq:fr-r-metric}, let $i_1$ and $i_2$ be the facilities $j$ and $k$ are connected to when $\ell > j,k$ becomes inactive, respectively. Then
+\begin{equation*}
+    r_{j,\ell} = d(j, i_1) \le d(j,i_2) \le d(j,i) + d(k,i) + d(k,i_2) = r_{k,\ell} + d_k + d_j\,.
+\end{equation*}
+Next, we consider the facility constraint \eqref{eq:fr-facility} and the time in the algorithm when client $k$ becomes inactive. 
+Again, by the simplifying assumption, no other client becomes inactive together with $k$. Then all clients $j < k$ are already inactive and their bids are equal to $ \beta(d(j,S), d(j,i)) = \beta(r_{j,k}, d_j)$. Similarly, all clients $j \ge k$ are still active and bid with the current $\alpha$-value which is equal to $\alpha^\star_k$ as $k$ becomes inactive at that time. Thus, all clients $j \ge k$ bid $\beta(\alpha^\star_k, d(i,j)) = \beta(r_{k,k}, d_j)$. The inequality holds because the sum of bids towards a facility never exceeds the opening cost.   
+
+
+An upper bound on the optimum of the factor-revealing program immediately yields an LMP-approximation guarantee for Algorithm~\ref{alg:dual_generalized}. The following theorem states this reduction for our generalized bidding setting. 
+
+\begin{restatable}{theorem}{theoremfacilitylocation}
+\label{theorem:facility-location}
+    Let $\rho \geq 1$ be an upper bound on the optimal value of the factor-revealing program in Definition~\ref{def:frp} over all $n \geq 1$.
+    Then, Algorithm \ref{alg:dual_generalized} run with facility cost $\hat{f} = \rho \cdot f$ is a $\rho$-LMP approximation algorithm for UFL instances with facility cost $f$.
+    %outputs a set of facilities $S^\star$ such that
+    %\begin{equation*}\sum_{j \in D} d(j, S^\star) \leq \rho \cdot (\mathrm{OPT} - |S^\star| \cdot f)\,.\end{equation*}
+\end{restatable}
+The proof of Theorem \ref{theorem:facility-location} is similar to the proof of Lemma 3 in \cite{JMS02} and relies on the observations made above. The proof is left for the Appendix~\ref{sec:proof-lmp-approx-ratio-greedy}. 
+
+Given Theorem~\ref{theorem:facility-location}, to upper bound the LMP-approximation ratio of Algorithm \ref{alg:dual_generalized} it is enough to upper bound the optimum of the factor-revealing program in Definition~\ref{def:frp} over all $n \geq 1$. For a general bidding function, obtaining such an upper bound appears difficult analytically, and is non-trivial even computationally.
+We proceed in two steps.
+We first study the program computationally for natural parametric families of bids in order to identify promising candidates.
+We then turn to the one-parameter family $\beta(\alpha,d)=[\alpha-\gamma d]^+$, for which we give a rigorous dual-fitting analysis.
+
+% This program is defined for any bidding function $\beta(\alpha,d)$ that satisfies that properties shown in \toni{properties}. For the rest of the section, however, we will center on 
+
+\subsection{Computational Evidence}
+
+% The purpose of this subsection is to identify promising bidding functions and to formulate conjectures suggested by computation. The rigorous approximation guarantee proved in this paper appears in the next subsection. \rares{This is the last sentence above}
+
+Computationally, we ran experiments with the families of bidding functions
+% \ola{$\gamma \geq 1$ and $\gamma_1, \gamma_2 \geq 1$ right?}
+\begin{equation*}
+    \beta(\alpha,d) = [\alpha - \gamma d]^+
+    \qquad\text{and}\qquad
+    \beta(\alpha,d) = \bigl[\max(\alpha - \gamma_1 d,\gamma_2\alpha - \gamma_2 d)\bigr]^+
+\end{equation*}
+for $\gamma \geq 1$ and $\gamma_1, \gamma_2 \geq 1$.
+In the regime $0 \le d \le \alpha$, these functions capture nonnegative piecewise-linear bids with two linear pieces satisfying $\beta(\alpha,0)=\alpha$ and $\beta(\alpha,d)\le \alpha-d$.
+These bidding functions are admissible according to the conditions in Section~\ref{sec:natural-properties-bidding}.
+% \ola{The properties are not necessary for the definition of the mathematical program. They are necessary for the theorem.} 
+We did not run experiments with bidding function with three or more linear pieces, as they were too computationally demanding.
+
+For each choice of parameters, we formulated the corresponding factor-revealing problem as a mixed-integer linear program and solved it using Gurobi~\cite{gurobi}. We first performed a coarse parameter sweep for $n=8$ in order to localize promising regions, and then refined the search within this region while increasing $n$ up to $14$. Figure~\ref{fig:test} shows the candidate functions identified by this search, together with the parameter sweep for the two-piece family for $n=8$. As the optimum value of the factor-revealing program depends on $n$, the values shown in Figure~\ref{fig:test}(b) for $n=8$ are naturally lower than their asymptotic values; we expect the asymptotic values to converge to the limit with a rate of order $1/n$.
+
+%in particular, values below $1.8$ should be interpreted as a finite-$n$ effect of order $1/n$, rather than as a contradiction.
+
+% \ola{Is the following sentence correct english? I find it hard to parse.}
+The strongest candidates all had optimal solutions to the factor-revealing program that always satisfied
+\begin{equation*}
+    d_1 = 1
+    \qquad\text{and}\qquad
+    d_2 = \cdots = d_n = 0\,.
+\end{equation*}
+Under this additional restriction, the factor-revealing value can be computed analytically for all $n$. For the one-piece bid $[\alpha - 1.28d]^+$, the value under this restriction is approximately $1.922 - 1/n$, while for the two-piece bid $\max(\alpha - 1.224d,\, 0.548\alpha - 0.548d)$ it is approximately $1.889 - 1/n$. This suggests that the relevant worst-case behavior for these families may already be captured by this simple setting of $d$. We summarize these observations in the following conjectures. 
+
+\begin{conjecture}[One-piece bid]
+\label{conj:one-piece-192}
+For every $n \ge 1$, the factor-revealing program of Definition~\ref{def:frp} with bidding function
+\begin{equation*}
+\beta(\alpha,d) = [\alpha - 1.28\cdot d]^+
+\end{equation*}
+has optimal value at most $1.922$. Consequently, Algorithm~\ref{alg:dual_generalized} with this bidding function is a $1.922$-LMP approximation algorithm. 
+% \toni{if we state conjecture, should a bound of $2-(\gamma-1)^2$ for general $\gamma$ or just specific $\gamma=1.28$ and $\rho=1.92$?} \ola{But it cannot hold for $\gamma$ much bigger than $1.28$ right?} \toni{$1.28$ is the limit}
+\end{conjecture}
+
+\begin{conjecture}[Two-piece bid]
+\label{conj:two-piece-189}
+For every $n \ge 1$, the factor-revealing program of Definition~\ref{def:frp} with bidding function
+\begin{equation*}
+\beta(\alpha,d) = \bigl[\max(\alpha - 1.224\cdot d,\, 0.548\cdot \alpha - 0.548\cdot d)\bigr]^+
+\end{equation*}
+has optimal value at most $1.889$. Consequently, Algorithm~\ref{alg:dual_generalized} with this bidding function is a $1.889$-LMP approximation algorithm.
+\end{conjecture}
+
+These computations should be viewed as evidence rather than as a proof. Their role is to indicate that generalized bids can improve on the classical factor-$2$ barrier, and to single out specific candidates for a theoretical analysis. In the next subsection, we prove such a guarantee for the one-piece family for a more restricted of $\gamma$, obtaining a $1.95$-LMP approximation for the bid $\beta(\alpha,d) = [\alpha - 1.224\cdot d]^+$.
+
+% \ola{It looks like we get a value of $< 1.8$??}
+% We tested bidding functions of the form $\beta(\alpha, d) = [\alpha - \gamma \cdot d]^+$ and $\beta(\alpha, d) = [\max(\alpha - \gamma_1 \cdot d, \gamma_2 \cdot \alpha - \gamma_2 \cdot d)]^+$.
+% In the relevant regime $0 \leq d \leq \alpha$, these are the (non-negative) piecewise linear functions with two pieces such that $\beta(\alpha, 0) = \alpha$ and $\beta(\alpha, d) \leq \alpha - d$.
+% These two conditions are necessary for the value of the factor-revealing program to be bounded.
+% Computational limitations did not allow us to extend our experiments to piecewise linear functions with three or more pieces.
+
+% For the family of functions we considered, we performed a grid search over the parameters $\gamma_1$ and $\gamma_2$.
+% We solved the factor-revealing program for each choice by writing it as a mixed-integer linear program and optimizing it with the Gurobi optimizer \cite{gurobi}.
+% We started by using $n=8$ in order to identify the general range of the optimal parameters, and then as we restricted a more limited range we increased the value of $n$ up to $n=14$.
+% See Figure~\ref{fig:test} for an illustration of the best functions that we found in each family and a plot of the values calculated by the grid search.
+
+% Interestingly, for the best functions that we found, the optimal solutions always had the same simple structure: they satisfied $d_1 = 1$ and $d_2 = \ldots = d_N = 0$.
+% Furthermore, we were able to calculate analytically the optimal value of the factor-revealing program for general $n$ under this additional constraint that $d_1=1$ and $d_2=\ldots=d_N$.
+% For the function $[\alpha - 1.28d]^+$ the optimal value under this constraint is $\approx 1.92 - 1/n$, and for the function $\max(\alpha - 1.224 d, 0.548 \alpha - 0.548 d)$ the optimal value under this constraint is $\approx 1.89 - 1/n$. \toni{state how this is just the hard-case that we show in section 3}
+
+% \toni{two conjectures? one for 1.89 and the other that says that for $\gamma<1.28$ the optimal value is $1-0.28^2$.}
+
+% Finally, we observed that if an optimal solution satisfies $d_1 = 1$ and $d_2 = \ldots = d_N = 0$ for our functions of interest, then the maximizing choice $\{b\}_{i \geq j \in [n]}$ in the factor-revealing program is to set $b_{1,1}=1$ and $b_{n,j}=1$ for all $j=1, \ldots, n$ (and $0$ everywhere else).
+% Then, as further evidence that the identified functions satisfy $d_1=1$ and $d_2 = \ldots = d_N =0$ at the optimal solution for general $n$, we ran a restricted factor-revealing program that only considers a subset of all possible $\{b\}_{i \geq j \in [n]}$, and we confirmed that over this subset the choice $\{b_{1,1}=1, b_{n,j}=1 \text{ for all } j=1, \ldots, n\}$ is the maximizing choice, for $n$ up to $50$.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{.465\textwidth}
+  \centering
+  \raisebox{0.0in}{\includesvg[width=0.957\linewidth]{plots/functions}}
+  \caption{}
+  \label{fig:sub1}
+\end{subfigure}%
+\begin{subfigure}{.535\textwidth}
+  \centering
+  \raisebox{0in}{\includesvg[width=\linewidth]{plots/sweep}}
+  \caption{}
+  \label{fig:sub2}
+\end{subfigure}
+\caption{(a) Candidate bidding functions suggested by the computational search. (b) Objective value of the factor-revealing program for $n=8$ over the two-piece family $\beta(1,x)=[\max(1 - \gamma_1 x, \gamma_2 - \gamma_2 x)]^+$. The right panel is parameterized by the break-point $(x, y)$ of the two linear pieces.
+The maximum is attained near $(x,y)\approx(0.668,0.182)$, corresponding to $(\gamma_1,\gamma_2) \approx (1.224,0.548)$. The points in grey achieve a worse than 2 objective value so they are omitted.}
+
+% \caption{(a) The plot of $\beta(1, x)$ over $x \in [0, 1]$ for the functions that we conjecture achieve approximation ratio $1.92$ and $1.89$, respectively. (b) The value of the factor-revealing program for $n=8$ for the function $\beta(1,x)=[\max(1 - \gamma_1 \cdot x, \gamma_2 - \gamma_2 \cdot x)]^+$ with $(x, y)$ as the breakpoint between the two linear functions. The maximum value is attained around $(x, y) \approx (0.668, 0.182)$, corresponding to $(\gamma_1, \gamma_2) \approx (1.224, 0.548)$. The points outside the plotted area achieve a worse objective value.}
+\label{fig:test}
+\end{figure}
+
+\subsection{A 1.95-LMP Approximation Algorithm}\label{sec:informal-proof-thm-195}
+
+We analyze now the LMP-approximation ratio of a simple generalization of the linear bidding function in \cite{JMS02,JainMMSV03} which changes the slope of $d$:
+\begin{equation*}    
+    \beta_{\Mcoeff}(\alpha, d) = [\alpha - \Mcoeff \cdot d]^+\,.
+\end{equation*}
+For this family of functions, the main result is the following:
+\begin{restatable}{theorem}{thmoneninefivelmp}\label{thm:1.95-lmp}
+    Algorithm~\ref{alg:dual_generalized} run with facility cost $\hat{f} = 1.95 \cdot f$ and the bidding function $\beta(\alpha,d) = [\alpha - 1.224\cdot d]^{+}$ is a $1.95$-LMP approximation algorithm for UFL instances with facility cost $f$.
+    %  \rares{There should be no $\rho$ here, right?}\toni{yes, waiting on lukas to finish his thm writing for the f-hat to adapt it}
+    % \toni{polish this when lmp is defined in prelims}\ola{Use the same notation as Thm 4.2}
+\end{restatable}
+
+This result is an application of Theorem~\ref{theorem:facility-location} together with an upper bound on the factor-revealing program from the following technical theorem.
+\begin{restatable}{theorem}{thmupperboundfrp}\label{thm:1.95-frp}
+    For values of $\gamma\in [1,1.224]$, the factor-revealing program from Definition~\ref{def:frp} with $\beta_\gamma(\alpha,d)=[\alpha-\gamma\cdot d]^+$ is upper-bounded by $\Mrho$ for all $n \geq 1$.
+\end{restatable}
+
+Let us outline the proof of Theorem~\ref{thm:1.95-frp}; the full proof is deferred to Section~\ref{sec:195-dual-fitting}.
+% \ola{What is a summarized analysis ? We just said that the focus of this section is to prove the above theorem. Say an outline of the proof is as follows. Or something like that. }
+First, we substitute the bidding function into the factor revealing objective function from Definition~\ref{def:frp}, obtaining:
+\begin{equation*}
+    \sum_{j=1}^{n} \left(\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1})  + r_{j,n+1} \right) - f
+    = \sum_{j=1}^{n} \left(\sum_{i=j}^{n} [r_{j,i} - \Mcoeff \cdot r_{j,i+1}]^+  + r_{j,n+1} \right) - f\,.
+\end{equation*}
+The main difference between this objective function and that of the original program of \cite{JMS02,JainMMSV03} is that the latter can be reduced to a single linear program, while ours cannot. 
+However, to use a dual feasibility analysis it is desirable to work with linear programs.
+Thus, we reduce our program to a family of \emph{exponentially many} linear programs.
+
+To create these linear programs, we introduce new binary variables $b_{i,j} \in \{0, 1\}$ indicating whether each bid $\beta(r_{j,i}, r_{j,i+1})$ in the objective is positive; hence, $\beta(r_{j,i}, r_{j,i+1})=b_{i,j} \cdot [r_{j,i} - \Mcoeff \cdot r_{j,i+1}] $.
+Ignoring the constraints, this transforms the objective function into
+\begin{equation*}
+    \max_{\substack{\\ \forall b_{i,j}\in\{0,1\} \\ \forall i,j:\  1\leq j\leq i \leq n}} \max_{r,f,d} \quad 
+            \sum_{j=1}^{n} \left(\sum_{i=j}^{n} b_{i,j} \cdot (r_{j,i} -\Mcoeff \cdot r_{j,i+1})  + r_{j,n+1}\right) - f\,.
+\end{equation*}
+Since the constraints of the inner program can be linearized just as in the original analysis in \cite{JMS02,JainMMSV03}, the inner program reduces to a linear one. Then, since we are interested in finding an upper bound, we define the dual of the entire program as the maximization over the linear duals of each inner linear program.
+\begin{restatable}[Factor-revealing dual]{definition}{deffrdual}
+\label{def:frdual}
+    Fix $n\geq 1$.
+    \begin{align*}
+    \smash{\max_{\substack{\forall b_{i,j}\in\{0,1\} \\ \forall i,j: 1\leq j\leq i \leq n}}}\qquad 
+    & \min \quad \rho \\
+    &\begin{aligned}
+        &\text{\emph{subject to:}} 
+        &&  \sum_{i=1}^{n} \hat{g}_i \leq 1 && \text{($f$)} \\
+        & \forall \ 1 \le j, i \le n: 
+        && \hat{g}_i \geq g_{i,j} && \text{($\gamma_{i,j}$ and $\beta_{i,j}$)}\\
+        & \forall \ 1\le j \le i \le n: 
+        && \sum_{q=j+1}^n g_{j,q} + \sum_{p = j}^{i} \left(g_{p,j} + t_{p,j} - s_{p,j}\right) \geq b_{i,j} - \Mcoeffmone \sum_{p=j}^{i-1} b_{p,j}
+        && \text{($r_{j,i}$)}\\
+        & \forall \ 1\leq i \leq n: 
+        &&\sum_{p=1}^i \sum_{j=1}^p s_{p,j} - \sum_{p=1}^i \sum_{j=1}^p t_{p,j} \ge 0 && \text{($m_i$)}\\
+        & \forall \ 1\leq j\leq n:
+        && \rho \geq \ \Mcoeff\cdot \sum_{i=1}^n g_{i,j} + \sum_{i=j}^n s_{i,j} + \sum_{i=j}^n t_{i,j} && \text{($d_j$)} \\
+        & \forall \ 1 \le i,j \le n: && \hat{g}_{i}, \ g_{i,j}, \ t_{i,j}, \ s_{i,j} \geq 0
+    \end{aligned}
+    \end{align*}
+\end{restatable}
+We prove in Appendix~\ref{sec:appendix-deriving-dual} that, for our choice of $\beta$, an upper bound on this dual program also yields an upper bound on the original factor-revealing program.
+\begin{restatable}{lemma}{lemmamathematicalprogram}\label{lemma:mathematical-program-1.99}
+    The optimum value of the factor-revealing dual in Definition~\ref{def:frdual} upper bounds the optimum value of the factor-revealing program in Definition~\ref{def:frp} for the bidding function $\beta_{\Mcoeff}(\alpha, d) = [\alpha - \Mcoeff \cdot d]^+$.
+\end{restatable}
+% \ola{In the above, why do we say maximizing over a family of primal LPs. Aren't these a family of duals?}
+
+% \begin{corollary}\label{lemma:dual_generalized_no_z_upper_bound}
+%     If there exists a feasible solution of objective value at most $\rho$ for each minimization linear program in Lemma~\ref{lemma:mathematical-program-1.99} for all $n$, then Algorithm~\ref{alg:dual_generalized} with $\beta$ is a Metric Facility Location $\rho$-LMP approximation algorithm.
+% \end{corollary}
+% To get the desired upper bounds, we use the following approach:
+
+The remaining goal is to find, for each inner linear program, a feasible solution of value at most $\rho$, which then gives the same upper bound for the original program. However, no single dual solution appears to work for all choices of $b_{i,j}\in\{0,1\}$, since the constraints depend on these values. 
+Thus, we design an adaptive dual solution that depends on the values of $b_{i,j}$.
+% To achieve this, the task is now seemingly exponentially harder as there are $2^{O(n^2)}$ possible combinations for the $b_{i,j}$ matrix. \ola{Come on? Exponentially harder? That sounds like some vacum cleaner salesman argument. What does that even mean?}
+
+Our proof then relies on a procedure that adaptively generates dual solutions. It takes as input the values of $b_{i,j}$ and a collection of advice variables $\Gamma$.  
+% \ola{Should we call $\Gamma$ advice? }
+For incorrect choices of $\Gamma$, the procedure fails and returns an empty output ($\perp$), but if correct, it generates a feasible solution of value $\Mrho$ for the dual program.
+We summarize the result in the following statement:
+
+% \begin{observation}
+% \label{obs:n-not-zero}
+% For $n=1$ the value of the program in Lemma~\ref{lemma:mathematical-program-1.99} is trivially upper bounded by $\Mcoeff$.
+% For the rest of the proof we assume that $n \geq 2$.
+% \end{observation}
+
+% \begin{observation}
+% \label{obs:b1}
+% We assume without loss of generality that $b_{n,j} = 1$ for all $j = 1, \ldots, n$. This is without loss of generality because it can only make the constraints in Lemma~\ref{lemma:mathematical-program-1.99} stronger.
+% \end{observation}
+
+\begin{lemma}\label{lem:informal-general-case-procedure}
+    For an assignment of the $b_{i,j}\in\{0,1\}$ values, correct advice variables $\Gamma$ and a value of $\Mcoeff\in[1,1.224]$, there exists a procedure that generates a $\Mrho$ feasible solution for the corresponding inner program of the factor-revealing dual from Definition~\ref{def:frdual}.
+\end{lemma}
+
+By a continuity argument in the advice variables, we are able to prove that a correct advice variable $\Gamma$ always exists:
+
+\begin{lemma}\label{lem:informal-good-tau-existence}
+    For any assignment of the $b_{i,j}\in\{0,1\}$ values with $\Mcoeff\in[1,1.224]$, there always exist correct advice variables $\Gamma$ with respect to the procedure from Lemma~\ref{lem:informal-general-case-procedure}.
+\end{lemma}
+
+These are simplified versions of the lemmas that we use in the full proof; see Section~\ref{sec:195-dual-fitting} for the full statements and proofs. We can now combine these lemmas to achieve the final result:
+%We are finally ready to understand the proof sketch:
+
+\begin{proof}[Proof sketch of Theorem~\ref{thm:1.95-lmp}]
+    The combination of Lemma \ref{lem:informal-general-case-procedure} and Lemma \ref{lem:informal-good-tau-existence} implies that there always exists a solution of cost at most $\Mrho$ to each of the dual inner programs. This gives an upper bound of $\Mrho$ on the general dual program. Using this together with Lemma~\ref{lemma:mathematical-program-1.99} that states that this dual program is an upper bound on the factor revealing, it proves the theorem.
+\end{proof}

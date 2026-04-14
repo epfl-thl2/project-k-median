@@ -1,0 +1,318 @@
+
+% \goodtauexistence*
+
+This section is the proof of Lemma~\ref{lem:good-tau-existence}. We must show that there exists a set of advice variables $\Gamma$ as defined in Definition~\ref{def:auxiliary-input} and Property~\ref{property:admissible-frontier-input} such that the outcome of the procedure is not a null result. 
+It will not be a null result if and only if $t_1(\Gamma)$ is defined ($t_1(\Gamma)\neq \perp$) and $R_0(\Gamma)=1$ for the chosen variables, where $R_0(\Gamma)$ is the value of $R_0$ at the termination of the procedure when $\Gamma$ are the input variables.
+
+First, let us see that the condition that $t_1(\Gamma)\neq \perp$ is redundant. In the procedure, the condition of $t_1=\perp$ in Line~\ref{line:t_1-perp-condition} means that the procedure got to the $i=1$ element in the Phase 2 loop in Line~\ref{line:phase-2-loop} and from Line~\ref{line:R_i-1-smaller-0.79-condition} we know that no $i$ had $R_{i-1}^{(2)}\ge \MRtone$. This last condition is also true for $i=1$, thus $R_0^{(2)}< \MRtone$. Thus, getting some variables that have $R_0=1$ is already a sufficient and necessary condition.
+
+Our proof strategy will be the following. We will first find two different advices $\Gamma_0$ and $\Gamma_1$ such that one satisfies $R_0(\Gamma_0)\leq 1$ and the other $R_0(\Gamma_1)\geq 1$. Then, we will define a path $\Gamma(\lambda)$ that goes from the first set of variables $\Gamma_0$ to the other $\Gamma_1$, parameterized by some real continuous parameter $\lambda$. By proving that the resulting function $R_0(\Gamma(\lambda))$ is continuous, with a direct application of the intermediate value theorem, we will be able to state that there must exist a $\Gamma^\star$ such that $R_0(\Gamma^\star)=1$, implying that there exists a correct advice.
+
+Thus, let us first define the following two points.
+\begin{definition}
+    Let the first point $\Gamma_0$ be one such that all clients are considered part of $D$:
+    \begin{equation*}
+        \Gamma_0 = \{t_3^\star=1, \{\mu_j^\star=1, \ \forall j \in \ones{1}\}\}\,.
+    \end{equation*}
+\end{definition}
+\begin{definition}
+    Let the second point $\Gamma_1$ be one such that all clients with $f_j<n$ are not considered part of $D$:
+    \begin{equation*}
+        \Gamma_1 = \{t_3^\star = n, \{\mu_j^\star=1, \ \forall j \in \ones{n}\}, \ \hg_n^\star=1\}\,.
+    \end{equation*}
+\end{definition}
+
+For these two points, let us state the following observations:
+\begin{observation}\label{obs:oracle-R0-gamma-0}
+    The total sum of produced credit for $\Gamma_0$ is $R_0(\Gamma_0)\leq 1$.
+\end{observation}
+\begin{observation}\label{obs:oracle-R0-gamma-1}
+    The total sum of produced credit for $\Gamma_1$ is $R_0(\Gamma_1)\geq 1$.
+\end{observation}
+\begin{proof}[Proof of Observation~\ref{obs:oracle-R0-gamma-0} and Observation~\ref{obs:oracle-R0-gamma-1}]
+    For $\Gamma_0$, since $t_3^\star=1$, we have $R_1(\Gamma_0)=0$, and thus $R_0(\Gamma_0)=\hg_1$. For this case, since $\mu_1^D=1$ (because either $1\in\ones{1}$ implying $\mu_1^\star=1$ or $f_1>t_3^\star=1$ and thus $\mu_1^D=1$), we have that $\hg_1(\Gamma_0)\propto (1-\mu_1^D)=0$, thus proving that $R_0(\Gamma_0)\leq 1$. For $\Gamma_1$, it is trivial to see as $R_0(\Gamma_1) \geq \hg_n(\Gamma_1) = \hg_n^\star = 1$.
+\end{proof}
+
+Let us now define the path that goes from one point to the other. This path must go through each value of $t_3^\star$ from $1$ to $n$, and within each $t_3^\star$, we have to continuously change the values of $\mu_j^D$. 
+
+Let us define the section of the path for a fixed $t_3^\star$:
+\begin{definition}
+    For a fixed $t_3^\star=\ell < n$, let $\Gamma^{\ell}(\lambda)$ be the path defined with $\lambda\in[0,1]$ as:
+    \begin{equation*}
+        \Gamma^{\ell}(\lambda) = \{t_3^\star=\ell, \{\mu_j^\star=\left[1-\left[n\lambda - (n-j)\right]^+\right]^+, \ \forall j\in \ones{\ell} \}\}\,.
+    \end{equation*}
+    For $t_3^\star=\ell=n$, this is:
+    \begin{equation*}
+        \Gamma^{n}(\lambda) = \{t_3^\star=n, \{\mu_j^\star=1, \ \forall j\in \ones{n} \}, \hg_n^\star = \lambda\}\,.
+    \end{equation*}
+\end{definition}
+And finally, we can define the full path going from $\Gamma_0$ to $\Gamma_1$ as:
+\begin{definition}
+    For the above defined points $\Gamma_0$ and $\Gamma_1$, let the path $\Gamma(\lambda)$ that joins these points for $\lambda\in[0,n]$ be:
+    \begin{equation*}
+        \Gamma(\lambda) = \Gamma^{\left\lfloor\lambda\right\rfloor + 1}\left(\lambda - \left\lfloor\lambda\right\rfloor\right)
+    \end{equation*}
+    and with $\Gamma(0) = \Gamma^1(0)$ and $\Gamma(n) = \Gamma^n(1)$.
+\end{definition}
+
+As we need the advice variables to satisfy Property~\ref{property:admissible-frontier-input}, we make the following observation:
+\begin{observation}\label{obs:oracle-valid-input}
+    For any $\lambda \in [0,n]$, the chosen $\mu_j^\star\in\Gamma(\lambda)$ values are non-increasing in $j$ and have at most one fractional entry, and if $t_3^\star=n$ we have $\mu_j^\star=1$.
+\end{observation}
+\begin{proof}[Proof of Observation~\ref{obs:oracle-valid-input}]
+    First, for the case where $t_3^\star = n$, the path $\Gamma^n(\lambda)$ explicitly sets $\mu_j^\star = 1$ for all $j \in \ones{n}$, satisfying the final property directly.
+
+    For the case $t_3^\star = \ell < n$, the fractional memberships are defined as $\mu_j^\star = \left[1-\left[n\lambda - (n-j)\right]^+\right]^+$. Let $x_j = n\lambda - n + j$. As the index $j$ increases, $x_j$ strictly increases. Consequently, the inner term $[x_j]^+$ is non-decreasing with respect to $j$, which implies that $1 - [x_j]^+$ is non-increasing. Applying the outer non-negativity bound $[\cdot]^+$ preserves this monotonicity, meaning $\mu_j^\star$ is non-increasing in $j$.
+
+    Finally, an entry evaluates to a fractional value (i.e., $0 < \mu_j^\star < 1$) if and only if $0 < [x_j]^+ < 1$, which strictly requires $0 < x_j < 1$. Because distinct indices differ by at least $1$, the distance between terms is at least $x_{j_2} - x_{j_1} = j_2 - j_1 \geq 1$. Since the open interval $(0, 1)$ has a length of exactly $1$, it can capture at most one such $x_j$ for any given $\lambda$. Therefore, there can be at most one fractional entry for any state in the path.
+\end{proof}
+Thus, using any point $\Gamma$ in the path is a valid input to the procedure.
+We will now prove that while traveling through this path, the produced $R_0(\lambda)$ is continuous. First, we prove the continuity for each section $\Gamma^\ell(\lambda)$; this is the most technical proof in this section and we leave it to the end of the section.
+
+\begin{lemma}\label{lem:oracle-continuous-section}
+    Any given section $\Gamma^{\ell}(\lambda)$ of the path $\Gamma(\lambda)$ has a continuous value of $R_0(\Gamma^{\ell}(\lambda))$ with respect to $\lambda$.
+\end{lemma}
+
+Then, we need to stitch together the paths to prove that the general path is continuous:
+
+\begin{observation}\label{obs:oracle-path-stitched}
+    % The end point of a section of the path $\Gamma(\lambda)$ and the start point of the next section have the same value for $R_0$. That is
+    For $1 \leq \ell<n$, the jump from section $\ell$ to section $\ell+1$ is continuous:
+    \begin{equation*}
+        R_0(\Gamma^{\ell}(1)) = R_0(\Gamma^{\ell+1}(0))\,.
+    \end{equation*}
+\end{observation}
+\begin{proof}[Proof of Observation~\ref{obs:oracle-path-stitched}]
+    This is a direct proof by substitution of the value of $\lambda$ and analyzing the execution of the procedure for both points. 
+    
+    For the first point $\Gamma^\ell(1)$, we substitute $\lambda=1$ into the path definition. For all $j \in \ones{\ell}$, we have:
+    \begin{equation*}
+        \mu_j^\star = \left[1 - \left[n(1) - (n-j)\right]^+\right]^+ = \left[1 - j\right]^+ = 0\,.
+    \end{equation*}
+    Thus, for all $j$ with $f_j\leq \ell$ we have $\mu_j^D=0$; and for all $j$ with $f_j>\ell$ we have $\mu_j^D=1$.
+    
+    For the second point $\Gamma^{\ell+1}(0)$, we substitute $\lambda=0$ into the path definition. For all $j \in \ones{\ell+1}$, we have:
+    \begin{equation*}
+        \mu_j^\star = \left[1 - \left[n(0) - (n-j)\right]^+\right]^+ = \left[1 - 0\right]^+ = 1\,.
+    \end{equation*}
+    This is true even in the case $\ell=n$, for which we also have that $\hg_n^\star=0$. Thus, just the same as before, for all $j$ with $f_j\leq \ell$ we have $\mu_j^D=0$; and for all $j$ with $f_j>\ell$ we have $\mu_j^D=1$.
+    
+    During the execution for $\Gamma^\ell(1)$, we have $t_3^\star = \ell$. In the initialization (Phase 3), the procedure sets $\hg_{\ell+1} = 0$, $\mu_{\ell+1}^D=1$, and $R_\ell = 0$. Then, entering Phase 2 at $i = \ell$, it calculates:
+    \begin{equation*}
+        \hg_\ell = (1 - \mu_\ell^D) \cdot \frac{R_\ell + \Mtone}{n - \ell} = (1 - \mu_\ell^D) \cdot \frac{\Mtone}{n - \ell}
+    \end{equation*}
+    and it computes the values of $\hg_i$ for $i<\ell$ based on this.
+    
+    During the execution for $\Gamma^{\ell+1}(0)$, we have $t_3^\star = \ell+1$. The procedure enters Phase 2 directly at $i = \ell+1$, setting $R_{\ell+1}=0$. If $\ell+1=n$, then by definition of $\Gamma^{n}(0)$ we have that $\hg_n=\hg_n^\star=0$. Otherwise, using $\mu_{\ell+1}^D = 1$ because either $f_{\ell+1}>t_3^\star$ or $f_{\ell+1}=t_3^\star$ and thus $\mu_{\ell+1}^\star=1$, it calculates:
+    \begin{equation*}
+        \hg_{\ell+1} = (1 - 1) \cdot \frac{R_{\ell+1} + \Mtone}{n - (\ell+1)} = 0\,.
+    \end{equation*}
+    This yields $R_\ell = R_{\ell+1} + \hg_{\ell+1} = 0$. Proceeding to iteration $i = \ell$, the variable $\mu_\ell^D$ remains the same as for $\Gamma^{\ell}(1)$ by the previous observation. Therefore, the calculation evaluates exactly as before:
+    \begin{equation*}
+        \hg_\ell = (1 - \mu_\ell^D) \cdot \frac{R_\ell + \Mtone}{n - \ell} = (1 - \mu_\ell^D) \cdot\frac{\Mtone}{n - \ell}\,.
+    \end{equation*}
+    
+    Thus, at the end of iteration $i=\ell$, both executions yield $R_\ell = 0$ and $\hg_\ell = (1 - \mu_\ell^D) \cdot \frac{\Mtone}{n-\ell}$. Since the remaining iterations $i < \ell$ will evaluate identically for both states as all values of $\mu_j^D$ are the same, the final generated credit $R_0$ must be identical, which finishes the proof.
+\end{proof}
+
+Finally, we prove that the start and end points correspond to the original ones we had before.
+
+\begin{observation}\label{obs:oracle-path-endpoints}
+    We have that the two extreme points of $\Gamma(\lambda)$ are $\Gamma_0$ and $\Gamma_1$:
+    \begin{equation*}
+        \Gamma(0) = \Gamma_0, \ \ \Gamma(n)= \Gamma_1\,.
+    \end{equation*}
+\end{observation}
+\begin{proof}[Proof of Observation~\ref{obs:oracle-path-endpoints}]
+    This is a direct proof by substitution of the value of $\lambda$. For $\lambda=0$, we have:
+    \begin{equation*}
+        \Gamma(0) = \Gamma^1\left(0\right) = \{t_3^\star=1, \{\mu_j^\star=\left[1-\left[0 - (n-j)\right]^+\right]^+, \ \forall j\in \ones{1} \}\}
+    \end{equation*}
+    which is clearly $\Gamma_0$ as the middle term is equal to $1$. For $\lambda=n$, we have:
+    \begin{equation*}
+        \Gamma(n) = \Gamma^n(1) = \{t_3^\star=n, \{\mu_j^\star=1, \ \forall j\in \ones{n} \}, \hg_n^\star = 1\} = \Gamma_1
+    \end{equation*}
+    which finishes the proof.
+\end{proof}
+
+\begin{corollary}\label{cor:oracle-continuity-of-global-path}
+    The path $\Gamma(\lambda)$ goes from $\Gamma_0$ (for $\lambda=0$) to $\Gamma_1$ (for $\lambda=n$) and satisfies that $R_0(\Gamma(\lambda))$ is continuous with respect to $\lambda$. 
+\end{corollary}
+\begin{proof}[Proof of Corollary~\ref{cor:oracle-continuity-of-global-path}]
+    First, from Lemma~\ref{lem:oracle-continuous-section} and Observation~\ref{obs:oracle-path-stitched} we know that we have a path $\Gamma(\lambda)$ with a continuous $R_0$ with respect to $\lambda$. Using Observation~\ref{obs:oracle-path-endpoints}, we know that this goes from $\Gamma_0$ to $\Gamma_1$, thus proving the corollary.
+\end{proof}
+
+Thus, we are now ready for the proof of the main section's lemma.
+
+\begin{proof}[Proof of Lemma~\ref{lem:good-tau-existence}]
+    As stated before, we just want to prove that there is a point $\Gamma^\star$ such that $R_0(\Gamma)=1$. By the continuity of $R_0(\Gamma(\lambda))$ proven in Corollary~\ref{cor:oracle-continuity-of-global-path}, we can apply the intermediate value theorem using Observation~\ref{obs:oracle-R0-gamma-0} and Observation~\ref{obs:oracle-R0-gamma-1} to get that there must be such a point. Thus, the proof is complete.
+\end{proof}
+
+\vspace{0.25in}
+
+We end this section with proving the deferred proof of Lemma~\ref{lem:oracle-continuous-section}.
+
+\begin{proof}[Proof of Lemma~\ref{lem:oracle-continuous-section}]
+    For $\ell < n$, the path $\Gamma^\ell(\lambda)$ defines a continuous progression where the fractional membership variables $\mu_j^\star$ are sequentially decreased from $1$ to $0$.
+    For $\ell = n$, the path $\Gamma^n(\lambda)$ fixes $\mu_j^\star = 1$ for all $j \in \ones{n}$ and continuously varies $\hg_n^\star = \lambda$ from $0$ to $1$.
+    In both cases, we must show that the bookkeeping value $R_0(\Gamma^\ell(\lambda))$ generated by the execution of Algorithm~\ref{alg:general-case-procedure-hgi} is continuous with respect to $\lambda$.
+
+    Let $R_i^{(2)}(\lambda)$ be the sequence of budget variables generated by purely executing Phase 2.
+    Initialized at $R_{\ell}^{(2)} = 0$, for $i \le \ell$:
+    \begin{align*}
+        \hg_i^{(2)}(\lambda) &= \begin{cases}
+            \hg_n^\star(\lambda) & \text{if } i = \ell = n\,, \\
+            (1 - \mu_i^D(\lambda)) \cdot \frac{R_i^{(2)}(\lambda) + \Mtone}{n - i} & \text{otherwise}\,.
+        \end{cases} \\
+        R_{i-1}^{(2)}(\lambda) &= R_i^{(2)}(\lambda) + \hg_i^{(2)}(\lambda)
+    \end{align*}
+    For this quantity that follows the above formulas, we can use the following claim:
+    \begin{claim}\label{claim:oracle-recurrence-R-phase-2}
+        Each term $R_i^{(2)}$ can be expressed as:
+        \begin{equation*}
+            R_{i}^{(2)}(\lambda) = (\hg_n(\lambda) +\Mtone)\cdot\prod_{j=i+1}^{n-1}\left(1+\frac{1-\mu_j^D(\lambda)}{n-j}\right) - \Mtone
+        \end{equation*}
+        except for $R_n^{(2)}=0$ and where we remind that $\hg_n(\lambda)=0$ if $t_3^\star<n$.
+    \end{claim}
+    \begin{proof}[Proof of Claim~\ref{claim:oracle-recurrence-R-phase-2}]
+        We can prove this by expanding the recurrence relation defined by the Phase 2 updates. For any index $k < n$, the algorithm computes the budget as:
+        \begin{equation*}
+            R_{k-1}^{(2)} = R_k^{(2)} + \hg_k^{(2)} = R_k^{(2)} + (1 - \mu_k^D) \cdot \frac{R_k^{(2)} + \Mtone}{n - k}\,.
+        \end{equation*}
+        Adding $\Mtone$ to both sides and factoring yields:
+        \begin{equation*}
+            R_{k-1}^{(2)} + \Mtone = (R_k^{(2)} + \Mtone) \left( 1 + \frac{1 - \mu_k^D}{n - k} \right)\,.
+        \end{equation*}
+        By substituting $k$ with indices from $i+1$ up to $n-1$ and repeatedly applying this relation, we can unroll the recurrence into a product:
+        \begin{equation*}
+            R_{i}^{(2)} + \Mtone = (R_{n-1}^{(2)} + \Mtone) \prod_{j=i+1}^{n-1} \left( 1 + \frac{1 - \mu_j^D}{n - j} \right)\,.
+        \end{equation*}
+        Now, we evaluate the base term $R_{n-1}^{(2)}$ by splitting into two cases based on $t_3^\star = \ell$:
+        
+        \textbf{Case 1: $\ell = n$.} The sequence is initialized at $R_n^{(2)} = 0$, and the generation function sets $\hg_n^{(2)} = \hg_n^\star = \hg_n$. Therefore, $R_{n-1}^{(2)} = R_n^{(2)} + \hg_n^{(2)} = \hg_n$. Substituting $R_{n-1}^{(2)} = \hg_n$ into our product gives exactly the claimed formula.
+        
+        \textbf{Case 2: $\ell < n$.} The sequence is initialized at $R_\ell^{(2)} = 0$, and by definition, $\hg_n = 0$. Let us evaluate the right-hand side of the claim's formula at $i = \ell$. For all $j > \ell$, the path definition ensures $\mu_j^D = 1$, meaning $1 - \mu_j^D = 0$. Consequently, every multiplier in the product for $j \in (\ell, n-1]$ evaluates exactly to $1$. Using the claim's formula for $i=\ell$ with $\hg_n=0$, we get:
+        \begin{equation*}
+            R_\ell^{(2)} + \Mtone = (0 + \Mtone) \cdot 1 \implies R_\ell^{(2)} = 0\,.
+        \end{equation*}
+        This matches the initialization $R_\ell^{(2)} = 0$ perfectly. Because the structural zeros in $1-\mu_j^D$ for $j > \ell$ neutralize the product, the sequence seamlessly backward-propagates from an implicit $R_{n-1}^{(2)} = \hg_n = 0$. 
+        
+        Thus, for all cases, subtracting $\Mtone$ from both sides of the unrolled recurrence gives the exact mathematical expression in the claim.
+    \end{proof}
+
+    We can make the two following observations on this quantity using this claim:
+    \begin{observation}\label{obs:oracle-continuous-phase-2}
+        The quantity $R_{i}^{(2)}(\lambda)$ is continuous with respect to $\lambda$.
+    \end{observation}
+    \begin{observation}\label{obs:oracle-non-decreasing-phase-2}
+        The quantity $R_{i}^{(2)}(\lambda)$ is non-decreasing with respect to $\lambda$.
+    \end{observation}
+    \begin{proof}[Proof of Observation~\ref{obs:oracle-continuous-phase-2}]
+        Looking at the expression in Claim~\ref{claim:oracle-recurrence-R-phase-2}, since for every index in the product $j$ we have $j<n-1$, we note that all denominators in the claim are positive. Thus, since there are no discontinuities with respect to $\mu_j^D$ or with respect to $\hg_n(\lambda)$, we can state that $R_i^{(2)}(\lambda)$ is continuous with respect to any continuous change in $\mu_j^D$ and $\hg_n$ for any $i$ and $j$; and thus, it is also continuous with respect to $\lambda$ as it continuously changes $\mu_j^D$ or $\hg_n$ depending on $\ell$. 
+    \end{proof}
+    \begin{proof}[Proof of Observation~\ref{obs:oracle-non-decreasing-phase-2}]
+        On the other hand, we can also prove that $R_i^{(2)}(\lambda)$ is not only continuous with respect to $\lambda$ but also that it is non-decreasing. 
+        For $\ell=n$ this is clear, as $\mu_j^D$ do not change with respect to $\lambda$, and only $\hg_n^\star=\lambda$ changes, which leaves $R_i^{(2)}=c\cdot (\lambda+\Mtone)-\Mtone$ that is increasing with respect to $\lambda$. 
+        On the other hand, for $\ell<n$, we have that $\mu_j^D$ are non-increasing with respect to $\lambda$ as they are either fixed or equal to $\mu_j^\star=\left[1-\left[n\lambda - (n-j)\right]^+\right]^+$ which is indeed non-increasing on lambda. 
+        The expression in Claim~\ref{claim:oracle-recurrence-R-phase-2} is non-increasing in $\mu_j^D$ (since $\mu_j^D\leq 1$); and thus, the whole thing is non-decreasing in $\lambda$.
+    \end{proof}
+    
+    We now make the case analysis in the proof explicit.
+
+    \smallskip
+    \noindent\textbf{Case 0: $R_0^{(2)}(\lambda)<\MRtone$.}
+    From Observation~\ref{obs:oracle-continuous-phase-2}, any index $i$ purely in Phase 2 has a continuous $R_{i-1}(\lambda)=R_{i-1}^{(2)}(\lambda)$ with respect to $\lambda$. From this first analysis, this also implies that in the case that $R_0^{(2)}<\MRtone$, then no $t_1$ exists, so only Phase 2 would be run and thus $R_0=R_0^{(2)}$. As we know that any $R_i^{(2)}$ is continuous, this already proves it for the case $R_0^{(2)}<\MRtone$. We assume from now on that $t_1$ does exist.
+
+    Before analyzing Phase 1 assignments and the transition, we need to consider the variable $z$.
+    The algorithm defines $t_2 := \max\Set{i \mid R_{i-1}^{(2)} \geq \MRttwo}$ and sets $z\coloneqq \sum_{m=t_2+1}^n [1-R_{m-1}^{(2)}/\MRttwo]^+\mu_m^D$.
+    Because $R_{m-1}^{(2)} \ge \MRttwo$ for all $m \le t_2$, we have $\left[1 - \frac{R_{m-1}^{(2)}}{\MRttwo}\right]^+ = 0$.
+    Thus, $z$ can be identically written as $z = \sum_{m=1}^n \left[1 - \frac{R_{m-1}^{(2)}}{\MRttwo}\right]^+ \cdot \mu_m^D$ as $t_2\geq 1$.
+    The discrete jump associated with $t_2$ changing only adds or removes terms evaluating to $0$, making $z$ continuous with respect to the sequence $R_i^{(2)}$ and thus with respect to $\lambda$ by what we proved earlier.
+
+    \smallskip
+    \noindent\textbf{Case 1: $t_1<n$.}
+    Next, we analyze the transition from Phase 2 to Phase 1, for now assuming that $t_1<n$. The algorithm defines $t_1$ as the largest index $i$ such that $R_{i-1}^{(2)} = R_i^{(2)}+\hg_i^{(2)} \ge \MRtone$, which implies that it has $R_{i}^{(2)}<\MRtone$, otherwise $t_1=i+1$. For a given $\lambda$ that has a specific value of $t_1(\lambda)$, we need to look at the right and left limits $\lambda^+=\lambda+\varepsilon$ and $\lambda^-=\lambda-\varepsilon$. By Observation~\ref{obs:oracle-non-decreasing-phase-2}, we know that $R_{i-1}^{(2)}(\lambda^-)\leq R_{i-1}^{(2)}(\lambda)\leq R_{i-1}^{(2)}(\lambda^+)$ for $i=t_1(\lambda)$.
+
+    First, let us analyze the case of $\lambda$. For its $t_1\coloneqq t_1(\lambda)$, from Definition~\ref{def:t1-boundary-split} we have that the interpolation factor is $\alpha(\lambda) = \frac{\MRtone-R_{t_1}^{(2)}(\lambda)}{\hg_{t_1}^{(2)}(\lambda)}$, and that its fractional updates are: $\hg_{t_1}^B = \MRtone - R_{t_1}^{(2)}$ and $\hg_{t_1}^A = (1 - \alpha(\lambda))(1 - \mu_{t_1}^D) \cdot \Phi_{t_1}(\alpha(\lambda),\lambda)$, where $\Phi_i(\alpha(\lambda),\lambda)$ is the transition to Phase 1 generation function: 
+    $\Phi_i(\alpha,\lambda) = \frac{1-[\MRttwo-R_{f_i}^{(2)}(\lambda)]^+}{n-i+\alpha\cdot(1-\mu_i^D(\lambda))-\Mfrac\cdot z(\lambda)}$, where the proof for using $R_{f_i}^{(2)}$ instead of $R_{f_i}$ is given in the next paragraph. 
+    Thus, adding $R_{t_1}$ with the updates in Definition~\ref{def:t1-boundary-split}, the value for $R_{t_1-1}$ is:
+    \begin{equation*}
+        R_{t_1-1}(\lambda) = \MRtone + (1 - \alpha(\lambda))(1 - \mu_{t_1}^D(\lambda)) \cdot \Phi_{t_1}(\alpha(\lambda),\lambda)\,.
+    \end{equation*}
+    Some important observations about $\Phi_i(\alpha,\lambda)$ are the following. Note that the denominator is always positive for $i\leq t_1<n$ since $z\leq n-t_2 \leq n-i$ for $i\leq t_1\leq t_2$ and $\alpha \in [0,1]$, and that the function $\Phi_i(\alpha,\lambda)$ is both continuous in $\alpha$ and on $\lambda$, the latter one being because $R_{f_i}^{(2)}(\lambda)$, $\mu_i^D$ and $z(\lambda)$ are all continuous in $\lambda$. 
+    Also note that we are using $R_{f_i}^{(2)}$ instead of $R_{f_i}$ because $R_{f_i}=R_{f_i}^{(2)}$ if $R_{f_i}\leq \MRttwo$ as $f_i$ would still be in Phase 2, and if they are different then $f_i$ would be fully in phase $1$, but it would already imply that both $R_{f_i}^{(2)}\geq \MRttwo$ and $R_{f_i}\geq \MRttwo$, thus $[\MRttwo-R_{f_i}^{(2)}(\lambda)]=[\MRttwo-R_{f_i}(\lambda)]$.
+    Thus, proving that $\alpha(\lambda)$ is continuous in $\lambda$ proves that $\Phi_i(\alpha(\lambda),\lambda)$ is also continuous in $\lambda$.
+    
+    \smallskip
+    \noindent\textbf{Case 1.1: Right limit $\lambda^+$.}
+    Let us then look at the right limit $\lambda^+$, for a sufficiently small $\varepsilon$ such that $R_{t_1(\lambda)}^{(2)}(\lambda^+)<\MRtone$ is still true. This can be done thanks to the continuity from Observation~\ref{obs:oracle-continuous-phase-2}. By the non-decreasingness of $R_i^{(2)}(\lambda)$ from Observation~\ref{obs:oracle-non-decreasing-phase-2}, we know that $R_{t_1(\lambda)-1}^{(2)}(\lambda^+) \geq R_{t_1(\lambda)-1}^{(2)}(\lambda)\geq \MRtone$; implying that $\hg_{t_1}(\lambda^+)>0$ and that $t_1(\lambda^+)=t_1(\lambda)= t_1$.
+    The interpolation factor is $\alpha(\lambda^+) = \frac{\MRtone-R_{t_1}^{(2)}(\lambda^+)}{\hg_{t_1}^{(2)}(\lambda^+)}$.
+    The fractional updates are $\hg_{t_1}^B(\lambda^+) = \MRtone - R_{t_1}^{(2)}(\lambda^+)$ and $\hg_{t_1}^A(\lambda^+) = (1 - \alpha(\lambda^+))(1 - \mu_{t_1}^D(\lambda^+) ) \cdot \Phi_{t_1}(\alpha(\lambda^+), (\lambda^+))$.
+    
+    As $\varepsilon\to 0$ meaning $\lambda^+\to\lambda$, we have that $R_{{t_1}-1}^{(2)}(\lambda^+) \to R_{{t_1}-1}^{(2)}(\lambda)$ and thus $\hg_{t_1}^{(2)}(\lambda^+)\to \hg_{t_1}^{(2)}(\lambda)> 0$ by Observation~\ref{obs:oracle-continuous-phase-2}. Thus, $\alpha(\lambda^+) \to \frac{\MRtone-R_{t_1}^{(2)}(\lambda)}{\hg_{t_1}^{(2)}(\lambda)} = \alpha(\lambda)$ implying that $\alpha$ is right-continuous with respect to $\lambda$. Thus, the budget becomes:
+    \begin{align*}
+        R_{t_1-1}(\lambda^+)&=\MRtone + (1 - \alpha(\lambda^+))(1 - \mu_{t_1}^D(\lambda^+)) \cdot \Phi_{t_1}(\alpha(\lambda^+),\lambda^+) \\
+        &\to  \MRtone + (1 - \alpha(\lambda))(1 - \mu_{t_1}^D(\lambda)) \cdot \Phi_{t_1}(\alpha(\lambda),\lambda) = R_{t_1-1}(\lambda)\,,
+    \end{align*}
+    where we used the continuity of $\Phi_i(\alpha,\lambda)$ with respect to $\alpha$ and $\lambda$. Having proven that the  limit is continuous even at $t_1$, now what is left for this part is to go up to $R_0$. Notice that the assignment formulas for indices at Phase 1 are $\hg_i(\lambda) = (1-\mu_i^D(\lambda))\cdot \Phi_i(0,\lambda)$, one can check that such a statement is correct by substitution and comparison. Since we have already proven that $\Phi_i(0,\lambda)$ is continuous in $\lambda$ and $\alpha$, and here we fixed $\alpha$ to 0, it implies that $\hg_i(\lambda^+)\to (1-\mu_i^D(\lambda))\cdot \Phi_i(0,\lambda)=\hg_i(\lambda)$. Thus, the value for $R_0(\lambda^+)$ is:
+    \begin{equation*}
+        R_0(\lambda^+) = R_{t_1-1}(\lambda^+) + \sum_{i=1}^{t_1-1}\hg_i(\lambda^+) \to R_{t_1-1}(\lambda) + \sum_{i=1}^{t_1-1}\hg_i(\lambda) = R_0(\lambda)\,,
+    \end{equation*}
+    which implies that the right limit is indeed equal to the value at $\lambda$.
+
+    \smallskip
+    \noindent\textbf{Case 1.2: Left limit $\lambda^-$.}
+    Let us now look at the left limit. We split the analysis into two cases, first $R_{t_1(\lambda)-1}^{(2)}>\MRtone$ and then $R_{t_1(\lambda)-1}^{(2)}=\MRtone$. 
+
+    \smallskip
+    \noindent\textbf{Case 1.2.a: $R_{t_1(\lambda)-1}^{(2)}>\MRtone$.}
+    We first take $R_{t_1(\lambda)-1}^{(2)}>\MRtone$, and do the analysis for a sufficiently small $\varepsilon$ such that $R_{t_1(\lambda)-1}^{(2)}(\lambda^-)\geq \MRtone$ is still true. This can be done thanks to the continuity from Observation~\ref{obs:oracle-continuous-phase-2}. 
+    By the non-decreasingness of $R_i^{(2)}(\lambda)$ from Observation~\ref{obs:oracle-non-decreasing-phase-2}, we know that $R_{t_1(\lambda)}^{(2)}(\lambda^-) \leq R_{t_1(\lambda)}^{(2)}(\lambda)<\MRtone$; and, thus, $t_1(\lambda^-)=t_1(\lambda)$. We can see that for this case we can apply exactly the same analysis as the previous right limit; so it can be proven that the left limit is equal to the value at $\lambda$, for the case $R_{t_1(\lambda)-1}^{(2)}>\MRtone$.
+
+    \smallskip
+    \noindent\textbf{Case 1.2.b: $R_{t_1(\lambda)-1}^{(2)}=\MRtone$.}
+    For the next case, assuming that $R_{t_1(\lambda)-1}^{(2)}(\lambda)=\MRtone$ exactly, if we decrease $\lambda$ by $\varepsilon$, then it could be that we make $R_{t_1(\lambda)-1}^{(2)}(\lambda^-)<\MRtone$ (by Observation~\ref{obs:oracle-non-decreasing-phase-2}), implying that $t_1$ would have to decrease. Thus, this case needs more attention. 
+    First, let us assume this does indeed happen, that for all $\varepsilon \in (0,\delta]$ for some arbitrarily small $\delta$ we already have that $R_{t_1(\lambda)-1}^{(2)}(\lambda-\varepsilon)<\MRtone$. If we were to assume the opposite, then the previous analysis would already work.
+
+    Let us find what the value of $t_1^-\coloneqq t_1(\lambda-\varepsilon)$ could be for small $\varepsilon$. Let $k\coloneqq \max\{j<t_1:\mu_j^D(\lambda)<1\}$, if this set is nonempty. Using the product formula for $R_{t_1-1}^{(2)}$, the only $\mu$-entry that changes when moving left and affects $R_{t_1-1}^{(2)}$ lies at an index $\geq t_1$, so all $\mu_j^D$ with $j<t_1$ must be locally constant since $R_{t_1-1}^{(2)}$ does decrease and there can be only one changing value by Observation~\ref{obs:oracle-valid-input}. Hence $k$ is fixed for all small perturbations. Also, for $r\in(k,t_1)$, $\mu_r^D=1$, so $\hg_r^{(2)}=0$, hence $R_k^{(2)}(\lambda')=R_{t_1-1}^{(2)}(\lambda')$ for $\lambda'$ near $\lambda$. Since $R_{t_1-1}^{(2)}(\lambda')\to {\MRtone}$ and $\hg_k^{(2)}>0$ for $\lambda'\to\lambda$, for all sufficiently small $\varepsilon>0$, $0<{\MRtone}-R_{t_1-1}^{(2)}(\lambda-\varepsilon)<\hg_k^{(2)}(\lambda-\varepsilon)$. Therefore $R_k^{(2)}(\lambda-\varepsilon)<{\MRtone}\leq R_{k-1}^{(2)}(\lambda-\varepsilon)$, so $t_1^-=t_1(\lambda-\varepsilon)=k$ for all small enough $\varepsilon$.
+    
+    % assume that it is justified:
+    \smallskip
+    \noindent\textbf{Case 1.2.b.i: $t_1^-\neq \perp$.}
+    Then, assuming that we are able to find such a value, i.e., $t_1^-\neq \perp$, we have $R_{t_1^- -1}^{(2)}(\lambda^-)\geq \MRtone$ and $R_{t_1^-}^{(2)}(\lambda^-) < \MRtone$. Because $\hg_\ell = 0$ for all intermediate indices $\ell \in (t_1^-, t_1)$ at both $\lambda$ and $\lambda^-$, the budget remains constant across this gap, meaning $R_{t_1^-}^{(2)}(\lambda^-) = R_{t_1-1}^{(2)}(\lambda^-)$. 
+    For this index $t_1^-$, the interpolation factor is $\alpha(\lambda^-) = \frac{\MRtone - R_{t_1^-}^{(2)}(\lambda^-)}{\hg_{t_1^-}^{(2)}(\lambda^-)}$. Let us compute its limit as $\varepsilon \to 0$ (so $\lambda^- \to \lambda$).
+    First, the numerator approaches $\MRtone - R_{t_1-1}^{(2)}(\lambda)$. Since we are specifically in the case where $R_{t_1-1}^{(2)}(\lambda) = \MRtone$, the numerator converges to $0$. 
+    Second, the denominator $\hg_{t_1^-}^{(2)}(\lambda^-)$ converges to $\hg_{t_1^-}^{(2)}(\lambda) = (1 - \mu_{t_1^-}^D(\lambda)) \frac{R_{t_1^-}^{(2)}(\lambda) + \Mtone}{n - t_1^-}$. Because $\mu_{t_1^-}^D(\lambda) < 1$ and $R_{t_1^-}^{(2)}(\lambda) = \MRtone$, this denominator strictly converges to a positive value. 
+    Thus, evaluating the limit yields $\alpha(\lambda^-) \to 0$.
+
+    This implies that the values for the updates are $\hg_{{t_1^-}}^B(\lambda^-) = \MRtone - R_{{t_1^-}}^{(2)}(\lambda^-)$ and $\hg_{{t_1^-}}^A (\lambda^-)= (1 - \alpha(\lambda^-))(1 - \mu_{{t_1^-}}^D(\lambda^-)) \cdot \Phi_{{t_1^-}}(\alpha(\lambda^-),\lambda^-)$. As $\lambda^-\to\lambda$, we have that $\hg_{{t_1^-}}^B(\lambda^-)\to \MRtone - R_{{t_1^-}}^{(2)}(\lambda)=0$, and that $\hg_{{t_1^-}}^A (\lambda^-)\to (1 - 0)(1 - \mu_{{t_1^-}}^D(\lambda)) \cdot \Phi_{{t_1^-}}(0,\lambda)=(1 - \mu_{{t_1^-}}^D(\lambda)) \cdot \Phi_{{t_1^-}}(0,\lambda)=\hg_{t_1^-}(\lambda)$; where we used the fact that $\Phi$ is continuous in both $\alpha$ and $\lambda$, and where we used the definition of $\hg_{t_1^-}(\lambda)$ for $t_1^-$ in Phase 1. As all the $\hg_j$ for $j$ between $t_1^-$ and $t_1$ are $0$ and for $t_1$, we have that $R_{t_1-1}(\lambda^-)\to\MRtone$, we have that $R_{t_1^- -1}(\lambda^-) = R_{t_1-1}(\lambda^-) + \hg_{t_1^-}(\lambda^-) \to \MRtone + \hg_{t_1^-}(\lambda) = R_{t_1^- -1}(\lambda)$. From this point on, we can apply the same argument as for $\lambda^+$ to get that $R_0(\lambda^-)\to R_0(\lambda)$, and thus it is continuous for our cases in which $t_1<n$, $t_1^-$ does exist and where $R_{t_1(\lambda)-1}^{(2)}=\MRtone$ exactly.
+
+    \smallskip
+    \noindent\textbf{Case 1.2.b.ii: $t_1^-=\perp$.}
+    Now, assuming that $t_1^-=\perp$, this implies that all $j<t_1$ have $\mu_j^D(\lambda-\varepsilon)=1$ for the range of $\varepsilon$ we were considering. This implies that for all $j$, we have that $R_j(\lambda-\varepsilon)=R_j^{(2)}(\lambda-\varepsilon)$ for $\varepsilon\geq 0$ (note that it is also true with equality), which is true because the value of $R_j^{(2)}(\lambda-\varepsilon)\leq \MRtone$. Since $R_0^{(2)}(\lambda)$ is already continuous in $\lambda$, it implies that $R_0^{(2)}(\lambda^-)\to R_0^{(2)}(\lambda)$, which using the previous fact for these values, it implies $R_0(\lambda^-)\to R_0(\lambda)$ which proves what we want.
+
+    \smallskip
+    \noindent\textbf{Case 2: $t_1=n$.}
+    To finish this transition analysis, we must explicitly analyze the boundary case where $t_1 = n$, which implies that $t_3^\star=n$ and that $R_{n-1}=\hg_n^\star=\lambda\geq \MRtone$.
+
+    \smallskip
+    \noindent\textbf{Case 2.a: $\lambda>\MRtone$.}
+    If $\lambda > \MRtone$, continuity is easy to prove since we can pick a small enough $\varepsilon$ such that $t_1$ does not change. For such a case, the value for $R_{t_1-1}=\lambda$ is clearly continuous in $\lambda$, and since all other indices $j<n$ are in Phase 1, and all operations in Phase 1 are continuous in $\lambda$, the result of $R_0(\lambda)$ is continuous in $\lambda$.
+
+    \smallskip
+    \noindent\textbf{Case 2.b: $\lambda=\MRtone$.}
+    For the case of $\lambda=\MRtone$, things are a bit trickier. For the right limit, $\lambda^+=\lambda+\varepsilon$, the same argument as before can apply. It is the left limit that is more difficult. For such a case, $t_1^-=t_1(\lambda^-)$ will not be $n$, but instead some smaller index. Just as before for the case $t_1<n$, for a small enough $\varepsilon$, $t_1^-$ is the biggest index $j<n$ with $\mu_j^D<1$ if we take $\lambda^-=\lambda-\varepsilon$, which simplifies the analysis.
+
+    \smallskip
+    \noindent\textbf{Case 2.b.i: $t_1^-=\perp$.}
+    If such an index does not exist it both implies $\mu_j^D=1$ for all $j$ and $t_1^-=\perp$. Thus, since $\mu_j^D=1$ we have that $\hg_j=0$ for $j<n$, which implies $R_0 (\lambda^-)= R_{n-1}(\lambda^-)=\lambda^-$ which is indeed continuous on $\lambda$, so $R_0(\lambda^-)= R_{n-1}(\lambda^-)=\lambda^-\to \lambda=\MRtone$. 
+
+    \smallskip
+    \noindent\textbf{Case 2.b.ii: $t_1^-\neq \perp$.}
+    We now assume that $t_1^-$ does exist. As $R_{t_1^-}(\lambda^-)=R_{n-1}(\lambda^-)=\lambda^-<\MRtone$, we have that $R_{t_1^-}(\lambda^-)=R_{t_1^-}^{(2)}(\lambda^-)$. For such a case, we can compute things just as previously in the case that $t_1^-$ changes for the original $t_1<n$ and we get that the interpolation factor is $\alpha(\lambda^-) = \frac{\MRtone - \lambda^-}{\hat{g}_{t_1^-}^{(2)}}$. 
+    As $\lambda^- \to \MRtone$, $\alpha(\lambda^-) \to 0$ since we have that $\hg_{t_1^-}(\lambda')>0$ for $\lambda'\in[\lambda^-,\lambda]$. 
+    The fractional updates at $t_1^-$ are $\hat{g}_{t_1^-}^B(\lambda^-) = \MRtone - \lambda^- \to 0$ and $\hat{g}_{t_1^-}^A(\lambda^-) = (1 - \alpha(\lambda^-))(1 - \mu_{t_1^-}^D(\lambda^-)) \cdot \Phi_{t_1^-}(\alpha(\lambda^-),\lambda^-) \to (1 - \mu_{t_1^-}^D(\lambda)) \cdot \Phi_{t_1^-}(0, \lambda)$ using the same argument as every time that $\Phi(\alpha,\lambda)$ is continuous in both $\alpha$ and $\lambda$. 
+    The budget becomes $R_{t_1^--1}(\lambda^-) = \lambda^- + \hat{g}_{t_1^-}^B(\lambda^-) + \hat{g}_{t_1^-}^A(\lambda^-) \to \MRtone + (1 - \mu_{t_1^-}^D) \cdot \Phi_{t_1^-}(0,\lambda)$, which we can check that is the same as it is for $R_{t_1^--1}(\lambda)$. Now, using the same repeated arguments in this section, we can get that $R_0(\lambda^-)\to R_0(\lambda)$, and thus, even for this case, the continuity is proven.
+
+    Therefore, since all the possible cases have been looked at, continuity of $R_0(\lambda)$ is proven.
+\end{proof}
