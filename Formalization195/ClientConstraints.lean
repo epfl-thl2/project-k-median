@@ -131,7 +131,8 @@ def weightedCreditAfter (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i
     (C.memberships).muC j * C.creditAfterC AUX i j +
     (C.memberships).muD j * C.creditAfterD AUX i j
 
-def weightedCreditBefore (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i j : Idx n) : ℝ :=
+def weightedCreditBefore (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C)
+    (i j : Idx n) : ℝ :=
   (C.memberships).muA j * C.creditBeforeA AUX i j +
     (C.memberships).muB j * C.creditBeforeB AUX i j +
     (C.memberships).muC j * C.creditBeforeC AUX i j +
@@ -320,10 +321,12 @@ theorem creditValue_after_eq_weighted
                     C.muD_mul_one_sub_tail_eq_of_firstBid_le hΓ hγlo hγhi hθpos hif]
                   ring
         · have hgt3 : Γ.t3Star < j := lt_of_not_ge hjt3
-          have hμ : Γ.muD j = 1 := Advice.muD_eq_one Γ (lt_of_lt_of_le hgt3 (I.le_firstBidTime j))
+          have hμ : Γ.muD j = 1 := by
+            exact Advice.muD_eq_one Γ (lt_of_lt_of_le hgt3 (I.le_firstBidTime j))
           calc
             C.creditValue AUX i j = 1 := by
-              simpa using C.creditValue_D_after_eq_of_integralD AUX hΓ hγlo hγhi hθpos hμ hji hif
+              simpa using
+                C.creditValue_D_after_eq_of_integralD AUX hΓ hγlo hγhi hθpos hμ hji hif
             _ = C.weightedCreditAfter AUX i j := by
               unfold weightedCreditAfter creditAfterA creditAfterB creditAfterC creditAfterD
               rw [C.memberships_muA_eq_zero_of_muD_eq_one hΓ hμ,
@@ -396,10 +399,12 @@ theorem creditValue_before_eq_weighted
                     C.memberships_muB_eq_zero_of_between_t2_t3 ht2j hjt3]
                   ring
         · have hgt3 : Γ.t3Star < j := lt_of_not_ge hjt3
-          have hμ : Γ.muD j = 1 := Advice.muD_eq_one Γ (lt_of_lt_of_le hgt3 (I.le_firstBidTime j))
+          have hμ : Γ.muD j = 1 := by
+            exact Advice.muD_eq_one Γ (lt_of_lt_of_le hgt3 (I.le_firstBidTime j))
           calc
             C.creditValue AUX i j = beforeBudget C.hatG j - tailBudget C.hatG i := by
-              simpa using C.creditValue_D_before_eq_of_integralD AUX hΓ hγlo hγhi hθpos hμ hji hif
+              simpa using
+                C.creditValue_D_before_eq_of_integralD AUX hΓ hγlo hγhi hθpos hμ hji hif
             _ = C.weightedCreditBefore AUX i j := by
               unfold weightedCreditBefore creditBeforeA creditBeforeB creditBeforeC creditBeforeD
               rw [C.memberships_muA_eq_zero_of_muD_eq_one hΓ hμ,
@@ -511,7 +516,8 @@ theorem creditValue_ge_one_sub_epsilon_of_firstBidTime_lt
     · simp [hμA0]
     · have hμApos : 0 < (C.memberships).muA j := lt_of_le_of_ne (hμnonneg.1 j) (Ne.symm hμA0)
       exact mul_le_mul_of_nonneg_left
-        (C.creditAfterA_ge_one_sub_epsilon_of_muA_pos AUX hγlo hγhi hθpos hμApos) (hμnonneg.1 j)
+        (C.creditAfterA_ge_one_sub_epsilon_of_muA_pos AUX hγlo hγhi hθpos hμApos)
+        (hμnonneg.1 j)
   have hB :
       (C.memberships).muB j * (1 - I.program.epsilon) =
         (C.memberships).muB j * C.creditAfterB AUX i j := by
@@ -558,10 +564,68 @@ theorem creditValue_ge_one_sub_epsilon_of_firstBidTime_lt
             nlinarith [hA, hB, hC, hD]
     _ = C.weightedCreditAfter AUX i j := by rfl
 
-@[simp] theorem constructedDualSolution_clientCredit_eq_creditValue
-    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i j : Idx n) :
-    DualSolution.clientCredit (C.constructedDualSolution AUX) i j = C.creditValue AUX i j := by
-  rfl
+theorem constructedDualSolution_clientCredit_ge_creditValue
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
+    (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
+    {i j : Idx n} (hji : j ≤ i) :
+    C.creditValue AUX i j ≤ DualSolution.clientCredit (C.constructedDualSolution AUX) i j := by
+  rcases lt_or_eq_of_le hji with hlt | rfl
+  · have hstrict :
+        ∀ p,
+          DualSolution.strictS (C.constructedDualSolution AUX) p j = C.shiftedSValue AUX p j := by
+      intro p
+      by_cases hjp : j < p <;> simp [DualSolution.strictS, ProfileData.shiftedSValue, hjp]
+    have hs₁ :
+        Finset.sum (intervalRange j i)
+            (fun p => DualSolution.strictS (C.constructedDualSolution AUX) p j) =
+          Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j) := by
+      apply Finset.sum_congr rfl
+      intro p hp
+      exact hstrict p
+    have hs₂ :
+        Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j) =
+          Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j) := by
+      exact C.sum_interval_shiftedSValue_eq_of_lt AUX hlt
+    have hs :
+        Finset.sum (intervalRange j i)
+            (fun p => DualSolution.strictS (C.constructedDualSolution AUX) p j) =
+          Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j) := by
+      exact hs₁.trans hs₂
+    unfold DualSolution.clientCredit ProfileData.creditValue ProfileData.integralClientCredit
+    simp only
+      [Finset.sum_sub_distrib, constructedDualSolution_g, constructedDualSolution_t,
+        add_le_add_iff_left, tsub_le_iff_right, ge_iff_le]
+    rw [hs]
+    ring_nf
+    exact le_rfl
+  · let H : NonnegHypotheses C := NonnegHypotheses.of_profile_construction C hΓ hγlo hγhi
+    have hsdiag : 0 ≤ C.sValue AUX j j := C.sValue_nonneg H AUX j j
+    have hsingle : intervalRange j j = ({j} : Finset (Idx n)) := by
+      ext x
+      constructor
+      · intro hx
+        rcases mem_intervalRange.mp hx with ⟨hjx, hxj⟩
+        simp [le_antisymm hxj hjx]
+      · intro hx
+        have hx' : x = j := by simpa using hx
+        subst x
+        exact mem_intervalRange.mpr ⟨le_rfl, le_rfl⟩
+    have hraw :
+        C.creditValue AUX j j =
+          Finset.sum (strictSuffixRange j) (fun q => C.gValue AUX j q) +
+            (C.gValue AUX j j + C.tValue AUX j j - C.sValue AUX j j) := by
+      unfold ProfileData.creditValue ProfileData.integralClientCredit
+      rw [hsingle]
+      simp
+    have hnew :
+        DualSolution.clientCredit (C.constructedDualSolution AUX) j j =
+          Finset.sum (strictSuffixRange j) (fun q => C.gValue AUX j q) +
+            (C.gValue AUX j j + C.tValue AUX j j) := by
+      unfold DualSolution.clientCredit DualSolution.strictS
+      rw [hsingle]
+      simp [constructedDualSolution_g, constructedDualSolution_t, ProfileData.shiftedSValue]
+    rw [hraw, hnew]
+    linarith
 
 theorem constructedDualSolution_satisfiesClientConstraints
     (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
@@ -569,17 +633,25 @@ theorem constructedDualSolution_satisfiesClientConstraints
     (hθpos : 0 < I.program.theta) :
     DualSolution.SatisfiesClientConstraints (C.constructedDualSolution AUX) I.program := by
   intro j i hji
-  rw [C.constructedDualSolution_clientCredit_eq_creditValue AUX i j]
+  have hcredit_ge :
+      C.creditValue AUX i j ≤ DualSolution.clientCredit (C.constructedDualSolution AUX) i j :=
+    C.constructedDualSolution_clientCredit_ge_creditValue AUX hΓ hγlo hγhi hji
   by_cases hlt : i < I.firstBidTime j
   · rw [I.clientConstraintRhs_eq_zero_of_lt_firstBidTime hji hlt]
-    exact C.creditValue_nonneg_of_lt_firstBidTime AUX hΓ hγlo hγhi hθpos hji hlt
+    have hcredit_nonneg :
+        0 ≤ C.creditValue AUX i j :=
+      C.creditValue_nonneg_of_lt_firstBidTime AUX hΓ hγlo hγhi hθpos hji hlt
+    linarith
   · by_cases heq : i = I.firstBidTime j
     · rw [heq, I.clientConstraintRhs_eq_one_of_eq_firstBidTime]
-      exact by
-        have hcredit : C.creditValue AUX (I.firstBidTime j) j = 1 := by
-          simpa [heq] using
-            C.creditValue_eq_one_of_eq_firstBidTime AUX hΓ hγlo hγhi hθpos hji heq
-        rw [hcredit]
+      have hcredit_eq : C.creditValue AUX (I.firstBidTime j) j = 1 := by
+        simpa [heq] using
+          C.creditValue_eq_one_of_eq_firstBidTime AUX hΓ hγlo hγhi hθpos hji heq
+      have hcredit_ge' :
+          C.creditValue AUX (I.firstBidTime j) j ≤
+            DualSolution.clientCredit (C.constructedDualSolution AUX) (I.firstBidTime j) j := by
+        simpa [heq] using hcredit_ge
+      linarith
     · have hgt : I.firstBidTime j < i := lt_of_le_of_ne (not_lt.mp hlt) (Ne.symm heq)
       have hcredit :
           1 - I.program.epsilon ≤ C.creditValue AUX i j :=

@@ -58,6 +58,11 @@ structure DualSolution (n : ℕ) where
   rho : ℝ
   hatG : Idx n → ℝ
   g : Idx n → Idx n → ℝ
+  /--
+  The corrected dual only uses the strict-lower entries `s_{i,j}` with `j < i`.
+  We still store `s` as a total function for convenience, but all LP expressions below
+  ignore the diagonal.
+  -/
   s : Idx n → Idx n → ℝ
   t : Idx n → Idx n → ℝ
 
@@ -66,20 +71,24 @@ namespace DualSolution
 def totalHatG (x : DualSolution n) : ℝ :=
   Finset.sum Finset.univ x.hatG
 
+/-- The strict-lower part of `s`, with the diagonal discarded. -/
+def strictS (x : DualSolution n) (i j : Idx n) : ℝ :=
+  if j < i then x.s i j else 0
+
 /-- Left-hand side of the paper's `(r_{j,i})` constraint. -/
 def clientCredit (x : DualSolution n) (i j : Idx n) : ℝ :=
   Finset.sum (strictSuffixRange j) (fun q => x.g j q) +
-    Finset.sum (intervalRange j i) (fun p => x.g p j + x.t p j - x.s p j)
+    Finset.sum (intervalRange j i) (fun p => x.g p j + x.t p j - x.strictS p j)
 
 /-- Left-hand side of the paper's `(m_i)` constraint. -/
 def poolCredit (x : DualSolution n) (i : Idx n) : ℝ :=
   Finset.sum (prefixRange i) fun p =>
-    Finset.sum (prefixRange p) fun j => x.s p j - x.t p j
+    Finset.sum (prefixRange p) fun j => x.strictS p j - x.t p j
 
 /-- Right-hand side of the paper's `(d_j)` bound for column `j`. -/
 def columnValue (x : DualSolution n) (P : DualProgram n) (j : Idx n) : ℝ :=
   P.Mcoeff * Finset.sum Finset.univ (fun i => x.g i j) +
-    Finset.sum (suffixRange j) (fun i => x.s i j) +
+    Finset.sum (strictSuffixRange j) (fun i => x.s i j) +
     Finset.sum (suffixRange j) (fun i => x.t i j)
 
 def BoundedHatG (x : DualSolution n) : Prop :=

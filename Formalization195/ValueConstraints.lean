@@ -583,19 +583,30 @@ theorem groupColumnD_le_rho
           linarith
     _ = I.program.rhoBound := hrho
 
-theorem constructedDualSolution_columnValue_eq_membership_combo
-    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (j : Idx n) :
-    DualSolution.columnValue (C.constructedDualSolution AUX) I.program j =
+theorem constructedDualSolution_columnValue_le_membership_combo
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
+    (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
+    (j : Idx n) :
+    DualSolution.columnValue (C.constructedDualSolution AUX) I.program j ≤
       (C.memberships).muA j * C.groupColumnA AUX j +
       (C.memberships).muB j * C.groupColumnB AUX j +
       (C.memberships).muC j * C.groupColumnC AUX j +
       (C.memberships).muD j * C.groupColumnD AUX j := by
+  let H : NonnegHypotheses C := NonnegHypotheses.of_profile_construction C hΓ hγlo hγhi
+  have hs :
+      Finset.sum (strictSuffixRange j) (fun i => C.shiftedSValue AUX i j) ≤
+        Finset.sum (suffixRange j) (fun i => C.sValue AUX i j) :=
+    C.sum_strictSuffix_shiftedSValue_le H AUX j
   simp only [DualSolution.columnValue, constructedDualSolution_g, constructedDualSolution_s,
     constructedDualSolution_t, memberships_muD]
   calc
-    I.program.Mcoeff * ∑ x, C.gValue AUX x j + ∑ x ∈ suffixRange j, C.sValue AUX x j +
+    I.program.Mcoeff * ∑ x, C.gValue AUX x j +
+        ∑ x ∈ strictSuffixRange j, C.shiftedSValue AUX x j +
         ∑ x ∈ suffixRange j, C.tValue AUX x j
-      = I.program.Mcoeff * ∑ x, C.gValue AUX x j +
+      ≤ I.program.Mcoeff * ∑ x, C.gValue AUX x j + ∑ x ∈ suffixRange j, C.sValue AUX x j +
+          ∑ x ∈ suffixRange j, C.tValue AUX x j := by
+            linarith
+    _ = I.program.Mcoeff * ∑ x, C.gValue AUX x j +
           ∑ x ∈ suffixRange j, (C.sValue AUX x j + C.tValue AUX x j) := by
             rw [Finset.sum_add_distrib]
             ring
@@ -657,14 +668,16 @@ theorem weighted_groupColumnD_le_rho
   exact mul_le_mul_of_nonneg_left
     (C.groupColumnD_le_rho AUX hΓ hγlo hγhi hθpos j) (hnonneg.2.2.2 j)
 
-@[simp] theorem constructedDualSolution_columnValue_eq_groupColumn_combo
-    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (j : Idx n) :
-    DualSolution.columnValue (C.constructedDualSolution AUX) I.program j =
+theorem constructedDualSolution_columnValue_le_groupColumn_combo
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
+    (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
+    (j : Idx n) :
+    DualSolution.columnValue (C.constructedDualSolution AUX) I.program j ≤
       (C.memberships).muA j * C.groupColumnA AUX j +
       (C.memberships).muB j * C.groupColumnB AUX j +
       (C.memberships).muC j * C.groupColumnC AUX j +
       (C.memberships).muD j * C.groupColumnD AUX j :=
-  C.constructedDualSolution_columnValue_eq_membership_combo AUX j
+  C.constructedDualSolution_columnValue_le_membership_combo AUX hΓ hγlo hγhi j
 
 theorem constructedDualSolution_satisfiesValueConstraints
     (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
@@ -672,8 +685,14 @@ theorem constructedDualSolution_satisfiesValueConstraints
     (hθpos : 0 < I.program.theta) :
     DualSolution.SatisfiesValueConstraints (C.constructedDualSolution AUX) I.program := by
   intro j
-  rw [C.constructedDualSolution_rho AUX,
-    C.constructedDualSolution_columnValue_eq_groupColumn_combo AUX j]
+  rw [C.constructedDualSolution_rho AUX]
+  have hcol :
+      DualSolution.columnValue (C.constructedDualSolution AUX) I.program j ≤
+        (C.memberships).muA j * C.groupColumnA AUX j +
+          (C.memberships).muB j * C.groupColumnB AUX j +
+          (C.memberships).muC j * C.groupColumnC AUX j +
+          (C.memberships).muD j * C.groupColumnD AUX j :=
+    C.constructedDualSolution_columnValue_le_groupColumn_combo AUX hΓ hγlo hγhi j
   have hA := C.weighted_groupColumnA_le_rho AUX hΓ hγlo hγhi hθpos j
   have hB := C.weighted_groupColumnB_le_rho AUX hΓ hγlo hγhi j
   have hC := C.weighted_groupColumnC_le_rho AUX hΓ hγlo hγhi j
@@ -707,6 +726,8 @@ theorem constructedDualSolution_satisfiesValueConstraints
           (C.memberships).muB j * C.groupColumnB AUX j +
           (C.memberships).muC j * C.groupColumnC AUX j +
           (C.memberships).muD j * C.groupColumnD AUX j := by
+            linarith
+    _ ≥ DualSolution.columnValue (C.constructedDualSolution AUX) I.program j := by
             linarith
 
 end ProfileData

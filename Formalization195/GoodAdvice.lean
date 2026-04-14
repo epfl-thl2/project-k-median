@@ -124,7 +124,8 @@ theorem sectionMuValue_antitone (lam : ℝ) {j₁ j₂ : Idx n} (hj : j₁ ≤ j
   exact posPart_mono (sub_le_sub_left (posPart_mono hx) 1)
 
 omit [NeZero n] in
-theorem sectionMuValue_antitone_in_lam {lam₁ lam₂ : ℝ} (hlam : lam₁ ≤ lam₂) (j : Idx n) :
+theorem sectionMuValue_antitone_in_lam
+    {lam₁ lam₂ : ℝ} (hlam : lam₁ ≤ lam₂) (j : Idx n) :
     sectionMuValue lam₂ j ≤ sectionMuValue lam₁ j := by
   have hnnonneg : 0 ≤ (n : ℝ) := by
     exact_mod_cast Nat.zero_le n
@@ -504,7 +505,7 @@ theorem continuous_sectionHatGLastValue (ℓ : Idx n) :
   · simpa [sectionHatGLastValue, hlast] using
       (continuous_const : Continuous fun _ : ℝ => (0 : ℝ))
 
-set_option linter.unusedSectionVars false in
+omit I [NeZero n] in
 theorem sectionHatGLastValue_nonneg [NeZero n]
     (ℓ : Idx n) {lam : ℝ} (hlam : 0 ≤ lam) :
     0 ≤ sectionHatGLastValue ℓ lam := by
@@ -512,7 +513,7 @@ theorem sectionHatGLastValue_nonneg [NeZero n]
   · simp [sectionHatGLastValue, hlast, hlam]
   · simp [sectionHatGLastValue, hlast]
 
-set_option linter.unusedSectionVars false in
+omit I [NeZero n] in
 theorem sectionHatGLastValue_monotone_in_lam [NeZero n]
     (ℓ : Idx n) {lam₁ lam₂ : ℝ} (hlam : lam₁ ≤ lam₂) :
     sectionHatGLastValue ℓ lam₁ ≤ sectionHatGLastValue ℓ lam₂ := by
@@ -617,7 +618,8 @@ theorem continuous_sectionPhaseTwoBudgetValue [NeZero n] (ℓ i : Idx n) :
     Continuous fun lam : ℝ => sectionPhaseTwoBudgetValue I ℓ i lam := by
   unfold sectionPhaseTwoBudgetValue
   refine
-    (((Advice.continuous_sectionHatGLastValue ℓ).add continuous_const).mul ?_).sub continuous_const
+    (((Advice.continuous_sectionHatGLastValue ℓ).add continuous_const).mul ?_).sub
+      continuous_const
   refine continuous_finset_prod _ ?_
   intro j hj
   exact continuous_sectionPhaseTwoFactor I ℓ j
@@ -903,7 +905,8 @@ theorem sectionPhaseTwoBudgetValue_monotone_in_lam [NeZero n]
   have hmain :
       ∀ m, ∀ i : Idx n,
         futureCountNat i = m →
-          sectionPhaseTwoBudgetValue I ℓ i lam₁ ≤ sectionPhaseTwoBudgetValue I ℓ i lam₂ := by
+          sectionPhaseTwoBudgetValue I ℓ i lam₁ ≤
+            sectionPhaseTwoBudgetValue I ℓ i lam₂ := by
     intro m
     induction m using Nat.strong_induction_on with
     | h m ih =>
@@ -1282,7 +1285,8 @@ theorem beforeBudget_eq_sectionPhaseTwoBudgetValue_explicit [NeZero n]
                     rw [ih (futureCountNat (succIdx i hilt)) hsuc_lt (succIdx i hilt) rfl]
               _ = Advice.sectionPhaseTwoBudgetValue I ℓ i lam := by
                     unfold Advice.sectionPhaseTwoHatG2Value
-                    rw [Advice.sectionPhaseTwoAfterBudgetValue_eq_budget_succ (I := I) ℓ i lam hilt]
+                    rw [Advice.sectionPhaseTwoAfterBudgetValue_eq_budget_succ
+                      (I := I) ℓ i lam hilt]
                     ring
   intro i
   exact hmain (futureCountNat i) i rfl
@@ -1579,7 +1583,8 @@ theorem beforeBudget_eq_sectionPhaseTwoBudgetValue_of_sectionAdvice
                 Advice.sectionPhaseTwoAfterBudgetValue_eq_budget_succ (I := I) ℓ i lam hilt,
                 hsucc]
             have hmu :
-                (Advice.sectionAdvice I ℓ lam hlam).muD i = Advice.sectionMuDValue I ℓ i lam := by
+                (Advice.sectionAdvice I ℓ lam hlam).muD i =
+                  Advice.sectionMuDValue I ℓ i lam := by
               simpa using (Advice.sectionMuDValue_eq I ℓ i lam hlam).symm
             have hstep :
                 Ξ.hatG2 i =
@@ -1676,7 +1681,8 @@ theorem sectionTransitionNumeratorValue_endpoint_eq [NeZero n]
 The paper's Phase-1 transition function
 `Φ_i(α, λ) = (1-[θ-R_{f_i}^{(2)}(λ)]^+) / (n-i + α(λ)(1-μ_i^D(λ)) - frac*z(λ))`.
 -/
-noncomputable def sectionPhiValue [NeZero n] (ℓ i : Idx n) (alpha z : ℝ → ℝ) (lam : ℝ) : ℝ :=
+noncomputable def sectionPhiValue [NeZero n]
+    (ℓ i : Idx n) (alpha z : ℝ → ℝ) (lam : ℝ) : ℝ :=
   sectionTransitionNumeratorValue I ℓ i lam /
     (futureCount i + alpha lam * (1 - Advice.sectionMuDValue I ℓ i lam) - I.program.frac * z lam)
 
@@ -1712,7 +1718,8 @@ theorem continuousOn_sectionPhiValue [NeZero n] (ℓ i : Idx n) (alpha z : ℝ �
         (continuousOn_const.mul hz)
 
 /-- The Phase-1 formula with `α = 0`. -/
-noncomputable def sectionPhase1HatGValue [NeZero n] (ℓ i : Idx n) (z : ℝ → ℝ) (lam : ℝ) : ℝ :=
+noncomputable def sectionPhase1HatGValue [NeZero n]
+    (ℓ i : Idx n) (z : ℝ → ℝ) (lam : ℝ) : ℝ :=
   (1 - Advice.sectionMuDValue I ℓ i lam) *
     sectionPhiValue I ℓ i (fun _ => 0) z lam
 
@@ -2270,7 +2277,9 @@ theorem sectionBoundaryPhiDenom_pos_of_budget_eq_barTau_of_max_belowThresholdNon
           refine Finset.sum_le_sum ?_
           intro m hm
           have hpp_le_one :
-              posPart (1 - Advice.sectionPhaseTwoBudgetValue I ℓ m lam / I.program.theta) ≤ 1 := by
+              posPart
+                  (1 - Advice.sectionPhaseTwoBudgetValue I ℓ m lam / I.program.theta) ≤
+                1 := by
             exact posPart_sub_div_le_one
               (Advice.sectionPhaseTwoBudgetValue_nonneg (I := I) (le_of_lt hγ) ℓ m hlam)
               (I.program.theta_nonneg_of_one_le_Mcoeff (le_of_lt hγ))
@@ -2314,8 +2323,7 @@ theorem sectionBoundaryPhiDenom_pos_of_budget_eq_barTau_of_max_belowThresholdNon
   rw [hα0]
   nlinarith
 
-set_option linter.style.longLine false in
-theorem sectionPhaseTwoBudgetValue_eq_sectionR0ValueAtThreshold_of_budget_eq_barTau_of_belowThresholdNononeSet_eq_empty
+theorem sectionPhaseTwoBudgetValue_eq_sectionR0_of_budget_eq_barTau_empty
     [NeZero n]
     {ℓ t1 t2 : Idx n} {lam : ℝ}
     (ht1ℓ : t1 ≤ ℓ)
@@ -2374,7 +2382,6 @@ theorem sectionPhaseTwoBudgetValue_eq_sectionR0ValueAtThreshold_of_budget_eq_bar
     _ = sectionR0ValueAtThreshold I ℓ t1 (sectionZValue I ℓ t2) lam := by
           exact totalBudget_sectionHatGValueAtThreshold (I := I) ℓ t1 t2 lam
 
-set_option linter.style.longLine false in
 theorem sectionPhaseTwoBudgetValue_eq_sectionR0_empty
     [NeZero n]
     {ℓ t1 t2 : Idx n} {lam : ℝ}
@@ -2384,7 +2391,7 @@ theorem sectionPhaseTwoBudgetValue_eq_sectionR0_empty
     (halphaDenomT1 : Advice.sectionPhaseTwoHatG2Value I ℓ t1 lam ≠ 0) :
     Advice.sectionPhaseTwoBudgetValue I ℓ (firstIdx n) lam =
       sectionR0ValueAtThreshold I ℓ t1 (sectionZValue I ℓ t2) lam :=
-  sectionPhaseTwoBudgetValue_eq_sectionR0ValueAtThreshold_of_budget_eq_barTau_of_belowThresholdNononeSet_eq_empty
+  sectionPhaseTwoBudgetValue_eq_sectionR0_of_budget_eq_barTau_empty
     (I := I) ht1ℓ hempty hbar halphaDenomT1
 
 theorem sectionTransitionNumerator_eq_of_sectionHatGValueAtThreshold_of_firstBid_ge_t1
@@ -2721,7 +2728,8 @@ theorem sectionPhase1Denom_pos_of_lt_t1 [NeZero n]
   have hz_lt_i : sectionZValue I ℓ t2 lam < futureCount i := by
     exact lt_of_le_of_lt hz_le_t2 (lt_of_le_of_lt ht2_le_t1 ht1_lt_i)
   have hfrac_le : I.program.frac ≤ 1 := I.program.frac_le_one_of_one_le_Mcoeff hγlo
-  have hfracz_le_z : I.program.frac * sectionZValue I ℓ t2 lam ≤ sectionZValue I ℓ t2 lam := by
+  have hfracz_le_z :
+      I.program.frac * sectionZValue I ℓ t2 lam ≤ sectionZValue I ℓ t2 lam := by
     nlinarith
   have hfracz_lt_i :
       I.program.frac * sectionZValue I ℓ t2 lam < futureCount i := by
@@ -2876,7 +2884,8 @@ theorem sectionBoundaryHatGAValue_nonneg_of_specs [NeZero n]
       exact le_trans hz_le_t2 (ProfileData.futureCount_antitone ht1t2)
     have hfrac_le : I.program.frac ≤ 1 := I.program.frac_le_one_of_one_le_Mcoeff hγlo
     have hfracz_le_t1 : I.program.frac * sectionZValue I ℓ t2 lam ≤ futureCount t1 := by
-      have hfracz_le_z : I.program.frac * sectionZValue I ℓ t2 lam ≤ sectionZValue I ℓ t2 lam := by
+      have hfracz_le_z :
+          I.program.frac * sectionZValue I ℓ t2 lam ≤ sectionZValue I ℓ t2 lam := by
         nlinarith
       exact le_trans hfracz_le_z hz_le_t1
     have hden :
@@ -3012,7 +3021,8 @@ def nextSectionLeft (I : ProcedureInput n) (ℓ : Idx n) (hℓ : ℓ < lastIdx n
     (sectionRight I ℓ).t3Star = ℓ := by
   simp [sectionRight, Advice.sectionAdvice]
 
-@[simp] theorem nextSectionLeft_t3Star (I : ProcedureInput n) (ℓ : Idx n) (hℓ : ℓ < lastIdx n) :
+@[simp] theorem nextSectionLeft_t3Star
+    (I : ProcedureInput n) (ℓ : Idx n) (hℓ : ℓ < lastIdx n) :
     (nextSectionLeft I ℓ hℓ).t3Star = succIdx ℓ hℓ := by
   simp [nextSectionLeft, Advice.sectionAdvice]
 
@@ -3021,7 +3031,8 @@ def nextSectionLeft (I : ProcedureInput n) (ℓ : Idx n) (hℓ : ℓ < lastIdx n
     (sectionRight I ℓ).hatGLast = 0 := by
   simp [sectionRight, Advice.sectionAdvice, ne_of_lt hℓ]
 
-@[simp] theorem nextSectionLeft_hatGLast (I : ProcedureInput n) (ℓ : Idx n) (hℓ : ℓ < lastIdx n) :
+@[simp] theorem nextSectionLeft_hatGLast
+    (I : ProcedureInput n) (ℓ : Idx n) (hℓ : ℓ < lastIdx n) :
     (nextSectionLeft I ℓ hℓ).hatGLast = 0 := by
   by_cases hlast : succIdx ℓ hℓ = lastIdx n
   · simp [nextSectionLeft, Advice.sectionAdvice, hlast]
@@ -3211,7 +3222,8 @@ noncomputable def sectionProcedureRunOfPhaseTwoThresholds
           (Ξ := Advice.sectionPhaseTwoData (I := I) hγlo ℓ lam hlam) t1
       simpa [Advice.sectionBoundaryHatGBValue, ht1last] using
         (show
-          I.program.barTau - (Advice.sectionPhaseTwoData (I := I) hγlo ℓ lam hlam).afterBudget t1 =
+          I.program.barTau -
+              (Advice.sectionPhaseTwoData (I := I) hγlo ℓ lam hlam).afterBudget t1 =
             I.program.barTau - Advice.sectionPhaseTwoAfterBudgetValue I ℓ t1 lam from by
           rw [hafter]).symm
   copied_above_t1 := by
@@ -3375,7 +3387,10 @@ namespace RawProcedureOutput
 
 variable [NeZero n] {I : ProcedureInput n} {Γ : Advice I}
 
-/-- The paper's `R₀`, interpreted uniformly across both the `t₁ = ⊥` and `t₁ ≠ ⊥` cases. -/
+/--
+The paper's `R₀`, interpreted uniformly across both the `t₁ = ⊥`
+and `t₁ ≠ ⊥` cases.
+-/
 def R0 (O : RawProcedureOutput I Γ) : ℝ :=
   match O.run? with
   | some C => totalBudget C.hatG
@@ -3688,7 +3703,8 @@ def toNextSectionLeft
     by_cases htop : i = succIdx ℓ hℓ
     · subst htop
       have hzero : Ξ.hatG2 (succIdx ℓ hℓ) = 0 := by
-        simpa [Advice.sectionRight, Advice.sectionAdvice] using Ξ.zero_above_t3 (lt_succIdx ℓ hℓ)
+        simpa [Advice.sectionRight, Advice.sectionAdvice] using
+          Ξ.zero_above_t3 (lt_succIdx ℓ hℓ)
       by_cases hlast : succIdx ℓ hℓ = lastIdx n
       · have hzeroLast : Ξ.hatG2 (lastIdx n) = 0 := by
           simpa [hlast] using hzero
@@ -3934,7 +3950,8 @@ theorem alpha_bounds
             C.phaseTwo.hatG2 C.t1 + C.phaseTwo.afterBudget C.t1 :=
         C.phaseTwo.beforeBudget_eq_self_add_afterBudget C.t1
       linarith [C.t1_beforeBudget_ge_barTau, hafter_lt, hbefore]
-    have hnum_le_den : I.program.barTau - C.phaseTwo.afterBudget C.t1 ≤ C.phaseTwo.hatG2 C.t1 := by
+    have hnum_le_den :
+        I.program.barTau - C.phaseTwo.afterBudget C.t1 ≤ C.phaseTwo.hatG2 C.t1 := by
       have hbefore :
           C.phaseTwo.beforeBudget C.t1 =
             C.phaseTwo.hatG2 C.t1 + C.phaseTwo.afterBudget C.t1 :=
@@ -4763,7 +4780,8 @@ theorem sectionPhaseTwoOnlyOutput_toNextSectionLeft_eq
       Advice.sectionPhaseTwoBudgetValue I (succIdx ℓ hℓ) (firstIdx n) 0 < I.program.barTau) :
     (sectionPhaseTwoOnlyOutput (I := I) hγlo ℓ
       ⟨1, by constructor <;> norm_num⟩ htotalRight).toNextSectionLeft hℓ =
-      sectionPhaseTwoOnlyOutput (I := I) hγlo (succIdx ℓ hℓ) ⟨0, by constructor <;> norm_num⟩
+      sectionPhaseTwoOnlyOutput
+        (I := I) hγlo (succIdx ℓ hℓ) ⟨0, by constructor <;> norm_num⟩
         htotalLeft := by
   ext
   · rename_i i
@@ -5479,7 +5497,8 @@ noncomputable def value (lam : ℝ) : ℝ :=
 theorem value_eq_sectionR0ValueAtThreshold
     (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
     {lam : ℝ} (hlam : lam ∈ Set.Icc (0 : ℝ) 1) :
-    F.value lam = Advice.sectionR0ValueAtThreshold I ℓ t1 (Advice.sectionZValue I ℓ t2) lam := by
+    F.value lam =
+      Advice.sectionR0ValueAtThreshold I ℓ t1 (Advice.sectionZValue I ℓ t2) lam := by
   let x : Set.Icc (0 : ℝ) 1 := ⟨lam, hlam⟩
   have hR0 :=
     (F.run x).R0_eq_sectionR0ValueAtThreshold_explicit_of_sectionAdvice hγlo hγhi
@@ -6178,7 +6197,8 @@ theorem eqOn_value_phaseTwoOnlyOf_right_lt_barTau
     (hright : Advice.sectionPhaseTwoBudgetValue I ℓ (firstIdx n) 1 < I.program.barTau)
     {s : Set ℝ} (hs : s ⊆ Set.Icc (0 : ℝ) 1) :
     Set.EqOn
-      (SectionRawOutputChoice.phaseTwoOnlyOf_right_lt_barTau (I := I) (ℓ := ℓ) hγlo hright).value
+      (SectionRawOutputChoice.phaseTwoOnlyOf_right_lt_barTau
+        (I := I) (ℓ := ℓ) hγlo hright).value
       (Advice.sectionPhaseTwoBudgetValue I ℓ (firstIdx n))
       s := by
   intro x hx
@@ -6641,7 +6661,8 @@ theorem continuousWithinAt_of_localThresholdRuns
     (hs_subset : s ⊆ Set.Icc (0 : ℝ) 1)
     (hrun :
       ∀ x (hx : x ∈ s),
-        ∃ C : ProcedureRun I (Advice.sectionAdvice I ℓ x ⟨(hs_subset hx).1, (hs_subset hx).2⟩),
+        ∃ C : ProcedureRun I
+          (Advice.sectionAdvice I ℓ x ⟨(hs_subset hx).1, (hs_subset hx).2⟩),
           (P.output ℓ ⟨x, hs_subset hx⟩).run? = some C ∧ C.t1 = t1 ∧ C.t2 = t2) :
     ContinuousWithinAt (P.value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
   let Q := P.sectionChoice ℓ
@@ -7096,14 +7117,16 @@ theorem continuousWithinAt_case1_2_b_i_of_localPhaseTwoBudgetBounds
       (I := I) (O := P.output ℓ ⟨x, hsLeft_subset hx⟩) (hbarLeft x hx) (hbarLeftAbove x hx)
   · intro x hx
     exact RawProcedureOutput.t2?_eq_some_of_sectionBudget_ge_theta_of_above_lt_theta
-      (I := I) (O := P.output ℓ ⟨x, hsLeft_subset hx⟩) (hthetaLeft x hx) (hthetaLeftAbove x hx)
+      (I := I) (O := P.output ℓ ⟨x, hsLeft_subset hx⟩)
+      (hthetaLeft x hx) (hthetaLeftAbove x hx)
   · exact hrunLeft
   · intro x hx
     exact RawProcedureOutput.t1?_eq_some_of_sectionBudget_ge_barTau_of_above_lt_barTau
       (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩) (hbarRight x hx) (hbarRightAbove x hx)
   · intro x hx
     exact RawProcedureOutput.t2?_eq_some_of_sectionBudget_ge_theta_of_above_lt_theta
-      (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩) (hthetaRight x hx) (hthetaRightAbove x hx)
+      (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩)
+      (hthetaRight x hx) (hthetaRightAbove x hx)
   · exact hrunRight
 
 /-- Phase-2/fixed jump continuity from the paper's local Phase-2 budget inequalities. -/
@@ -7155,7 +7178,8 @@ theorem continuousWithinAt_case1_2_b_ii_of_localPhaseTwoBudgetBounds
       (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩) (hbarRight x hx) (hbarRightAbove x hx)
   · intro x hx
     exact RawProcedureOutput.t2?_eq_some_of_sectionBudget_ge_theta_of_above_lt_theta
-      (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩) (hthetaRight x hx) (hthetaRightAbove x hx)
+      (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩)
+      (hthetaRight x hx) (hthetaRightAbove x hx)
   · exact hrunRight
 
 /-- Stable-threshold case on an actual path: on a neighborhood the path follows one fixed
@@ -7223,7 +7247,8 @@ theorem continuousWithinAt_of_localT1RunsFull
         ∀ x ∈ s, futureCount i - I.program.frac * Advice.sectionZFullValue I ℓ x ≠ 0)
     (hrun :
       ∀ x (hx : x ∈ s),
-        ∃ C : ProcedureRun I (Advice.sectionAdvice I ℓ x ⟨(hs_subset hx).1, (hs_subset hx).2⟩),
+        ∃ C : ProcedureRun I
+          (Advice.sectionAdvice I ℓ x ⟨(hs_subset hx).1, (hs_subset hx).2⟩),
           (P.output ℓ ⟨x, hs_subset hx⟩).run? = some C ∧ C.t1 = t1) :
     ContinuousWithinAt (P.value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
   let Q := P.sectionChoice ℓ
@@ -7432,7 +7457,8 @@ theorem continuousWithinAt_case1_2_b_i_of_run_eq
         (P.output ℓ ⟨x, hsLeft_subset hx⟩).run? = some (Fminus.run ⟨x, hsLeft_subset hx⟩))
     (hrunRight :
       ∀ x (hx : x ∈ sRight),
-        (P.output ℓ ⟨x, hsRight_subset hx⟩).run? = some (Fcurr.run ⟨x, hsRight_subset hx⟩)) :
+        (P.output ℓ ⟨x, hsRight_subset hx⟩).run? =
+          some (Fcurr.run ⟨x, hsRight_subset hx⟩)) :
     ContinuousWithinAt (P.value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
   apply P.continuousWithinAt_case1_2_b_i_of_eqOn_output
     hlam hγlo hγhi Fminus Fcurr
@@ -7512,7 +7538,8 @@ theorem continuousWithinAt_case1_2_b_ii_of_run_eq
         Advice.sectionPhaseTwoBudgetValue I ℓ (firstIdx n) x < I.program.barTau)
     (hrunRight :
       ∀ x (hx : x ∈ sRight),
-        (P.output ℓ ⟨x, hsRight_subset hx⟩).run? = some (Fcurr.run ⟨x, hsRight_subset hx⟩)) :
+        (P.output ℓ ⟨x, hsRight_subset hx⟩).run? =
+          some (Fcurr.run ⟨x, hsRight_subset hx⟩)) :
     ContinuousWithinAt (P.value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
   apply P.continuousWithinAt_case1_2_b_ii_of_eqOn_output
     hlam hγlo hγhi Fcurr
@@ -7580,10 +7607,12 @@ inductive PointwiseRunCase (ℓ : Idx n) (lam : ℝ) where
       (hsRight_subset : sRight ⊆ Set.Icc (0 : ℝ) 1)
       (hrunLeft :
         ∀ x (hx : x ∈ sLeft),
-          (P.output ℓ ⟨x, hsLeft_subset hx⟩).run? = some (Fminus.run ⟨x, hsLeft_subset hx⟩))
+          (P.output ℓ ⟨x, hsLeft_subset hx⟩).run? =
+            some (Fminus.run ⟨x, hsLeft_subset hx⟩))
       (hrunRight :
         ∀ x (hx : x ∈ sRight),
-          (P.output ℓ ⟨x, hsRight_subset hx⟩).run? = some (Fcurr.run ⟨x, hsRight_subset hx⟩))
+          (P.output ℓ ⟨x, hsRight_subset hx⟩).run? =
+            some (Fcurr.run ⟨x, hsRight_subset hx⟩))
   | jumpPhaseTwoFixed
       {t1 t2 : Idx n}
       (Fcurr : FixedThresholdSectionRunFamily n I ℓ t1 t2)
@@ -7607,7 +7636,8 @@ inductive PointwiseRunCase (ℓ : Idx n) (lam : ℝ) where
           Advice.sectionPhaseTwoBudgetValue I ℓ (firstIdx n) x < I.program.barTau)
       (hrunRight :
         ∀ x (hx : x ∈ sRight),
-          (P.output ℓ ⟨x, hsRight_subset hx⟩).run? = some (Fcurr.run ⟨x, hsRight_subset hx⟩))
+          (P.output ℓ ⟨x, hsRight_subset hx⟩).run? =
+            some (Fcurr.run ⟨x, hsRight_subset hx⟩))
 
 namespace PointwiseRunCase
 
@@ -7693,7 +7723,8 @@ theorem exists_profileData_of_compatible
     ∃ Γ : Advice I, Γ.Admissible ∧ Nonempty (ProfileData I Γ) := by
   rcases P.exists_eq_one_of_compatible hcont hP hleft hright with ⟨ℓ, lam, hlam, hval⟩
   let x : Set.Icc (0 : ℝ) 1 := ⟨lam, hlam⟩
-  let O : RawProcedureOutput I (Advice.sectionAdvice I ℓ lam ⟨hlam.1, hlam.2⟩) := P.output ℓ x
+  let O : RawProcedureOutput I
+      (Advice.sectionAdvice I ℓ lam ⟨hlam.1, hlam.2⟩) := P.output ℓ x
   have hvalue : P.value ℓ lam = O.R0 := by
     simp [SectionRawOutputPath.value, x, O, hlam]
   have hR0 : O.R0 = 1 := by
@@ -7858,7 +7889,8 @@ theorem canonicalPath_continuousWithinAt_case1_2_b_i_of_localPhaseTwoBudgetBound
     have ht1 :
         (P.output ℓ ⟨x, hsRight_subset hx⟩).phaseTwo.t1? = some t1 := by
       exact RawProcedureOutput.t1?_eq_some_of_sectionBudget_ge_barTau_of_above_lt_barTau
-        (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩) (hbarRight x hx) (hbarRightAbove x hx)
+        (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩)
+        (hbarRight x hx) (hbarRightAbove x hx)
     exact RawProcedureOutput.run_ne_none_of_t1_some
       (I := I) (O := P.output ℓ ⟨x, hsRight_subset hx⟩) ht1
 
@@ -8145,7 +8177,8 @@ theorem canonicalPath_continuousWithinAt_case1_2_b_ii_of_pointwisePhaseTwoBudget
       sLeft ∈ nhdsWithin lam (Set.Icc (0 : ℝ) 1 ∩ Set.Iic lam) := by
     simpa [sLeft] using
       (self_mem_nhdsWithin :
-        Set.Icc (0 : ℝ) 1 ∩ Set.Iic lam ∈ nhdsWithin lam (Set.Icc (0 : ℝ) 1 ∩ Set.Iic lam))
+        Set.Icc (0 : ℝ) 1 ∩ Set.Iic lam ∈
+          nhdsWithin lam (Set.Icc (0 : ℝ) 1 ∩ Set.Iic lam))
   have hsRightCoreEachBar :
       ∀ i : Idx n,
         ∀ᶠ x in nhdsWithin lam (Set.Icc (0 : ℝ) 1 ∩ Set.Ici lam),
@@ -8497,7 +8530,10 @@ theorem canonicalPath_continuousWithinAt_of_run_some_barTau_strict_full
       ((canonicalPath I (le_of_lt hγ) hγhi).output ℓ ⟨lam, hlam⟩).run? = some C)
     (hbar :
       I.program.barTau < Advice.sectionPhaseTwoBudgetValue I ℓ C.t1 lam) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   let P : SectionRawOutputPath n I := canonicalPath I (le_of_lt hγ) hγhi
   let baseRest : Set ℝ := {x |
     I.program.barTau < Advice.sectionPhaseTwoBudgetValue I ℓ C.t1 x ∧
@@ -8541,7 +8577,8 @@ theorem canonicalPath_continuousWithinAt_of_run_some_barTau_strict_full
       exact hx.1
     have hrun :
         ∀ x (hx : x ∈ s),
-          ∃ Cx : ProcedureRun I (Advice.sectionAdvice I ℓ x ⟨(hs_subset hx).1, (hs_subset hx).2⟩),
+          ∃ Cx : ProcedureRun I
+            (Advice.sectionAdvice I ℓ x ⟨(hs_subset hx).1, (hs_subset hx).2⟩),
             (P.output ℓ ⟨x, hs_subset hx⟩).run? = some Cx ∧ Cx.t1 = C.t1 := by
       intro x hx
       have ht1x :
@@ -8718,7 +8755,10 @@ theorem canonicalPath_continuousWithinAt_of_run_some_strict
       ((canonicalPath I (le_of_lt hγ) hγhi).output ℓ ⟨lam, hlam⟩).run? = some C)
     (hbar :
       I.program.barTau < Advice.sectionPhaseTwoBudgetValue I ℓ C.t1 lam) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   exact canonicalPath_continuousWithinAt_of_run_some_barTau_strict_full
     (I := I) hγ hγhi hlam hrun hbar
 
@@ -8961,7 +9001,10 @@ theorem canonicalPath_continuousWithinAt_of_run_some_leftStable
     (hleftStable :
       ∀ᶠ x in nhdsWithin lam (Set.Icc (0 : ℝ) 1 ∩ Set.Iic lam),
         I.program.barTau ≤ Advice.sectionPhaseTwoBudgetValue I ℓ C.t1 x) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   let leftRest : Set ℝ := {x |
       I.program.barTau ≤ Advice.sectionPhaseTwoBudgetValue I ℓ C.t1 x ∧
       ∀ i : Idx n, C.t1 < i →
@@ -9194,7 +9237,10 @@ theorem canonicalPath_continuousWithinAt_case1_2_b_i_of_run_some_leftJump
     (hleftJump :
       ∀ᶠ x in nhdsWithin lam (Set.Icc (0 : ℝ) 1 ∩ Set.Iio lam),
         Advice.sectionPhaseTwoBudgetValue I ℓ C.t1 x < I.program.barTau) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   let P : SectionRawOutputPath n I := canonicalPath I (le_of_lt hγ) hγhi
   let Q := P.sectionChoice ℓ
   have hk_mem : k ∈ Advice.belowThresholdNononeSet I ℓ C.t1 lam := by
@@ -9641,7 +9687,10 @@ theorem canonicalPath_continuousWithinAt_case1_2_b_ii_of_run_some_leftJump_empty
     (hleftJump :
       ∀ᶠ x in nhdsWithin lam (Set.Icc (0 : ℝ) 1 ∩ Set.Iio lam),
         Advice.sectionPhaseTwoBudgetValue I ℓ C.t1 x < I.program.barTau) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   let P : SectionRawOutputPath n I := canonicalPath I (le_of_lt hγ) hγhi
   let Q := P.sectionChoice ℓ
   have hbarAtT1 :
@@ -10025,7 +10074,10 @@ theorem canonicalPath_continuousWithinAt_of_run_some_theta_strict_cases
       ∨
       ∃ k, ∃ hne : (Advice.belowThresholdNononeSet I ℓ C.t1 lam).Nonempty,
         (Advice.belowThresholdNononeSet I ℓ C.t1 lam).max' hne = k) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   by_cases hstrict :
       I.program.barTau < Advice.sectionPhaseTwoBudgetValue I ℓ C.t1 lam
   · exact canonicalPath_continuousWithinAt_of_run_some_strict
@@ -10071,7 +10123,10 @@ theorem canonicalPath_continuousWithinAt_of_run_some_cases
         ∨
         ∃ k, ∃ hne : (Advice.belowThresholdNononeSet I ℓ C.t1 lam).Nonempty,
           (Advice.belowThresholdNononeSet I ℓ C.t1 lam).max' hne = k)) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   rcases hcases with hsmallLeft | ⟨h0lt, hbelowEmpty, hleftJump⟩ | hbarStrict | hpred
   · exact canonicalPath_continuousWithinAt_case1_2_b_ii_of_run_some
       (I := I) (le_of_lt hγ) hγhi hlam hrun hsmallLeft
@@ -10092,7 +10147,10 @@ theorem canonicalPath_continuousWithinAt_of_run_some
     {C : ProcedureRun I (Advice.sectionAdvice I ℓ lam ⟨hlam.1, hlam.2⟩)}
     (hrun :
       ((canonicalPath I (le_of_lt hγ) hγhi).output ℓ ⟨lam, hlam⟩).run? = some C) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   by_cases hsmallLeft :
       Advice.sectionPhaseTwoBudgetValue I ℓ (firstIdx n) lam < I.program.barTau
   · exact canonicalPath_continuousWithinAt_case1_2_b_ii_of_run_some
@@ -10128,7 +10186,10 @@ theorem canonicalPath_continuousWithinAt
     (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
     {ℓ : Idx n} {lam : ℝ}
     (hlam : lam ∈ Set.Icc (0 : ℝ) 1) :
-    ContinuousWithinAt ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ) (Set.Icc (0 : ℝ) 1) lam := by
+    ContinuousWithinAt
+      ((canonicalPath I (le_of_lt hγ) hγhi).value ℓ)
+      (Set.Icc (0 : ℝ) 1)
+      lam := by
   let O : RawProcedureOutput I (Advice.sectionAdvice I ℓ lam ⟨hlam.1, hlam.2⟩) :=
     (canonicalPath I (le_of_lt hγ) hγhi).output ℓ ⟨lam, hlam⟩
   by_cases ht1none : O.phaseTwo.t1? = none
@@ -10257,8 +10318,10 @@ theorem canonicalSectionOutput_toNextSectionLeft_eq
     (hγlo : 1 ≤ I.program.Mcoeff)
     (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
     {ℓ : Idx n} (hℓ : ℓ < lastIdx n) :
-    (canonicalSectionOutput I hγlo hγhi ℓ ⟨1, by constructor <;> norm_num⟩).toNextSectionLeft hℓ =
-      canonicalSectionOutput I hγlo hγhi (succIdx ℓ hℓ) ⟨0, by constructor <;> norm_num⟩ := by
+    (canonicalSectionOutput I hγlo hγhi ℓ
+      ⟨1, by constructor <;> norm_num⟩).toNextSectionLeft hℓ =
+      canonicalSectionOutput I hγlo hγhi (succIdx ℓ hℓ)
+        ⟨0, by constructor <;> norm_num⟩ := by
   classical
   let xR : Set.Icc (0 : ℝ) 1 := ⟨1, by constructor <;> norm_num⟩
   let xL : Set.Icc (0 : ℝ) 1 := ⟨0, by constructor <;> norm_num⟩
@@ -10373,10 +10436,13 @@ noncomputable def ofSectionCases
     (hγlo : 1 ≤ I.program.Mcoeff)
     (hcompat :
       ∀ {ℓ : Idx n} (hℓ : ℓ < lastIdx n),
-        (((K ℓ).choice hγlo).output ⟨1, by constructor <;> norm_num⟩).toNextSectionLeft hℓ =
+        (((K ℓ).choice hγlo).output
+          ⟨1, by constructor <;> norm_num⟩).toNextSectionLeft hℓ =
           ((K (succIdx ℓ hℓ)).choice hγlo).output ⟨0, by constructor <;> norm_num⟩)
-    (hleft : (((K (firstIdx n)).choice hγlo).output ⟨0, by constructor <;> norm_num⟩).R0 ≤ 1)
-    (hright : 1 ≤ (((K (lastIdx n)).choice hγlo).output ⟨1, by constructor <;> norm_num⟩).R0) :
+    (hleft :
+      (((K (firstIdx n)).choice hγlo).output ⟨0, by constructor <;> norm_num⟩).R0 ≤ 1)
+    (hright :
+      1 ≤ (((K (lastIdx n)).choice hγlo).output ⟨1, by constructor <;> norm_num⟩).R0) :
     GoodAdvicePathCertificate n I where
   path := SectionRawOutputPath.ofSectionChoices (I := I) (fun ℓ => (K ℓ).choice hγlo)
   compatible := SectionRawOutputPath.endpointCompatible_of_sectionEndpoint_eq

@@ -554,7 +554,8 @@ theorem alpha_bounds
             C.phaseTwo.hatG2 C.t1 + C.phaseTwo.afterBudget C.t1 :=
         C.phaseTwo.beforeBudget_eq_self_add_afterBudget C.t1
       linarith [C.t1_beforeBudget_ge_barTau, hafter_lt, hbefore]
-    have hnum_le_den : I.program.barTau - C.phaseTwo.afterBudget C.t1 ≤ C.phaseTwo.hatG2 C.t1 := by
+    have hnum_le_den :
+        I.program.barTau - C.phaseTwo.afterBudget C.t1 ≤ C.phaseTwo.hatG2 C.t1 := by
       have hbefore :
           C.phaseTwo.beforeBudget C.t1 =
             C.phaseTwo.hatG2 C.t1 + C.phaseTwo.afterBudget C.t1 :=
@@ -705,7 +706,8 @@ def chi (C : ProfileData I Γ) (j : Idx n) : ℝ :=
   simp [ProfileData.chi]
 
 theorem chi_le_one_of_hatG_nonneg
-    (C : ProfileData I Γ) (hhatG : ∀ i, 0 ≤ C.hatG i) (hθ : 0 ≤ I.program.theta) (j : Idx n) :
+    (C : ProfileData I Γ) (hhatG : ∀ i, 0 ≤ C.hatG i)
+    (hθ : 0 ≤ I.program.theta) (j : Idx n) :
     C.chi j ≤ 1 := by
   simpa [ProfileData.chi] using
     posPart_sub_div_le_one (beforeBudget_nonneg_of_nonneg hhatG j) hθ
@@ -771,7 +773,8 @@ theorem memberships_total (C : ProfileData I Γ) (j : Idx n) :
             apply lt_of_not_ge
             intro hjle
             exact hj₄ ⟨ht2j, hjle⟩
-          have hμ : Γ.muD j = 1 := Advice.muD_eq_one Γ (lt_of_lt_of_le ht3j (I.le_firstBidTime j))
+          have hμ : Γ.muD j = 1 := Advice.muD_eq_one Γ
+            (lt_of_lt_of_le ht3j (I.le_firstBidTime j))
           simp [ProfileData.memberships, hj₁, hj₂, hj₃, hj₄, hμ]
 
 theorem memberships_muA_eq_of_lt_t1

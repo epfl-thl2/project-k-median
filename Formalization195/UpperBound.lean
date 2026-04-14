@@ -556,7 +556,8 @@ def RestrictedGoodAdviceLocalCaseFamilyFromTwo (Mcoeff : ℝ) : Prop :=
     ∃ hγlo : 1 ≤ I.program.Mcoeff,
       ∃ K : ∀ ℓ : Idx n, SectionLocalCase n I ℓ,
         (∀ {ℓ : Idx n} (hℓ : ℓ < lastIdx n),
-          (((K ℓ).choice hγlo).output ⟨1, by constructor <;> norm_num⟩).toNextSectionLeft hℓ =
+          (((K ℓ).choice hγlo).output
+              ⟨1, by constructor <;> norm_num⟩).toNextSectionLeft hℓ =
             ((K (succIdx ℓ hℓ)).choice hγlo).output ⟨0, by constructor <;> norm_num⟩) ∧
         ((((K (firstIdx n)).choice hγlo).output ⟨0, by constructor <;> norm_num⟩).R0 ≤ 1) ∧
         (1 ≤ (((K (lastIdx n)).choice hγlo).output ⟨1, by constructor <;> norm_num⟩).R0)
@@ -635,12 +636,12 @@ theorem trivialSingletonSolution_feasible (P : DualProgram 1) :
   · intro j i hji
     fin_cases j
     fin_cases i
-    simpa [DualSolution.clientCredit, strictSuffixRange, intervalRange,
+    simpa [DualSolution.clientCredit, DualSolution.strictS, strictSuffixRange, intervalRange,
       halfOpenIntervalRange, trivialSingletonSolution, DualProgram.Mcoeffmone, ge_iff_le] using
       P.bid_le_one 0 0
   · intro i
     fin_cases i
-    simp [DualSolution.poolCredit, trivialSingletonSolution]
+    simp [DualSolution.poolCredit, DualSolution.strictS, trivialSingletonSolution]
   · intro j
     fin_cases j
     simp [DualSolution.columnValue, trivialSingletonSolution]
@@ -876,20 +877,19 @@ theorem
     restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo
     (by nlinarith) hcert
 
-set_option linter.style.longLine false in
-theorem restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo_of_restrictedGoodAdvicePointCaseFamilyFromTwo
+theorem restrictedLocalCertFamilyFromTwo_of_restrictedPointCaseFamilyFromTwo
     {Mcoeff : ℝ}
     (hpoint : RestrictedGoodAdvicePointCaseFamilyFromTwo Mcoeff) :
     RestrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo Mcoeff := by
   intro n _ hn1 bidding
   let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
-  rcases hpoint n inferInstance hn1 bidding with ⟨hγlo, hγhi, Q, hcompat, hlocal, hleft, hright⟩
+  rcases hpoint n inferInstance hn1 bidding with
+    ⟨hγlo, hγhi, Q, hcompat, hlocal, hleft, hright⟩
   exact
     ⟨GoodAdvicePathLocalCertificate.ofSectionChoices
       (I := I) hγlo hγhi Q hcompat
       (fun ℓ lam hlam => Classical.choice (hlocal ℓ lam hlam)) hleft hright⟩
 
-set_option linter.style.longLine false in
 theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointCaseFamilyFromTwo
     {Mcoeff : ℝ}
     (hγlo : 1 < Mcoeff)
@@ -899,11 +899,9 @@ theorem restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointCaseFamilyFro
     restrictedProfileFamilyFromTwo_of_restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo
     hγlo
   exact
-    restrictedGoodAdviceLocalContinuityCertificateFamilyFromTwo_of_restrictedGoodAdvicePointCaseFamilyFromTwo
-      hpoint
+    restrictedLocalCertFamilyFromTwo_of_restrictedPointCaseFamilyFromTwo hpoint
 
-set_option linter.style.longLine false in
-theorem restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_of_restrictedGoodAdvicePointCaseFamilyFromTwo
+theorem restrictedPointwiseContinuityFamilyFromTwo_of_restrictedPointCaseFamilyFromTwo
     {Mcoeff : ℝ}
     (hpoint : RestrictedGoodAdvicePointCaseFamilyFromTwo Mcoeff) :
     RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo Mcoeff := by

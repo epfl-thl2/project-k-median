@@ -59,10 +59,21 @@ def poolValue (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i : Idx n) 
   Finset.sum (prefixRange i) fun p =>
     Finset.sum (prefixRange p) fun j => C.sValue AUX p j - C.tValue AUX p j
 
-@[simp] theorem constructedDualSolution_poolCredit_eq_poolValue
+def shiftedPoolValue (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i : Idx n) : ℝ :=
+  Finset.sum (prefixRange i) fun p =>
+    Finset.sum (prefixRange p) fun j => C.shiftedSValue AUX p j - C.tValue AUX p j
+
+@[simp] theorem constructedDualSolution_poolCredit_eq_shiftedPoolValue
     (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i : Idx n) :
-    DualSolution.poolCredit (C.constructedDualSolution AUX) i = C.poolValue AUX i := by
-  rfl
+    DualSolution.poolCredit (C.constructedDualSolution AUX) i = C.shiftedPoolValue AUX i := by
+  unfold DualSolution.poolCredit ProfileData.shiftedPoolValue DualSolution.strictS
+  apply Finset.sum_congr rfl
+  intro p hp
+  apply Finset.sum_congr rfl
+  intro j hj
+  by_cases hjp : j < p
+  · simp [ProfileData.shiftedSValue, hjp]
+  · simp [ProfileData.shiftedSValue, hjp]
 
 theorem poolValue_eq_sumByColumn
     (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i : Idx n) :
@@ -72,6 +83,95 @@ theorem poolValue_eq_sumByColumn
           Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j - C.tValue AUX p j)) := by
   unfold ProfileData.poolValue
   exact sum_prefixTriangle_eq_sumByColumn (f := fun p j => C.sValue AUX p j - C.tValue AUX p j) i
+
+theorem shiftedPoolValue_eq_sumByColumn
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i : Idx n) :
+    C.shiftedPoolValue AUX i =
+      Finset.sum (prefixRange i)
+        (fun j =>
+          Finset.sum
+            (intervalRange j i)
+            (fun p => C.shiftedSValue AUX p j - C.tValue AUX p j)) := by
+  unfold ProfileData.shiftedPoolValue
+  exact
+    sum_prefixTriangle_eq_sumByColumn
+      (f := fun p j => C.shiftedSValue AUX p j - C.tValue AUX p j) i
+
+theorem shiftedPoolValue_eq_poolValue_of_t1_lt
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (_hΓ : Γ.Admissible)
+    (_hγlo : 1 ≤ I.program.Mcoeff) (_hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
+    {i : Idx n} (ht1i : C.t1 < i) :
+    C.shiftedPoolValue AUX i = C.poolValue AUX i := by
+  rw [C.shiftedPoolValue_eq_sumByColumn AUX i, C.poolValue_eq_sumByColumn AUX i]
+  apply Finset.sum_congr rfl
+  intro j hj
+  have hji : j ≤ i := mem_prefixRange.mp hj
+  have hs :
+      Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j) =
+        Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j) := by
+    rcases lt_or_eq_of_le hji with hjlt | rfl
+    · exact C.sum_interval_shiftedSValue_eq_of_lt AUX hjlt
+    · have hsdiag0 : C.sValue AUX j j = 0 := C.sValue_diag_eq_zero_of_t1_lt AUX ht1i
+      have hsingle : intervalRange j j = ({j} : Finset (Idx n)) := by
+        ext p
+        constructor
+        · intro hp
+          exact Finset.mem_singleton.mpr <|
+            le_antisymm (mem_intervalRange.mp hp).2 (mem_intervalRange.mp hp).1
+        · intro hp
+          rw [Finset.mem_singleton.mp hp]
+          exact mem_intervalRange.mpr ⟨le_rfl, le_rfl⟩
+      rw [hsingle]
+      simp [ProfileData.shiftedSValue, hsdiag0]
+  rw [Finset.sum_sub_distrib, Finset.sum_sub_distrib, hs]
+
+theorem sValue_diag_eq_zero_of_t1_eq_last
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C)
+    (ht1 : C.t1 = lastIdx n) :
+    C.sValue AUX (lastIdx n) (lastIdx n) = 0 := by
+  have hmuA0 : (C.memberships).muA (lastIdx n) = 0 := by
+    rw [← ht1, C.memberships_muA_eq_at_t1, C.alpha_eq, if_pos ht1]
+    ring
+  have hnotNext : ¬ IsNextIndex (lastIdx n) (I.firstBidTime (lastIdx n)) := by
+    intro hnext
+    unfold IsNextIndex at hnext
+    have hlt : I.firstBidTime (lastIdx n) < lastIdx n := Fin.lt_def.mpr (by omega)
+    exact (not_lt_of_ge (I.le_firstBidTime (lastIdx n))) hlt
+  simp [ProfileData.sValue, ProfileData.sA, ProfileData.sB, ProfileData.sC, ProfileData.sD,
+    hmuA0, hnotNext]
+
+theorem shiftedPoolValue_eq_poolValue_at_last
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (_hΓ : Γ.Admissible)
+    (_hγlo : 1 ≤ I.program.Mcoeff) (_hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125) :
+    C.shiftedPoolValue AUX (lastIdx n) = C.poolValue AUX (lastIdx n) := by
+  rw [C.shiftedPoolValue_eq_sumByColumn AUX (lastIdx n), C.poolValue_eq_sumByColumn AUX (lastIdx n)]
+  apply Finset.sum_congr rfl
+  intro j hj
+  have hjlast : j ≤ lastIdx n := le_lastIdx j
+  have hs :
+      Finset.sum (intervalRange j (lastIdx n)) (fun p => C.shiftedSValue AUX p j) =
+        Finset.sum (intervalRange j (lastIdx n)) (fun p => C.sValue AUX p j) := by
+    rcases lt_or_eq_of_le hjlast with hjlt | hjeq
+    · exact C.sum_interval_shiftedSValue_eq_of_lt AUX hjlt
+    · subst hjeq
+      have hsdiag0 : C.sValue AUX (lastIdx n) (lastIdx n) = 0 := by
+        by_cases ht1 : C.t1 < lastIdx n
+        · exact C.sValue_diag_eq_zero_of_t1_lt AUX ht1
+        · have ht1eq : C.t1 = lastIdx n := le_antisymm (le_lastIdx _) (not_lt.mp ht1)
+          exact C.sValue_diag_eq_zero_of_t1_eq_last AUX ht1eq
+      have hsingle :
+          intervalRange (lastIdx n) (lastIdx n) = ({lastIdx n} : Finset (Idx n)) := by
+        ext p
+        constructor
+        · intro hp
+          exact Finset.mem_singleton.mpr <|
+            le_antisymm (le_lastIdx p) (mem_intervalRange.mp hp).1
+        · intro hp
+          rw [Finset.mem_singleton.mp hp]
+          exact mem_intervalRange.mpr ⟨le_rfl, le_rfl⟩
+      rw [hsingle]
+      simp [ProfileData.shiftedSValue, hsdiag0]
+  rw [Finset.sum_sub_distrib, Finset.sum_sub_distrib, hs]
 
 theorem sum_interval_tValue_eq_if_firstBid
     (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (j i : Idx n) :
@@ -116,6 +216,44 @@ theorem poolValue_eq_rewrite
           rw [Finset.sum_sub_distrib]
     _ = Finset.sum (prefixRange i)
           (fun j => Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j)) -
+        Finset.sum (prefixRange i)
+          (fun j =>
+            if I.firstBidTime j ≤ i then
+              C.tValue AUX (I.firstBidTime j) j
+            else
+              0) := by
+          congr
+          ext j
+          rw [C.sum_interval_tValue_eq_if_firstBid AUX j i]
+
+theorem shiftedPoolValue_eq_rewrite
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i : Idx n) :
+    C.shiftedPoolValue AUX i =
+      Finset.sum (prefixRange i)
+        (fun j => Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j)) -
+      Finset.sum (prefixRange i)
+        (fun j =>
+          if I.firstBidTime j ≤ i then
+            C.tValue AUX (I.firstBidTime j) j
+          else
+            0) := by
+  calc
+    C.shiftedPoolValue AUX i
+      = Finset.sum (prefixRange i)
+          (fun j =>
+            Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j) -
+              Finset.sum (intervalRange j i) (fun p => C.tValue AUX p j)) := by
+          rw [C.shiftedPoolValue_eq_sumByColumn AUX i]
+          apply Finset.sum_congr rfl
+          intro j hj
+          rw [Finset.sum_sub_distrib]
+    _ = Finset.sum (prefixRange i)
+          (fun j => Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j)) -
+        Finset.sum (prefixRange i)
+          (fun j => Finset.sum (intervalRange j i) (fun p => C.tValue AUX p j)) := by
+          rw [Finset.sum_sub_distrib]
+    _ = Finset.sum (prefixRange i)
+          (fun j => Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j)) -
         Finset.sum (prefixRange i)
           (fun j =>
             if I.firstBidTime j ≤ i then
@@ -205,8 +343,22 @@ theorem constructedDualSolution_poolCredit_nonneg_of_lt_t1
     (hθpos : 0 < I.program.theta)
     {i : Idx n} (hit1 : i < C.t1) :
     0 ≤ DualSolution.poolCredit (C.constructedDualSolution AUX) i := by
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX i]
-  exact C.poolValue_nonneg_of_lt_t1 AUX hΓ hγlo hγhi hθpos hit1
+  let H : NonnegHypotheses C := NonnegHypotheses.of_profile_construction C hΓ hγlo hγhi
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX i,
+    C.shiftedPoolValue_eq_sumByColumn AUX i]
+  apply Finset.sum_nonneg
+  intro j hj
+  have hji : j ≤ i := mem_prefixRange.mp hj
+  have hjt1 : j < C.t1 := lt_of_le_of_lt hji hit1
+  apply Finset.sum_nonneg
+  intro p hp
+  have hpi : p ≤ i := (mem_intervalRange.mp hp).2
+  have hpt1 : p < C.t1 := lt_of_le_of_lt hpi hit1
+  have hs : 0 ≤ C.shiftedSValue AUX p j := by
+    simpa using C.shiftedSValue_nonneg H AUX p j
+  have ht : C.tValue AUX p j = 0 :=
+    C.tValue_eq_zero_of_lt_t1 AUX hΓ hγlo hγhi hθpos hjt1 hpt1
+  simpa [ht] using hs
 
 theorem poolValue_nonneg_at_t1_of_lt_t3
     (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
@@ -241,8 +393,29 @@ theorem constructedDualSolution_poolCredit_nonneg_at_t1_of_lt_t3
     (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
     (ht1t3 : C.t1 < Γ.t3Star) :
     0 ≤ DualSolution.poolCredit (C.constructedDualSolution AUX) C.t1 := by
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX C.t1]
-  exact C.poolValue_nonneg_at_t1_of_lt_t3 AUX hΓ hγlo hγhi ht1t3
+  let H : NonnegHypotheses C := NonnegHypotheses.of_profile_construction C hΓ hγlo hγhi
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX C.t1,
+    C.shiftedPoolValue_eq_rewrite AUX C.t1]
+  have htZero :
+      Finset.sum (prefixRange C.t1)
+        (fun j =>
+          if I.firstBidTime j ≤ C.t1 then
+            C.tValue AUX (I.firstBidTime j) j
+          else
+            0) = 0 := by
+        apply Finset.sum_eq_zero
+        intro j hj
+        have hjt1 : j ≤ C.t1 := mem_prefixRange.mp hj
+        have hzero :=
+          C.sum_interval_tValue_eq_zero_of_le_t1_of_t1_lt_t3 AUX hΓ hγlo hγhi hjt1 ht1t3
+        rw [C.sum_interval_tValue_eq_if_firstBid AUX j C.t1] at hzero
+        exact hzero
+  rw [htZero, sub_zero]
+  apply Finset.sum_nonneg
+  intro j hj
+  apply Finset.sum_nonneg
+  intro p hp
+  simpa using C.shiftedSValue_nonneg H AUX p j
 
 theorem muBC_nonneg
     (C : ProfileData I Γ) (hΓ : Γ.Admissible) (j : Idx n) :
@@ -484,6 +657,15 @@ theorem tau_le_barTau_of_le_153_div_125 (P : DualProgram n)
   nlinarith
 
 omit [NeZero n] in
+theorem tau_lt_barTau_of_le_153_div_125 (P : DualProgram n)
+    (hγlo : 1 ≤ P.Mcoeff) (hγhi : P.Mcoeff ≤ (153 : ℝ) / 125) :
+    P.tau < P.barTau := by
+  have hεnonneg : 0 ≤ P.epsilon := P.epsilon_nonneg_of_one_le_Mcoeff hγlo
+  have hεle : P.epsilon ≤ (28 : ℝ) / 125 := epsilon_le_28_div_125_of_le_153_div_125 P hγhi
+  dsimp [DualProgram.tau, DualProgram.barTau]
+  nlinarith
+
+omit [NeZero n] in
 theorem function_tau_bound (P : DualProgram n)
     (hγlo : 1 ≤ P.Mcoeff) (hγhi : P.Mcoeff ≤ (153 : ℝ) / 125) (hθpos : 0 < P.theta)
     {x : ℝ} (hx_nonneg : 0 ≤ x) (hx_le_barTau : x ≤ P.barTau) :
@@ -514,10 +696,12 @@ theorem function_tau_bound (P : DualProgram n)
       have hsq : 0 ≤ (2 * x - P.epsilon ^ 2) ^ 2 := by positivity
       nlinarith
     have hpoly :
-        0 ≤ P.epsilon - 3 * P.epsilon ^ 2 - 6 * P.epsilon ^ 3 - ((9 : ℝ) / 4) * P.epsilon ^ 4 := by
+        0 ≤ P.epsilon - 3 * P.epsilon ^ 2 - 6 * P.epsilon ^ 3 -
+          ((9 : ℝ) / 4) * P.epsilon ^ 4 := by
       have hg_le :
           9 * P.epsilon ^ 3 + 24 * P.epsilon ^ 2 + 12 * P.epsilon - 4 ≤
-            9 * ((28 : ℝ) / 125) ^ 3 + 24 * ((28 : ℝ) / 125) ^ 2 + 12 * ((28 : ℝ) / 125) - 4 := by
+            9 * ((28 : ℝ) / 125) ^ 3 + 24 * ((28 : ℝ) / 125) ^ 2 +
+              12 * ((28 : ℝ) / 125) - 4 := by
         nlinarith
       have hg_nonpos : 9 * P.epsilon ^ 3 + 24 * P.epsilon ^ 2 + 12 * P.epsilon - 4 ≤ 0 := by
         norm_num at hg_le ⊢
@@ -537,6 +721,88 @@ theorem function_tau_bound (P : DualProgram n)
     rw [hrew]
     field_simp [hθne]
     simpa [mul_comm, mul_left_comm, mul_assoc] using hcross
+
+theorem phaseTwo_beforeBudget_t3Star_lt_barTau_of_lt_last
+    (C : ProfileData I Γ) (hΓ : Γ.Admissible)
+    (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
+    (ht3last : Γ.t3Star < lastIdx n) :
+    C.phaseTwo.beforeBudget Γ.t3Star < I.program.barTau := by
+  have hspecial : ¬ (Γ.t3Star = lastIdx n ∧ Γ.t3Star = lastIdx n) := by
+    intro h
+    exact (ne_of_lt ht3last) h.1
+  have hafter0 : C.phaseTwo.afterBudget Γ.t3Star = 0 := by
+    unfold PhaseTwoData.afterBudget tailBudget
+    apply Finset.sum_eq_zero
+    intro i hi
+    exact C.phaseTwo.zero_above_t3 (mem_strictSuffixRange.mp hi)
+  have htail0 : tailBudget C.phaseTwo.hatG2 Γ.t3Star = 0 := by
+    simpa [PhaseTwoData.afterBudget] using hafter0
+  have ht3ne : Γ.t3Star ≠ lastIdx n := ne_of_lt ht3last
+  have hstep := C.phaseTwo.step_eq Γ.t3Star le_rfl
+  have hhat :
+      C.phaseTwo.hatG2 Γ.t3Star =
+        (1 - Γ.muD Γ.t3Star) * I.program.tau / futureCount Γ.t3Star := by
+    have hstep' :
+        C.phaseTwo.hatG2 Γ.t3Star =
+          (1 - Γ.muD Γ.t3Star) *
+              (tailBudget C.phaseTwo.hatG2 Γ.t3Star + I.program.tau) / futureCount Γ.t3Star := by
+      simpa [ht3ne, hspecial] using hstep
+    simpa [htail0] using hstep'
+  have hμle : Γ.muD Γ.t3Star ≤ 1 := Advice.muD_le_one_of_admissible Γ hΓ Γ.t3Star
+  have hτnonneg : 0 ≤ I.program.tau := I.program.tau_nonneg_of_one_le_Mcoeff hγlo
+  have hnum_nonneg : 0 ≤ (1 - Γ.muD Γ.t3Star) * I.program.tau := by
+    have h1μ : 0 ≤ 1 - Γ.muD Γ.t3Star := sub_nonneg.mpr hμle
+    exact mul_nonneg h1μ hτnonneg
+  have hnat : 0 < futureCountNat Γ.t3Star := by
+    have ht3val : Γ.t3Star.1 < Nat.pred n := Fin.lt_def.mp ht3last
+    have hpredlt : Nat.pred n < n := Nat.pred_lt (show n ≠ 0 from NeZero.ne n)
+    have hsucc : Γ.t3Star.1.succ < n := lt_of_le_of_lt (Nat.succ_le_of_lt ht3val) hpredlt
+    exact Nat.sub_pos_of_lt hsucc
+  have hfcge1 : (1 : ℝ) ≤ futureCount Γ.t3Star := by
+    change (1 : ℝ) ≤ (futureCountNat Γ.t3Star : ℝ)
+    exact_mod_cast Nat.succ_le_of_lt hnat
+  have hhat_le_tau : C.phaseTwo.hatG2 Γ.t3Star ≤ I.program.tau := by
+    rw [hhat]
+    have hdivle :
+        ((1 - Γ.muD Γ.t3Star) * I.program.tau) / futureCount Γ.t3Star ≤
+          (1 - Γ.muD Γ.t3Star) * I.program.tau := by
+      exact div_le_self hnum_nonneg hfcge1
+    have hnum_le_tau : (1 - Γ.muD Γ.t3Star) * I.program.tau ≤ I.program.tau := by
+      have hμnonneg : 0 ≤ Γ.muD Γ.t3Star := Advice.muD_nonneg_of_admissible Γ hΓ Γ.t3Star
+      have h1μle1 : 1 - Γ.muD Γ.t3Star ≤ 1 := by linarith
+      simpa using mul_le_mul_of_nonneg_right h1μle1 hτnonneg
+    exact le_trans hdivle hnum_le_tau
+  have htau_bar : I.program.tau < I.program.barTau :=
+    tau_lt_barTau_of_le_153_div_125 I.program hγlo hγhi
+  rw [C.phaseTwo.beforeBudget_eq_self_add_afterBudget Γ.t3Star, hafter0]
+  linarith
+
+theorem t1_lt_t3Star_of_t3_lt_last
+    (C : ProfileData I Γ) (hΓ : Γ.Admissible)
+    (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
+    (hθpos : 0 < I.program.theta) (ht3last : Γ.t3Star < lastIdx n) :
+    C.t1 < Γ.t3Star := by
+  have ht1le : C.t1 ≤ Γ.t3Star := C.t1_le_t3Star_of_theta_pos hγlo hγhi hθpos
+  by_contra ht1t3
+  have ht3le : Γ.t3Star ≤ C.t1 := not_lt.mp ht1t3
+  have ht1eq : C.t1 = Γ.t3Star := le_antisymm ht1le ht3le
+  have hbar : I.program.barTau ≤ C.phaseTwo.beforeBudget C.t1 := C.t1_beforeBudget_ge_barTau
+  have hlt :
+      C.phaseTwo.beforeBudget Γ.t3Star < I.program.barTau :=
+    C.phaseTwo_beforeBudget_t3Star_lt_barTau_of_lt_last hΓ hγlo hγhi ht3last
+  exact (not_lt_of_ge hbar) (ht1eq ▸ hlt)
+
+theorem shiftedPoolValue_eq_poolValue_at_t3Star
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
+    (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
+    (hθpos : 0 < I.program.theta) :
+    C.shiftedPoolValue AUX Γ.t3Star = C.poolValue AUX Γ.t3Star := by
+  by_cases ht3last : Γ.t3Star < lastIdx n
+  · have ht1t3 : C.t1 < Γ.t3Star :=
+      C.t1_lt_t3Star_of_t3_lt_last hΓ hγlo hγhi hθpos ht3last
+    exact C.shiftedPoolValue_eq_poolValue_of_t1_lt AUX hΓ hγlo hγhi ht1t3
+  · have ht3eq : Γ.t3Star = lastIdx n := le_antisymm (le_lastIdx _) (not_lt.mp ht3last)
+    simpa [ht3eq] using C.shiftedPoolValue_eq_poolValue_at_last AUX hΓ hγlo hγhi
 
 def phaseTwoWeight (C : ProfileData I Γ) (j l : Idx n) : ℝ :=
   if j < l then
@@ -611,7 +877,8 @@ theorem intervalRange_eq_insert_pred
 theorem tailBudget_eq_phaseTwo_product
     (C : ProfileData I Γ) (hΓ : Γ.Admissible)
     (hγlo : 1 ≤ I.program.Mcoeff) (hθpos : 0 < I.program.theta)
-    {j i : Idx n} (ht1j : C.t1 ≤ j) (hji : j ≤ i) (hit3 : i ≤ Γ.t3Star) (hilast : i < lastIdx n) :
+    {j i : Idx n} (ht1j : C.t1 ≤ j) (hji : j ≤ i)
+    (hit3 : i ≤ Γ.t3Star) (hilast : i < lastIdx n) :
     tailBudget C.hatG j + I.program.tau =
       (tailBudget C.hatG i + I.program.tau) *
         ((futureCount j -
@@ -633,7 +900,8 @@ theorem tailBudget_eq_phaseTwo_product
           have hji' : j.1 ≤ i.1 := Fin.le_def.mp hji
           omega
         subst i
-        have hfcne : futureCount j ≠ 0 := ne_of_gt (futureCount_pos_of_ne_last j (ne_of_lt hilast))
+        have hfcne : futureCount j ≠ 0 := by
+          exact ne_of_gt (futureCount_pos_of_ne_last j (ne_of_lt hilast))
         have hsum :
             Finset.sum (intervalRange j j) (fun l => C.phaseTwoWeight j l) = 0 := by
           have hset : intervalRange j j = {j} := by
@@ -698,7 +966,8 @@ theorem tailBudget_eq_phaseTwo_product
         have hfcipred_pos : 0 < futureCount im1 :=
           futureCount_pos_of_ne_last im1 (ne_of_lt him1last)
         have hfcipred_ne : futureCount im1 ≠ 0 := ne_of_gt hfcipred_pos
-        have hfcine : futureCount i ≠ 0 := ne_of_gt (futureCount_pos_of_ne_last i (ne_of_lt hilast))
+        have hfcine : futureCount i ≠ 0 := by
+          exact ne_of_gt (futureCount_pos_of_ne_last i (ne_of_lt hilast))
         have hτpos : 0 < I.program.tau := tau_pos_of_theta_pos I.program hγlo hθpos
         have htail_nonneg : 0 ≤ tailBudget C.hatG im1 :=
           C.tailBudget_nonneg_of_t1_le (le_trans ht1j hjim1)
@@ -857,7 +1126,8 @@ theorem tailBudget_add_tau_le_phaseTwo_target
     (C : ProfileData I Γ) (hΓ : Γ.Admissible)
     (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
     (hθpos : 0 < I.program.theta)
-    {j i : Idx n} (ht1j : C.t1 ≤ j) (hji : j ≤ i) (hit3 : i ≤ Γ.t3Star) (hilast : i < lastIdx n) :
+    {j i : Idx n} (ht1j : C.t1 ≤ j) (hji : j ≤ i)
+    (hit3 : i ≤ Γ.t3Star) (hilast : i < lastIdx n) :
     tailBudget C.hatG i + I.program.tau ≤
       (tailBudget C.hatG j + I.program.tau) *
         ((futureCount j -
@@ -904,7 +1174,8 @@ theorem tailBudget_add_tau_le_phaseTwo_target
       have hμBj_nonneg : 0 ≤ Γ.muD l * (tailBudget C.hatG j + I.program.tau) := by
         exact mul_nonneg (Advice.muD_nonneg_of_admissible Γ hΓ l) hBj_nonneg
       have hfrac_le_one :
-          (tailBudget C.hatG i + I.program.tau) / (beforeBudget C.hatG l + I.program.tau) ≤ 1 := by
+          (tailBudget C.hatG i + I.program.tau) /
+              (beforeBudget C.hatG l + I.program.tau) ≤ 1 := by
         exact (div_le_one hdenpos).2 hBi_le_den
       calc
         (tailBudget C.hatG i + I.program.tau) * C.phaseTwoWeight j l
@@ -1265,7 +1536,9 @@ theorem sum_halfOpenTriangle_eq_sumByColumnFrom
               constructor
               · intro hj
                 rcases mem_intervalRange.mp hj with ⟨hpj, hji⟩
-                exact Finset.mem_filter.mpr ⟨mem_intervalRange.mpr ⟨le_trans hj0p hpj, hji⟩, hpj⟩
+                exact
+                  Finset.mem_filter.mpr
+                    ⟨mem_intervalRange.mpr ⟨le_trans hj0p hpj, hji⟩, hpj⟩
               · intro hj
                 rcases Finset.mem_filter.mp hj with ⟨hjInt, hpj⟩
                 exact mem_intervalRange.mpr ⟨hpj, (mem_intervalRange.mp hjInt).2⟩
@@ -1496,7 +1769,8 @@ theorem constructedDualSolution_poolCredit_nonneg_of_between_t1_t3
     (hθpos : 0 < I.program.theta)
     {i : Idx n} (ht1i : C.t1 < i) (hit3 : i < Γ.t3Star) :
     0 ≤ DualSolution.poolCredit (C.constructedDualSolution AUX) i := by
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX i]
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX i,
+    C.shiftedPoolValue_eq_poolValue_of_t1_lt AUX hΓ hγlo hγhi ht1i]
   exact C.poolValue_nonneg_of_between_t1_t3 AUX hΓ hγlo hγhi hθpos ht1i hit3
 
 omit [NeZero n] in
@@ -1802,7 +2076,8 @@ theorem muD_eq_one_of_onFrontier_of_lt_pStar
       exact hfracj_or_one ⟨hμj_pos, hlt⟩
     exact le_antisymm hμj_le (le_of_not_gt hnotlt)
   · have hμp_eq_one : Γ.muD (C.pStar hpos) = 1 := by
-      have hμp_le : Γ.muD (C.pStar hpos) ≤ 1 := Advice.muD_le_one_of_admissible Γ hΓ (C.pStar hpos)
+      have hμp_le : Γ.muD (C.pStar hpos) ≤ 1 := by
+        exact Advice.muD_le_one_of_admissible Γ hΓ (C.pStar hpos)
       have hnotlt : ¬ Γ.muD (C.pStar hpos) < 1 := by
         intro hlt
         exact hfracp ⟨C.pStar_muD_pos hpos, hlt⟩
@@ -1882,7 +2157,8 @@ theorem sum_interval_muBC_ge_case4_chi_core
       Finset.sum (intervalRange C.t1 im1)
           (fun l => C.phaseTwoWeight C.t1 l / (tailBudget C.hatG C.t1 + I.program.tau)) =
         Finset.sum (intervalRange C.t1 im1)
-          (fun l => if C.t1 < l then Γ.muD l / (beforeBudget C.hatG l + I.program.tau) else 0) := by
+          (fun l =>
+            if C.t1 < l then Γ.muD l / (beforeBudget C.hatG l + I.program.tau) else 0) := by
     apply Finset.sum_congr rfl
     intro l hl
     by_cases hlt : C.t1 < l
@@ -1972,7 +2248,8 @@ theorem sum_interval_muBC_ge_case4_chi_core
       Finset.sum (intervalRange C.t1 im1) C.muBC =
         (futureCount im1 / (beforeBudget C.hatG i + I.program.tau) - futureCount im1) +
           (Finset.sum (intervalRange C.t1 im1)
-              (fun l => if C.t1 < l then Γ.muD l / (beforeBudget C.hatG l + I.program.tau) else 0) -
+              (fun l =>
+                if C.t1 < l then Γ.muD l / (beforeBudget C.hatG l + I.program.tau) else 0) -
             Finset.sum (intervalRange C.t1 im1) (fun l => if C.t1 < l then Γ.muD l else 0)) := by
     linarith
   have hbefore_i_nonneg : 0 ≤ beforeBudget C.hatG i := beforeBudget_nonneg_of_nonneg hhatnonneg i
@@ -2029,7 +2306,9 @@ theorem sum_interval_muBC_ge_case4_chi_core
             exact mul_le_mul_of_nonneg_right hfuture_ge_one hgap_i_nonneg
   have hsumTerm :
       Finset.sum (intervalRange C.t1 im1) (fun l => if C.t1 < l then Γ.muD l * C.chi l else 0) ≤
-        Finset.sum (intervalRange C.t1 im1) (fun l => if C.t1 < l then Γ.muD l * gap l else 0) := by
+        Finset.sum
+          (intervalRange C.t1 im1)
+          (fun l => if C.t1 < l then Γ.muD l * gap l else 0) := by
     apply Finset.sum_le_sum
     intro l hl
     by_cases hlt : C.t1 < l
@@ -2435,7 +2714,8 @@ theorem poolValue_antitone_after_t3
           -Finset.sum ((prefixRange k).filter (fun p => ¬ p ≤ i)) row := by
       rw [Finset.sum_neg_distrib]
     linarith
-  have hsplit := Finset.sum_filter_add_sum_filter_not (s := prefixRange k) (p := fun p => p ≤ i) row
+  have hsplit :=
+    Finset.sum_filter_add_sum_filter_not (s := prefixRange k) (p := fun p => p ≤ i) row
   rw [hset] at hsplit
   have hk :
       Finset.sum (prefixRange k) row =
@@ -2451,8 +2731,12 @@ theorem constructedDualSolution_poolCredit_antitone_after_t3
     {i k : Idx n} (hi : Γ.t3Star < i) (hik : i ≤ k) :
     DualSolution.poolCredit (C.constructedDualSolution AUX) k ≤
       DualSolution.poolCredit (C.constructedDualSolution AUX) i := by
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX k,
-    C.constructedDualSolution_poolCredit_eq_poolValue AUX i]
+  have ht1i : C.t1 < i := lt_of_le_of_lt (C.t1_le_t3Star_of_theta_pos hγlo hγhi hθpos) hi
+  have ht1k : C.t1 < k := lt_of_lt_of_le ht1i hik
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX k,
+    C.shiftedPoolValue_eq_poolValue_of_t1_lt AUX hΓ hγlo hγhi ht1k,
+    C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX i,
+    C.shiftedPoolValue_eq_poolValue_of_t1_lt AUX hΓ hγlo hγhi ht1i]
   exact C.poolValue_antitone_after_t3 AUX hΓ hγlo hγhi hθpos hi hik
 
 theorem poolValue_nonneg_of_after_t3_of_last_nonneg
@@ -2471,8 +2755,11 @@ theorem constructedDualSolution_poolCredit_nonneg_of_after_t3_of_last_nonneg
     {i : Idx n} (hi : Γ.t3Star < i)
     (hlast : 0 ≤ DualSolution.poolCredit (C.constructedDualSolution AUX) (lastIdx n)) :
     0 ≤ DualSolution.poolCredit (C.constructedDualSolution AUX) i := by
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX (lastIdx n)] at hlast
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX i]
+  have ht1i : C.t1 < i := lt_of_le_of_lt (C.t1_le_t3Star_of_theta_pos hγlo hγhi hθpos) hi
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX (lastIdx n),
+    C.shiftedPoolValue_eq_poolValue_at_last AUX hΓ hγlo hγhi] at hlast
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX i,
+    C.shiftedPoolValue_eq_poolValue_of_t1_lt AUX hΓ hγlo hγhi ht1i]
   exact C.poolValue_nonneg_of_after_t3_of_last_nonneg AUX hΓ hγlo hγhi hθpos hi hlast
 
 theorem prefixRange_lastIdx_eq_univ :
@@ -2706,7 +2993,8 @@ theorem poolValue_at_last_eq_case5_gap
           (fun j => I.program.epsilon * (C.muBC j - (C.memberships).muD j * C.chi j)) := by
             apply Finset.sum_congr rfl
             intro j hj
-            rw [C.generatedColumn_sub_credit_at_last_eq_case5_term AUX hΓ hγlo hγhi hθpos ht3last j]
+            rw [C.generatedColumn_sub_credit_at_last_eq_case5_term
+              AUX hΓ hγlo hγhi hθpos ht3last j]
     _ = I.program.epsilon *
           Finset.sum Finset.univ (fun j => C.muBC j - (C.memberships).muD j * C.chi j) := by
             rw [Finset.mul_sum]
@@ -2740,7 +3028,8 @@ theorem constructedDualSolution_poolCredit_nonneg_at_last_of_case5_claim
       Finset.sum Finset.univ (fun j => (C.memberships).muD j * C.chi j) ≤
         Finset.sum (intervalRange C.t1 Γ.t3Star) C.muBC) :
     0 ≤ DualSolution.poolCredit (C.constructedDualSolution AUX) (lastIdx n) := by
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX (lastIdx n)]
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX (lastIdx n),
+    C.shiftedPoolValue_eq_poolValue_at_last AUX hΓ hγlo hγhi]
   exact C.poolValue_nonneg_at_last_of_case5_claim AUX hΓ hγlo hγhi hθpos ht3last hclaim
 
 theorem generatedMassPrefix_eq_totalGeneratedMass_at_t3Star
@@ -2943,7 +3232,8 @@ theorem case4FrontierDeficit_le_epsilon_mul_muDchi_of_lt_pStar
     · have hjle : j ≤ C.t1 := not_lt.mp ht1j
       have hjt2 : j ≤ C.t2 := le_trans hjle C.t1_le_t2
       have hχ0 : C.chi j = 0 := C.chi_eq_zero_of_le_t2 hΓ hγlo hγhi hθpos hjt2
-      rw [ProfileData.case4FrontierDeficit, if_pos hfront, if_neg ht1j, C.memberships_muD, hμ, hχ0]
+      rw [ProfileData.case4FrontierDeficit, if_pos hfront, if_neg ht1j, C.memberships_muD, hμ,
+        hχ0]
       simp
   · rw [ProfileData.case4FrontierDeficit, if_neg hfront]
     by_cases ht1j : C.t1 < j
@@ -2994,7 +3284,8 @@ theorem case4_frontier_claim
             ring
           · have hμj_nonneg : 0 ≤ Γ.muD j := Advice.muD_nonneg_of_admissible Γ hΓ j
             have hμj_pos : 0 < Γ.muD j := lt_of_le_of_ne hμj_nonneg (Ne.symm hμ0)
-            have hjmem : j ∈ C.frontierPositive := C.mem_frontierPositive.mpr ⟨hfront, hμj_pos⟩
+            have hjmem : j ∈ C.frontierPositive := by
+              exact C.mem_frontierPositive.mpr ⟨hfront, hμj_pos⟩
             have hjle : j ≤ C.pStar hpos := C.le_pStar_of_mem_frontierPositive hpos hjmem
             have hjt2 : j ≤ C.t2 := le_trans hjle hp_t2
             have hχ0 : C.chi j = 0 := C.chi_eq_zero_of_le_t2 hΓ hγlo hγhi hθpos hjt2
@@ -3009,7 +3300,8 @@ theorem case4_frontier_claim
         omega
       have ht1p : C.t1 < C.pStar hpos := lt_of_le_of_lt C.t1_le_t2 hp_t2'
       have hcore :=
-        C.sum_interval_muBC_ge_case4_chi_core hΓ hγlo hγhi hθpos hi0 ht1p (C.pStar_le_t3Star hpos)
+        C.sum_interval_muBC_ge_case4_chi_core
+          hΓ hγlo hγhi hθpos hi0 ht1p (C.pStar_le_t3Star hpos)
       have hltset :
           Finset.univ.filter (fun j : Idx n => j < C.pStar hpos) =
             prefixRange (predIdx hi0) := by
@@ -3244,7 +3536,8 @@ theorem constructedDualSolution_poolCredit_nonneg_at_t3Star
     (hγlo : 1 ≤ I.program.Mcoeff) (hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125)
     (hθpos : 0 < I.program.theta) :
     0 ≤ DualSolution.poolCredit (C.constructedDualSolution AUX) Γ.t3Star := by
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX Γ.t3Star]
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX Γ.t3Star,
+    C.shiftedPoolValue_eq_poolValue_at_t3Star AUX hΓ hγlo hγhi hθpos]
   exact C.poolValue_nonneg_at_t3Star AUX hΓ hγlo hγhi hθpos
 
 theorem poolValue_nonneg_at_t3Star_of_case4_claim
@@ -3268,7 +3561,8 @@ theorem constructedDualSolution_poolCredit_nonneg_at_t3Star_of_case4_claim
         Finset.sum (prefixRange Γ.t3Star) (fun j => C.case4BCLift j) +
           Finset.sum (strictSuffixRange Γ.t3Star) (fun j => C.generatedColumnValue AUX j)) :
     0 ≤ DualSolution.poolCredit (C.constructedDualSolution AUX) Γ.t3Star := by
-  rw [C.constructedDualSolution_poolCredit_eq_poolValue AUX Γ.t3Star]
+  rw [C.constructedDualSolution_poolCredit_eq_shiftedPoolValue AUX Γ.t3Star,
+    C.shiftedPoolValue_eq_poolValue_at_t3Star AUX hΓ hγlo hγhi hθpos]
   exact C.poolValue_nonneg_at_t3Star_of_case4_claim AUX hΓ hγlo hγhi hθpos hclaim
 
 theorem sum_strictSuffix_muDchi_eq_futureCount
@@ -3357,7 +3651,8 @@ theorem case5_mass_inequality_of_t3_lt_last
       Finset.sum (intervalRange C.t1 Γ.t3Star)
           (fun l => C.phaseTwoWeight C.t1 l / (tailBudget C.hatG C.t1 + I.program.tau)) =
         Finset.sum (intervalRange C.t1 Γ.t3Star)
-          (fun l => if C.t1 < l then Γ.muD l / (beforeBudget C.hatG l + I.program.tau) else 0) := by
+          (fun l =>
+            if C.t1 < l then Γ.muD l / (beforeBudget C.hatG l + I.program.tau) else 0) := by
     apply Finset.sum_congr rfl
     intro l hl
     by_cases hlt : C.t1 < l
@@ -3366,7 +3661,9 @@ theorem case5_mass_inequality_of_t3_lt_last
   have hmuSplit :
       Finset.sum (intervalRange C.t1 Γ.t3Star) C.muBC =
         C.muBC C.t1 +
-          Finset.sum (intervalRange C.t1 Γ.t3Star) (fun l => if C.t1 < l then C.muBC l else 0) := by
+          Finset.sum
+            (intervalRange C.t1 Γ.t3Star)
+            (fun l => if C.t1 < l then C.muBC l else 0) := by
     have hmem : C.t1 ∈ intervalRange C.t1 Γ.t3Star := mem_intervalRange.mpr ⟨le_rfl, ht1t3⟩
     calc
       Finset.sum (intervalRange C.t1 Γ.t3Star) C.muBC
@@ -3403,7 +3700,9 @@ theorem case5_mass_inequality_of_t3_lt_last
       Finset.sum (intervalRange C.t1 Γ.t3Star)
           (fun l => if C.t1 < l then (C.muBC l + Γ.muD l) else 0) =
         Finset.sum (intervalRange C.t1 Γ.t3Star) (fun l => if C.t1 < l then C.muBC l else 0) +
-          Finset.sum (intervalRange C.t1 Γ.t3Star) (fun l => if C.t1 < l then Γ.muD l else 0) := by
+          Finset.sum
+            (intervalRange C.t1 Γ.t3Star)
+            (fun l => if C.t1 < l then Γ.muD l else 0) := by
     calc
       Finset.sum (intervalRange C.t1 Γ.t3Star)
           (fun l => if C.t1 < l then (C.muBC l + Γ.muD l) else 0)
@@ -3453,7 +3752,8 @@ theorem case5_mass_inequality_of_t3_lt_last
     intro l hl
     by_cases hlt : C.t1 < l
     · have hhatnonneg := C.hatG_nonneg_of_admissible_and_coeff_bounds hΓ hγlo hγhi
-      have hbefore_nonneg : 0 ≤ beforeBudget C.hatG l := beforeBudget_nonneg_of_nonneg hhatnonneg l
+      have hbefore_nonneg : 0 ≤ beforeBudget C.hatG l := by
+        exact beforeBudget_nonneg_of_nonneg hhatnonneg l
       have hden_pos : 0 < beforeBudget C.hatG l + I.program.tau := by
         linarith
       rw [if_pos hlt, if_pos hlt, if_pos hlt]

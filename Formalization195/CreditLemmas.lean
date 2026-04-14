@@ -50,6 +50,199 @@ def creditC (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i j : Idx n) 
 def creditValue (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i j : Idx n) : ℝ :=
   integralClientCredit (C.gValue AUX) (C.sValue AUX) (C.tValue AUX) i j
 
+theorem sum_interval_shiftedSValue_eq_of_lt
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C)
+    {j i : Idx n} (hji : j < i) :
+    Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j) =
+      Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j) := by
+  let next : Idx n := ⟨j.1.succ, by
+    have hji' : j.1 < i.1 := Fin.lt_def.mp hji
+    omega⟩
+  have hnext_mem : next ∈ intervalRange j i := by
+    refine mem_intervalRange.mpr ?_
+    change j ≤ next ∧ next ≤ i
+    constructor
+    · exact Fin.le_def.mpr (by
+        dsimp [next]
+        omega)
+    · exact Fin.le_def.mpr (by
+        dsimp [next]
+        have hji' : j.1 < i.1 := Fin.lt_def.mp hji
+        omega)
+  have hnext_spec : IsNextIndex next j := by
+    unfold IsNextIndex
+    simp [next]
+  have hraw_split :
+      Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j) =
+        C.sValue AUX j j +
+          Finset.sum (intervalRange j i) (fun p => if j < p then C.sValue AUX p j else 0) := by
+    have hfilter :
+        (intervalRange j i).filter (fun p => ¬ j < p) = {j} := by
+      ext p
+      constructor
+      · intro hp
+        rcases Finset.mem_filter.mp hp with ⟨hpInt, hpNot⟩
+        rcases mem_intervalRange.mp hpInt with ⟨hjp, _⟩
+        have hpj : p = j := le_antisymm (not_lt.mp hpNot) hjp
+        simp [hpj]
+      · intro hp
+        have hp' : p = j := by simpa using hp
+        subst p
+        exact
+          Finset.mem_filter.mpr
+            ⟨mem_intervalRange.mpr ⟨le_rfl, le_of_lt hji⟩, not_lt.mpr le_rfl⟩
+    have hsplit :=
+      Finset.sum_filter_add_sum_filter_not
+        (s := intervalRange j i) (p := fun p => j < p) (fun p => C.sValue AUX p j)
+    rw [hfilter] at hsplit
+    simp at hsplit
+    calc
+      Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j)
+        =
+          Finset.sum (intervalRange j i) (fun p => if j < p then C.sValue AUX p j else 0) +
+            C.sValue AUX j j := by
+              simpa [Finset.sum_filter] using hsplit.symm
+      _ =
+          C.sValue AUX j j +
+            Finset.sum (intervalRange j i) (fun p => if j < p then C.sValue AUX p j else 0) := by
+              ring
+  have hdiag_transfer :
+      Finset.sum (intervalRange j i)
+          (fun p => if IsNextIndex p j then C.sValue AUX j j else 0) =
+        C.sValue AUX j j := by
+    rw [Finset.sum_eq_single next]
+    · simp [hnext_spec]
+    · intro p hp hpne
+      have hnot : ¬ IsNextIndex p j := by
+        intro hpnext
+        unfold IsNextIndex at hpnext hnext_spec
+        apply hpne
+        apply Fin.ext
+        omega
+      simp [hnot]
+    · intro hnotmem
+      exact False.elim (hnotmem hnext_mem)
+  calc
+    Finset.sum (intervalRange j i) (fun p => C.shiftedSValue AUX p j)
+      =
+        Finset.sum (intervalRange j i)
+          (fun p =>
+            (if j < p then C.sValue AUX p j else 0) +
+              (if IsNextIndex p j then C.sValue AUX j j else 0)) := by
+                apply Finset.sum_congr rfl
+                intro p hp
+                by_cases hjp : j < p
+                · simp [ProfileData.shiftedSValue, hjp]
+                · have hnotNext : ¬ IsNextIndex p j := by
+                    intro hpnext
+                    have hjp' : j < p := by
+                      unfold IsNextIndex at hpnext
+                      exact Fin.lt_def.mpr (by omega)
+                    exact hjp hjp'
+                  simp [ProfileData.shiftedSValue, hjp, hnotNext]
+    _ =
+        Finset.sum (intervalRange j i) (fun p => if j < p then C.sValue AUX p j else 0) +
+          Finset.sum (intervalRange j i)
+            (fun p => if IsNextIndex p j then C.sValue AUX j j else 0) := by
+              rw [Finset.sum_add_distrib]
+    _ =
+        Finset.sum (intervalRange j i) (fun p => if j < p then C.sValue AUX p j else 0) +
+          C.sValue AUX j j := by rw [hdiag_transfer]
+    _ = Finset.sum (intervalRange j i) (fun p => C.sValue AUX p j) := by
+          rw [hraw_split]
+          ring
+
+theorem sum_strictSuffix_shiftedSValue_le
+    (C : ProfileData I Γ) (H : NonnegHypotheses C) (AUX : AuxiliaryCorrections C) (j : Idx n) :
+    Finset.sum (strictSuffixRange j) (fun i => C.shiftedSValue AUX i j) ≤
+      Finset.sum (suffixRange j) (fun i => C.sValue AUX i j) := by
+  by_cases hjlast : j < lastIdx n
+  · let next : Idx n := ⟨j.1.succ, by
+      have hj' : j.1 < (lastIdx n).1 := Fin.lt_def.mp hjlast
+      omega⟩
+    have hnext_mem : next ∈ strictSuffixRange j := by
+      exact mem_strictSuffixRange.mpr (by
+        change j.1 < next.1
+        dsimp [next]
+        omega)
+    have hnext_spec : IsNextIndex next j := by
+      unfold IsNextIndex
+      simp [next]
+    have hdiag_transfer :
+        Finset.sum (strictSuffixRange j)
+            (fun i => if IsNextIndex i j then C.sValue AUX j j else 0) =
+          C.sValue AUX j j := by
+      rw [Finset.sum_eq_single next]
+      · simp [hnext_spec]
+      · intro i hi hineq
+        have hnot : ¬ IsNextIndex i j := by
+          intro hinext
+          unfold IsNextIndex at hinext hnext_spec
+          apply hineq
+          apply Fin.ext
+          omega
+        simp [hnot]
+      · intro hnotmem
+        exact False.elim (hnotmem hnext_mem)
+    have hraw_suffix :
+        Finset.sum (suffixRange j) (fun i => C.sValue AUX i j) =
+          C.sValue AUX j j +
+            Finset.sum (strictSuffixRange j) (fun i => C.sValue AUX i j) := by
+      unfold suffixRange strictSuffixRange
+      rw [show Finset.univ.filter (fun i : Idx n => j ≤ i) =
+          insert j (Finset.univ.filter (fun i : Idx n => j < i)) by
+            ext i
+            constructor
+            · intro hi
+              by_cases hij : i = j
+              · simp [hij]
+              · have hji : j < i := lt_of_le_of_ne (by simpa using hi) (Ne.symm hij)
+                simp [hij, hji]
+            · intro hi
+              rcases Finset.mem_insert.mp hi with rfl | hi'
+              · simp
+              · have hji : j < i := by simpa using hi'
+                simp [le_of_lt hji]]
+      rw [Finset.sum_insert]
+      simp
+    calc
+      Finset.sum (strictSuffixRange j) (fun i => C.shiftedSValue AUX i j)
+        =
+          Finset.sum (strictSuffixRange j)
+            (fun i =>
+              C.sValue AUX i j +
+                (if IsNextIndex i j then C.sValue AUX j j else 0)) := by
+                  apply Finset.sum_congr rfl
+                  intro i hi
+                  have hji : j < i := mem_strictSuffixRange.mp hi
+                  simp [ProfileData.shiftedSValue, hji]
+      _ =
+          Finset.sum (strictSuffixRange j) (fun i => C.sValue AUX i j) +
+            Finset.sum (strictSuffixRange j)
+              (fun i => if IsNextIndex i j then C.sValue AUX j j else 0) := by
+                rw [Finset.sum_add_distrib]
+      _ =
+          Finset.sum (strictSuffixRange j) (fun i => C.sValue AUX i j) +
+            C.sValue AUX j j := by rw [hdiag_transfer]
+      _ ≤ Finset.sum (suffixRange j) (fun i => C.sValue AUX i j) := by
+            rw [hraw_suffix]
+            show
+              Finset.sum (strictSuffixRange j) (fun i => C.sValue AUX i j) + C.sValue AUX j j ≤
+                C.sValue AUX j j + Finset.sum (strictSuffixRange j) (fun i => C.sValue AUX i j)
+            ring_nf
+            exact le_rfl
+  · have hstrict_empty : strictSuffixRange j = ∅ := by
+      have hjEq : j = lastIdx n := le_antisymm (le_lastIdx j) (not_lt.mp hjlast)
+      ext i
+      simp [hjEq, mem_strictSuffixRange, not_lt.mpr (le_lastIdx i)]
+    rw [hstrict_empty]
+    have hsuffix_nonneg :
+        0 ≤ Finset.sum (suffixRange j) (fun i => C.sValue AUX i j) := by
+      apply Finset.sum_nonneg
+      intro i hi
+      exact C.sValue_nonneg H AUX i j
+    exact hsuffix_nonneg
+
 theorem tailBudget_eq_phaseTwo_afterBudget_of_lt_t1
     (C : ProfileData I Γ) {j : Idx n} (ht1j : C.t1 < j) :
     tailBudget C.hatG j = C.phaseTwo.afterBudget j := by
@@ -688,7 +881,8 @@ theorem creditValue_A_after_eq_of_integralA
     rw [C.memberships_muA_eq_one_of_lt_t1_of_muD_eq_zero hjt1 hμ]
     norm_num
   unfold ProfileData.creditValue ProfileData.integralClientCredit
-  rw [C.sum_strictSuffix_gValue_row_eq_one_sub_posPart_of_integralA AUX hΓ hγlo hγhi hθpos hjt1 hμ]
+  rw [C.sum_strictSuffix_gValue_row_eq_one_sub_posPart_of_integralA
+    AUX hΓ hγlo hγhi hθpos hjt1 hμ]
   have hfun :
       (fun p => C.gValue AUX p j + C.tValue AUX p j - C.sValue AUX p j) =
         fun p => C.gA AUX p j + C.tA AUX p j - C.sA AUX p j := by
@@ -712,7 +906,8 @@ theorem creditValue_A_before_eq_of_integralA
     rw [C.memberships_muA_eq_one_of_lt_t1_of_muD_eq_zero hjt1 hμ]
     norm_num
   unfold ProfileData.creditValue ProfileData.integralClientCredit
-  rw [C.sum_strictSuffix_gValue_row_eq_one_sub_posPart_of_integralA AUX hΓ hγlo hγhi hθpos hjt1 hμ]
+  rw [C.sum_strictSuffix_gValue_row_eq_one_sub_posPart_of_integralA
+    AUX hΓ hγlo hγhi hθpos hjt1 hμ]
   have hfun :
       (fun p => C.gValue AUX p j + C.tValue AUX p j - C.sValue AUX p j) =
         fun p => C.gA AUX p j + C.tA AUX p j - C.sA AUX p j := by
@@ -1186,7 +1381,8 @@ theorem creditValue_D_before_eq_of_integralD
       Finset.sum (intervalRange j i) (fun p => C.gD AUX p j) =
         beforeBudget C.hatG j - tailBudget C.hatG i := by
     by_cases hj : j ≤ C.t1
-    · have hchi : C.chi j = 0 := C.chi_eq_zero_of_le_t2 hΓ hγlo hγhi hθpos (le_trans hj C.t1_le_t2)
+    · have hchi : C.chi j = 0 := by
+        exact C.chi_eq_zero_of_le_t2 hΓ hγlo hγhi hθpos (le_trans hj C.t1_le_t2)
       exact C.sum_interval_gD_eq_of_col_le_t1_of_chi_zero AUX hji hj hchi
     · exact C.sum_interval_gD_eq_of_t1_lt_col AUX hji (lt_of_not_ge hj)
   rw [hrow0, hcomb, Finset.sum_sub_distrib, Finset.sum_add_distrib, hg,
@@ -1229,7 +1425,8 @@ theorem creditValue_D_after_eq_of_integralD
       Finset.sum (intervalRange j i) (fun p => C.gD AUX p j) =
         beforeBudget C.hatG j - tailBudget C.hatG i := by
     by_cases hj : j ≤ C.t1
-    · have hchi : C.chi j = 0 := C.chi_eq_zero_of_le_t2 hΓ hγlo hγhi hθpos (le_trans hj C.t1_le_t2)
+    · have hchi : C.chi j = 0 := by
+        exact C.chi_eq_zero_of_le_t2 hΓ hγlo hγhi hθpos (le_trans hj C.t1_le_t2)
       exact C.sum_interval_gD_eq_of_col_le_t1_of_chi_zero AUX hji hj hchi
     · exact C.sum_interval_gD_eq_of_t1_lt_col AUX hji (lt_of_not_ge hj)
   have htail0 : tailBudget C.hatG i = 0 := by
@@ -2171,8 +2368,8 @@ theorem creditValue_after_eq_weighted_ABD_at_t1
     rw [hcredit, hA0, hB0, C.memberships_muD, hμD]
     ring
   · unfold ProfileData.creditValue ProfileData.integralClientCredit
-    rw [C.sum_strictSuffix_gValue_row_eq_weighted_AB_at_t1_of_ne_last AUX hΓ hγlo hγhi hθpos ht1,
-      C.sum_interval_gts_value_eq_membership_combo AUX]
+    rw [C.sum_strictSuffix_gValue_row_eq_weighted_AB_at_t1_of_ne_last
+      AUX hΓ hγlo hγhi hθpos ht1, C.sum_interval_gts_value_eq_membership_combo AUX]
     have hC0 : (C.memberships).muC C.t1 = 0 := C.memberships_muC_eq_zero_at_t1
     have hA :
         (C.memberships).muA C.t1 *
@@ -2210,7 +2407,8 @@ theorem creditValue_after_eq_weighted_ABD_at_t1
       · have hμD_nonneg : 0 ≤ Γ.muD C.t1 := Advice.muD_nonneg_of_admissible Γ hΓ C.t1
         have hμDpos : 0 < Γ.muD C.t1 := lt_of_le_of_ne hμD_nonneg (Ne.symm hμD0)
         have ht3le : Γ.t3Star ≤ i := le_trans (t3_le_firstBidTime_of_muD_pos Γ hμDpos) hif
-        have htail0 : tailBudget C.hatG i = 0 := C.tailBudget_eq_zero_of_t3_le hγlo hγhi hθpos ht3le
+        have htail0 : tailBudget C.hatG i = 0 := by
+          exact C.tailBudget_eq_zero_of_t3_le hγlo hγhi hθpos ht3le
         rw [C.memberships_muD, htail0]
         ring
     have hhat : C.hatG C.t1 = C.boundaryHatGA + C.boundaryHatGB := C.boundary_eq
@@ -2323,13 +2521,14 @@ theorem creditValue_before_eq_weighted_ABD_at_t1
 
 theorem creditValue_after_eq_weighted_BD_of_between_t1_t2
     (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
-    {j i : Idx n} (ht1j : C.t1 < j) (hjt2 : j ≤ C.t2) (hji : j ≤ i) (hif : I.firstBidTime j ≤ i) :
+    {j i : Idx n} (ht1j : C.t1 < j) (hjt2 : j ≤ C.t2)
+    (hji : j ≤ i) (hif : I.firstBidTime j ≤ i) :
     C.creditValue AUX i j =
       (C.memberships).muB j * (1 - (if I.firstBidTime j < i then I.program.epsilon else 0)) +
       (C.memberships).muD j * (1 - tailBudget C.hatG i) := by
   unfold ProfileData.creditValue ProfileData.integralClientCredit
-  rw [C.sum_strictSuffix_gValue_row_eq_muB_mul_tailBudget_add_tau_of_between_t1_t2 AUX hΓ ht1j hjt2,
-    C.sum_interval_gts_value_eq_membership_combo AUX]
+  rw [C.sum_strictSuffix_gValue_row_eq_muB_mul_tailBudget_add_tau_of_between_t1_t2
+    AUX hΓ ht1j hjt2, C.sum_interval_gts_value_eq_membership_combo AUX]
   have hA0 : (C.memberships).muA j = 0 := C.memberships_muA_eq_zero_of_between_t1_t2 ht1j hjt2
   have hC0 : (C.memberships).muC j = 0 := C.memberships_muC_eq_zero_of_between_t1_t2 ht1j hjt2
   have hB :
@@ -2349,13 +2548,14 @@ theorem creditValue_after_eq_weighted_BD_of_between_t1_t2
 
 theorem creditValue_before_eq_weighted_BD_of_between_t1_t2
     (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (hΓ : Γ.Admissible)
-    {j i : Idx n} (ht1j : C.t1 < j) (hjt2 : j ≤ C.t2) (hji : j ≤ i) (hif : i < I.firstBidTime j) :
+    {j i : Idx n} (ht1j : C.t1 < j) (hjt2 : j ≤ C.t2)
+    (hji : j ≤ i) (hif : i < I.firstBidTime j) :
     C.creditValue AUX i j =
       (C.memberships).muB j * (I.program.tau + beforeBudget C.hatG j) +
       (C.memberships).muD j * (beforeBudget C.hatG j - tailBudget C.hatG i) := by
   unfold ProfileData.creditValue ProfileData.integralClientCredit
-  rw [C.sum_strictSuffix_gValue_row_eq_muB_mul_tailBudget_add_tau_of_between_t1_t2 AUX hΓ ht1j hjt2,
-    C.sum_interval_gts_value_eq_membership_combo AUX]
+  rw [C.sum_strictSuffix_gValue_row_eq_muB_mul_tailBudget_add_tau_of_between_t1_t2
+    AUX hΓ ht1j hjt2, C.sum_interval_gts_value_eq_membership_combo AUX]
   have hA0 : (C.memberships).muA j = 0 := C.memberships_muA_eq_zero_of_between_t1_t2 ht1j hjt2
   have hC0 : (C.memberships).muC j = 0 := C.memberships_muC_eq_zero_of_between_t1_t2 ht1j hjt2
   have hB :
@@ -2383,8 +2583,8 @@ theorem creditValue_after_eq_weighted_CD_of_between_t2_t3
       (C.memberships).muD j * (1 - tailBudget C.hatG i) := by
   have ht1j : C.t1 < j := lt_of_le_of_lt C.t1_le_t2 ht2j
   unfold ProfileData.creditValue ProfileData.integralClientCredit
-  rw [C.sum_strictSuffix_gValue_row_eq_muC_mul_tailBudget_add_tau_of_between_t2_t3 AUX hΓ ht2j hjt3,
-    C.sum_interval_gts_value_eq_membership_combo AUX]
+  rw [C.sum_strictSuffix_gValue_row_eq_muC_mul_tailBudget_add_tau_of_between_t2_t3
+    AUX hΓ ht2j hjt3, C.sum_interval_gts_value_eq_membership_combo AUX]
   have hA0 : (C.memberships).muA j = 0 := C.memberships_muA_eq_zero_of_between_t2_t3 ht2j hjt3
   have hB0 : (C.memberships).muB j = 0 := C.memberships_muB_eq_zero_of_between_t2_t3 ht2j hjt3
   have hC :
@@ -2411,8 +2611,8 @@ theorem creditValue_before_eq_weighted_CD_of_between_t2_t3
       (C.memberships).muD j * (beforeBudget C.hatG j - tailBudget C.hatG i) := by
   have ht1j : C.t1 < j := lt_of_le_of_lt C.t1_le_t2 ht2j
   unfold ProfileData.creditValue ProfileData.integralClientCredit
-  rw [C.sum_strictSuffix_gValue_row_eq_muC_mul_tailBudget_add_tau_of_between_t2_t3 AUX hΓ ht2j hjt3,
-    C.sum_interval_gts_value_eq_membership_combo AUX]
+  rw [C.sum_strictSuffix_gValue_row_eq_muC_mul_tailBudget_add_tau_of_between_t2_t3
+    AUX hΓ ht2j hjt3, C.sum_interval_gts_value_eq_membership_combo AUX]
   have hA0 : (C.memberships).muA j = 0 := C.memberships_muA_eq_zero_of_between_t2_t3 ht2j hjt3
   have hB0 : (C.memberships).muB j = 0 := C.memberships_muB_eq_zero_of_between_t2_t3 ht2j hjt3
   have hC :

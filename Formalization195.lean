@@ -5,8 +5,13 @@ import Formalization195.ColumnConstruction
 import Formalization195.DualProgram
 import Formalization195.DualSolution
 import Formalization195.Feasibility
+import Formalization195.FactorRevealingPrimal
 import Formalization195.GoodAdvice
 import Formalization195.PoolConstraints
 import Formalization195.ProfileConstruction
 import Formalization195.UpperBound
 import Formalization195.ValueConstraints
+
+#print axioms Formalization195.familyUpperBound_195
+
+#print axioms Formalization195.originalPrimalUpperBound_195

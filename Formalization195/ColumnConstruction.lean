@@ -201,6 +201,16 @@ def sValue (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i j : Idx n) :
     μ.muC j * C.sC AUX i j +
     μ.muD j * C.sD AUX i j
 
+/--
+The corrected dual removes the diagonal `s_{j,j}` by transferring it into the next row
+`s_{j+1,j}`. Entries strictly below the diagonal are otherwise unchanged.
+-/
+def shiftedSValue (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i j : Idx n) : ℝ :=
+  if j < i then
+    C.sValue AUX i j + if IsNextIndex i j then C.sValue AUX j j else 0
+  else
+    0
+
 def tValue (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) (i j : Idx n) : ℝ :=
   let μ := C.memberships
   μ.muA j * C.tA AUX i j +
@@ -441,6 +451,33 @@ theorem sValue_nonneg
   nlinarith [C.weighted_sA_nonneg H AUX i j, C.weighted_sB_nonneg H AUX i j,
     C.weighted_sC_nonneg H AUX i j, C.weighted_sD_nonneg H AUX i j]
 
+theorem shiftedSValue_nonneg
+    (C : ProfileData I Γ) (H : NonnegHypotheses C) (AUX : AuxiliaryCorrections C)
+    (i j : Idx n) :
+    0 ≤ C.shiftedSValue AUX i j := by
+  by_cases hij : j < i
+  · by_cases hnext : IsNextIndex i j
+    · have hs : 0 ≤ C.sValue AUX i j := C.sValue_nonneg H AUX i j
+      have hsdiag : 0 ≤ C.sValue AUX j j := C.sValue_nonneg H AUX j j
+      simpa [ProfileData.shiftedSValue, hij, hnext] using add_nonneg hs hsdiag
+    · simpa [ProfileData.shiftedSValue, hij, hnext] using C.sValue_nonneg H AUX i j
+  · simp [ProfileData.shiftedSValue, hij]
+
+theorem sValue_diag_eq_zero_of_t1_lt
+    (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C)
+    {i : Idx n} (ht1i : C.t1 < i) :
+    C.sValue AUX i i = 0 := by
+  have hμA0 : (C.memberships).muA i = 0 := by
+    have hnot : ¬ i < C.t1 := not_lt.mpr (le_of_lt ht1i)
+    simp [ProfileData.memberships, hnot, ne_of_gt ht1i]
+  have hnotNext : ¬ IsNextIndex i (I.firstBidTime i) := by
+    intro hnext
+    unfold IsNextIndex at hnext
+    have hlt : I.firstBidTime i < i := Fin.lt_def.mpr (by omega)
+    exact (not_lt_of_ge (I.le_firstBidTime i)) hlt
+  simp [ProfileData.sValue, ProfileData.sA, ProfileData.sB, ProfileData.sC, ProfileData.sD,
+    hμA0, hnotNext]
+
 theorem tValue_nonneg
     (C : ProfileData I Γ) (H : NonnegHypotheses C) (AUX : AuxiliaryCorrections C)
     (i j : Idx n) :
@@ -458,7 +495,7 @@ def constructedDualSolution
   rho := I.program.rhoBound
   hatG := C.hatG
   g := C.gValue AUX
-  s := C.sValue AUX
+  s := C.shiftedSValue AUX
   t := C.tValue AUX
 
 @[simp] theorem constructedDualSolution_hatG (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C) :
@@ -473,7 +510,7 @@ def constructedDualSolution
 
 @[simp] theorem constructedDualSolution_s (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C)
     (i j : Idx n) :
-    (C.constructedDualSolution AUX).s i j = C.sValue AUX i j := rfl
+    (C.constructedDualSolution AUX).s i j = C.shiftedSValue AUX i j := rfl
 
 @[simp] theorem constructedDualSolution_t (C : ProfileData I Γ) (AUX : AuxiliaryCorrections C)
     (i j : Idx n) :
@@ -486,7 +523,7 @@ theorem constructedDualSolution_nonnegative
   · intro i j
     simpa using C.gValue_nonneg H AUX i j
   · intro i j
-    simpa using C.sValue_nonneg H AUX i j
+    simpa using C.shiftedSValue_nonneg H AUX i j
   · intro i j
     simpa using C.tValue_nonneg H AUX i j
 
