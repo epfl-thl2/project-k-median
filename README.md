@@ -1,1 +1,1 @@
-See theorem originalPrimalUpperBound_195 in Formalization195/FactorRevealingPrimal.lean for an upper bound of 1.95 on the factor-revealing program in Definition~\ref{def:frp} in approximation-guarantee.tex for the choice gamma = 1.224 over all n >= 1.
+See theorem originalPrimalUpperBound_195 in Formalization195/FactorRevealingPrimal.lean for an upper bound of 1.95 on the factor-revealing program in Definition~\ref{def:frp} in Paper/approximation-guarantee.tex for the choice gamma = 1.224 over all n >= 1.
