@@ -1,0 +1,305 @@
+\usepackage{amsthm,amsfonts,amsmath,amssymb}
+\usepackage{thmtools}
+\usepackage{dsfont}
+\usepackage{bbm,bm}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{graphicx} 
+% \usepackage{fullpage}
+% \usepackage{todonotes}
+\usepackage{tikz}
+\usepackage{ragged2e}
+\usepackage{bbm}
+\usepackage{xspace}
+\usepackage{mdframed}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage[
+a4paper,
+top=1in,
+bottom=1in,
+left=1in,
+right=1in]{geometry}
+\usepackage{comment}
+\usepackage{svg}
+
+
+\usepackage{ifxetex}
+% Font
+\ifxetex
+\usepackage[bigdelims,vvarbb]{newpxmath}
+\usepackage{mathspec}
+\setallmainfonts(Digits,Latin){Noto Serif}
+\else
+\usepackage{mathpazo}
+\fi
+
+% \setuptodonotes{backgroundcolor=blue!20, linecolor=blue!40}
+
+%\oddsidemargin=-0.1in 
+%\evensidemargin=-0.1in 
+%\topmargin=-.5in
+%\textheight=9in 
+%\textwidth=6.5in
+%\parindent=18pt
+\let\epsilon\varepsilon
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% comments
+% \newcommand{\comment}[1]{{\color{myPurple}{#1}}}
+% \newcommand{\rares}[1]{\textcolor{red}{[Rares: \textbf{#1}]}}
+% \newcommand{\miltos}[1]{\textcolor{myPurple}{[Miltos: \textbf{#1}]}}
+% \newcommand{\lukas}[1]{\textcolor{blue}{[Lukas: \textbf{#1}]}}
+% \definecolor{myColorOla}{rgb}{0.8, 0.25, 0.1}
+% \newcommand{\ola}[1]{\textcolor{myColorOla}{[Ola: \textbf{#1}]}}
+% \definecolor{teal}{rgb}{0, 0.502, 0.502}
+% \newcommand{\toni}[1]{\textcolor{teal}{[Toni: \textbf{#1}]}}
+
+% colors 
+\definecolor{toc}{RGB}{13,55,174}
+\definecolor{myPurple}{RGB}{175,0,124}
+
+\usepackage[hidelinks]{hyperref}	
+\hypersetup{
+    colorlinks=true,
+    citecolor=myPurple,
+    linkcolor=toc,
+    urlcolor=toc
+}
+%\usepackage[nameinlink]{cleveref}
+
+\usepackage[shortlabels]{enumitem}		%For item labels in enumerate
+\usepackage{fontawesome5}   %For font awesome icons
+\usepackage{adjustbox}
+\allowdisplaybreaks			% To allow math formulas to be split across pages
+\interfootnotelinepenalty=42000	 % To prevent footnotes from being split among pages
+\usepackage{subcaption}     % figure with subfigures
+\usepackage{mathtools}
+\usepackage{relsize}
+
+
+\usepackage[symbol*]{footmisc}
+\renewcommand\thefootnote{\fnsymbol{footnote}}%
+\renewcommand\thempfootnote{\fnsymbol{mpfootnote}}
+
+
+\usepackage{thm-restate}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{property}[theorem]{Property}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{observation}[theorem]{Observation}
+
+% Give hyperref unique anchors for theorem-like environments whose counters
+% reset by section. Without these, links such as definition.1 collide across
+% sections and jump to the first matching destination in the PDF.
+\renewcommand*{\theHtheorem}{\theHsection.\arabic{theorem}}
+\renewcommand*{\theHlemma}{\theHtheorem}
+\renewcommand*{\theHcorollary}{\theHtheorem}
+\renewcommand*{\theHclaim}{\theHtheorem}
+\renewcommand*{\theHproposition}{\theHtheorem}
+\renewcommand*{\theHconjecture}{\theHtheorem}
+\renewcommand*{\theHproperty}{\theHtheorem}
+\renewcommand*{\theHremark}{\theHtheorem}
+\renewcommand*{\theHdefinition}{\theHtheorem}
+\renewcommand*{\theHquestion}{\theHtheorem}
+\renewcommand*{\theHassumption}{\theHtheorem}
+\renewcommand*{\theHobservation}{\theHtheorem}
+
+
+% probability and other mathops
+\renewcommand{\Pr}{\mathop{\bf Pr\/}}
+\newcommand{\E}{\mathop{\bf E\/}}
+\newcommand{\Ex}{\mathop{\bf E\/}}
+\newcommand{\Var}{\mathop{\bf Var\/}}
+\newcommand{\Cov}{\mathop{\bf Cov\/}}
+\newcommand{\er}{\mathrm{er}}
+\newcommand{\bin}{\mathrm{bin}}
+\newcommand{\indic}{\mathbbm{1}}
+\newcommand*{\defeq}{\stackrel{\mathsmaller{\mathsf{def}}}{=}}
+
+
+% terms
+\newcommand{\poly}{\textnormal{poly}}
+\newcommand{\polylog}{\textnormal{polylog}}
+\newcommand{\size}{\textnormal{size}}
+\newcommand{\sgn}{\textnormal{sgn}}
+\newcommand{\OPT}{\textnormal{OPT}}
+\newcommand{\opt}{\textnormal{OPT}}
+\newcommand{\ALG}{\textnormal{ALG}}
+\newcommand{\alg}{\textnormal{ALG}}
+\newcommand{\cost}{\textnormal{cost}}
+\newcommand{\etal}{et al. }
+\newcommand{\val}{\textnormal{value}}
+\newcommand{\rank}{\textnormal{rank}}
+\newcommand{\spann}{\textnormal{span}}
+
+% paper specific macros
+\newcommand{\Cache}{\textnormal{Cache}}
+\newcommand{\Pages}{\textnormal{Pages}}
+\newcommand{\p}[2]{p^{(#2)}_{#1}}
+
+% number systems
+\newcommand{\reals}{\mathbb R}
+\newcommand{\complex}{\mathbb C}
+\newcommand{\nats}{\mathbb N}
+\newcommand{\natszero}{\mathbb N_0}
+\newcommand{\natsinf}{\mathbb N_{\infty}}
+\newcommand{\ints}{\mathbb Z}
+\newcommand{\rats}{\mathbb Q}
+
+\newcommand{\eps}{\epsilon}
+
+% calligraphic letters
+\newcommand{\calA}{\mathcal{A}}
+\newcommand{\calB}{\mathcal{B}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calD}{\mathcal{D}}
+\newcommand{\calE}{\mathcal{E}}
+\newcommand{\calF}{\mathcal{F}}
+\newcommand{\calG}{\mathcal{G}}
+\newcommand{\calH}{\mathcal{H}}
+\newcommand{\calI}{\mathcal{I}}
+\newcommand{\calJ}{\mathcal{J}}
+\newcommand{\calK}{\mathcal{K}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\calO}{\mathcal{O}}
+\newcommand{\calP}{\mathcal{P}}
+\newcommand{\calQ}{\mathcal{Q}}
+\newcommand{\calR}{\mathcal{R}}
+\newcommand{\calS}{\mathcal{S}}
+\newcommand{\calT}{\mathcal{T}}
+\newcommand{\calU}{\mathcal{U}}
+\newcommand{\calV}{\mathcal{V}}
+\newcommand{\calW}{\mathcal{W}}
+\newcommand{\calX}{\mathcal{X}}
+\newcommand{\calY}{\mathcal{Y}}
+\newcommand{\calZ}{\mathcal{Z}}
+\newcommand{\calz}{\mathcal{z}}
+\newcommand{\CR}{\text{CR}}
+\newcommand{\Select}{\text{Select}}
+
+% indicator
+\newcommand{\ind}{\mathds{1}}
+% bold
+\newcommand{\Ind}[1]{\operatorname{\mathbb{I}}\left\{ #1 \right\}}
+
+
+% bold numbers
+\newcommand{\bone}{\boldsymbol{1}}
+
+% bold greek
+\newcommand{\balpha}{\boldsymbol{\alpha}}
+\newcommand{\bmu}{\bm{\mu}}
+
+% bold latin
+\newcommand{\ba}{\boldsymbol{a}}
+\newcommand{\bp}{\bm{p}}
+\newcommand{\bg}{\bm{g}}
+\newcommand{\bx}{\bm{x}}
+\newcommand{\by}{\bm{y}}
+
+
+% other defs
+\def\l{\ell}
+\def\<{\langle}
+\def\>{\rangle}
+
+% Distributions
+\newcommand{\Be}{\textit{Be}}
+\newcommand{\Bin}{\textit{Bin}}
+\newcommand{\PB}{\textit{PB}}
+\newcommand{\N}{\calN}
+\newcommand{\Z}{\calZ}
+\newcommand{\TG}{\calT\calG}
+\newcommand{\Geo}{\textit{Geo}}
+
+
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\argmin}{argmin}
+
+\newcommand{\norm}[2]{|| #2 ||_{#1}}
+
+\newcommand{\Alg}{{ALG}}
+\newcommand{\kportfolio}{\textsc{k-Portfolio }}
+\newcommand{\problemname}{\textsc{Portfolio Optimization }} 
+\newcommand{\matroidproblemname}{\textsc{Matroid Portfolio Optimization }} 
+\DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+
+\providecommand*{\paren}[1]{(#1)}
+\providecommand*{\Paren}[1]{\left(#1\right)}
+\providecommand*{\abs}[1]{|#1|}
+\providecommand*{\Abs}[1]{\left|#1\right|}
+\newcommand{\set}[1]{\{#1\}}
+\newcommand{\Set}[1]{\left\{#1\right\}}
+\newcommand{\bigset}[1]{\big\{#1\big\}}
+\newcommand{\Bigset}[1]{\Big\{#1\Big\}}
+
+\newcommand{\Hbefore}{\ensuremath{H^{\text{before}}_p}\xspace}
+\newcommand{\Hafter}{\ensuremath{H^{\text{after}}_p}\xspace}
+
+\newcommand{\specialevent}{\textsc{freezing}}
+\newcommand{\Dgood}{D^\star_{\mathrm{good}}}
+\newcommand{\klast}{k^{\mathrm{last}}}
+\newcommand{\ktlast}{\tilde{k}^{\mathrm{last}}}
+\newcommand{\kfirst}{k^{\mathrm{first}}}
+\newcommand{\dsum}{d_{\mathrm{sum}}}
+
+% \newcommand{\logadaptalg}{\textsc{LogAdaptiveAlgorithm}\xspace}
+% \newcommand{\robustadaptalg}{\textsc{RobustLogAdaptiveAlgorithm}\xspace}
+% \newcommand{\JMSalg}{\textrm{Greedy Algorithm}\xspace}
+% \newcommand{\mergealg}{\textrm{MergeSolutions}\xspace}
+\newcommand{\completesol}{\textrm{CompleteSolution}\xspace}
+\newcommand{\completesolx}{\textrm{CompleteSolution}}
+\newcommand{\completesequence}{\textrm{CompleteSequence}\xspace}
+\newcommand{\calLexp}{\calL_{\text{exp}}}
+\newcommand{\phase}{\text{phase}}
+\newcommand{\clcost}{\text{cost}}
+\newcommand{\closedclcost}{\text{closedcost}}
+\newcommand{\increase}{\text{cost-inc}}
+\newcommand{\reassign}{R}
+\newcommand{\clients}{D}
+\newcommand{\clientspure}{D^\star_{\texttt{pure}}}
+\newcommand{\clientscheap}{D^\star_{\texttt{cheap}}}
+\newcommand{\clientsexpensive}{D^\star_{\texttt{exp}}}
+\newcommand{\facilities}{F}
+\newcommand{\sopt}{\mathrm{opt}}
+\newcommand{\optlpfl}{\text{opt}_{\text{LP}}}
+\newcommand{\freefac}{F^-}
+\newcommand{\optc}{\clcost(\opt)}
+\newcommand{\Maxdist}{M}
+\newcommand{\dummyset}{\Lambda}
+\newcommand{\core}{C^{\text{core}}}
+\newcommand{\Sf}{S_{\mathrm{free}}}
+\newcommand{\Sr}{S_{\mathrm{reg}}}
+\newcommand{\Ff}{F_{\mathrm{free}}}
+
+\newcommand{\ones}[1]{\text{Ones}(#1)}
+\newcommand{\hg}{\hat{g}}
+\newcommand{\thresh}{T}
+
+\newcommand{\pluseq}{\mathrel{+}=}
+
+\newcommand{\Mrho}{2-(\gamma-1)^2}
+\newcommand{\Mrhomone}{1-\varepsilon^2}
+\newcommand{\Mcoeff}{\gamma}
+\newcommand{\Mcoeffadd}{\gamma+\varepsilon^2}
+\newcommand{\Mcoeffpone}{1+\gamma}
+\newcommand{\Mcoeffmone}{\varepsilon}
+\newcommand{\Monemcoeffmone}{1-\varepsilon}
+\newcommand{\Mtone}{\tau}
+\newcommand{\MRtone}{\bar\tau}
+\newcommand{\Mttwo}{1-\theta}
+\newcommand{\MRttwo}{\theta}
+\newcommand{\Mfrac}{\frac{\varepsilon}{\tau}}

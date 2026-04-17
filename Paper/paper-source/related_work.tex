@@ -1,0 +1,16 @@
+\subsection{Further Related Work}
+
+\paragraph{Facility location and dual fitting.}
+The connection between $k$-median and facility location dates back to the primal-dual schema of Jain and Vazirani~\cite{JaV01} and the dual-fitting framework of Jain, Mahdian, Markakis, Saberi, and Vazirani~\cite{JMS02,JainMMSV03}. These ideas have been highly influential for facility location itself, leading to improved approximation algorithms culminating in the $1.488$-approximation of Li~\cite{Li13}; see also~\cite{CharikarGTS99,ChudakS03, ByrkaA10}. The factor-revealing LP technique introduced in~\cite{JainMMSV03} is a key tool underlying both the classical Greedy analysis and our generalization to broader bidding functions.
+
+\paragraph{Local search.}
+The $(3+\eps)$-approximation of Arya et al.~\cite{AryaGKMMP04} via multi-swap local search remained the best polynomial-time guarantee for metric $k$-median for over a decade. Cohen-Addad, Gupta, Hu, Oh, and Saulpic~\cite{Cohen-AddadGHOS22} introduced a non-oblivious local-search approach that beats the classical factor~$3$, though it does not yet improve the best overall guarantee for the problem.
+
+\paragraph{Bi-point rounding.}
+As discussed in the introduction, converting an LMP solution into an exact-$k$ solution via bi-point rounding has been a major bottleneck. The line of work by Li and Svensson~\cite{LiS16}, Byrka et al.~\cite{ByrkaPRST17}, and Gowda et al.~\cite{GowdaPST23} progressively refined this step, eventually reaching a $2.613$-approximation in combination with the LMP improvement of~\cite{Cohen-AddadLS23}. It is known that no LMP-based bi-point rounding approach can breach the $(1+2/e)\sqrt{\phi} \approx 2.208$ barrier~\cite{GowdaPST23}, which further motivates the smooth/log-adaptive approach that avoids bi-point rounding altogether.
+
+\paragraph{Clustering under stability.}
+Stability assumptions have been studied as a way to obtain improved or even exact polynomial-time algorithms for clustering. An instance is $\beta$-stable if the optimal cost increases by a factor of $(1+\beta)$ when $k$, the number of centers, is decreased to $k-1$. Awasthi, Blum, and Sheffet~\cite{ABS10} and Cohen-Addad and Schwiegelshohn~\cite{DBLP:conf/focs/Cohen-AddadS17} explored the local structure of stable instances. The $(2+\eps)$-approximation of~\cite{MR4928455-Cohen25} crucially relies on a polynomial-time algorithm for $(\zeta/\log n)$-stable instances to convert a quasi-polynomial-time guarantee into a polynomial-time one.
+
+
+\paragraph{$k$-Means.} Recent work on the $k$-means problem, that asks to minimize the sum of the squared distances (as opposed to the sum of distances) has also analyzed variants of a greedy algorithm, {a la Jain, Mahdian, Markakis, Saberi, and Vazirani}, and shown that slightly different bidding functions can yield LMP approximation algorithms for $k$-means~\cite{CharikarCGGLW25,CharikarCGGLW26}. Yet, none of these approaches have shown to provide any gains for $k$-median.

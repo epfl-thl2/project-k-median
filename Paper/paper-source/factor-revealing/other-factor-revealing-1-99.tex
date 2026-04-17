@@ -1,0 +1,225 @@
+We restate the definition of the factor-revealing dual and its lemma here:
+
+\deffrdual*
+
+\lemmamathematicalprogram*
+
+To prove this lemma, we first define an intermediate version of the factor-revealing primal different from the one in Definition~\ref{def:frp}.
+
+Differently from the previous factor revealing, we rewrite the metric inequalities. We define the variable $m_i$ as the smallest distance from the central facility to an already open facility at time $i$. 
+Using this definition, the metric inequalities can be rewritten as follows:
+\begin{equation*}
+    \forall \ 1 \le j \le i \le n: \quad r_{j,i} \le m_i + d_j\,.
+\end{equation*}
+% This is the new metric constraint we will work with. 
+Without enforcing the exact definition of $m_i$, we only need $m_i$ to follow the following two structural constraints:
+\begin{align*}
+    \forall \ 1 \le j\le i \le n:& \quad m_i \le r_{j,i} + d_j\,, \\
+    \forall \ 1 \le i < n:& \quad m_i \ge m_{i+1}\,.
+\end{align*}
+The first comes by an application of the metric inequalities, directly going from central facility to an open facility should be faster than going through a client $j$. The second is due to the monotonic non-decreasingness of the distances, just like it is the case with $r_{j,i}$ through $i$; opening a new facility can only decrease the distance.
+
+With this defined and using also the $b_{i,j}$ variables defined in the main text, we can now define the intermediate factor-revealing problem:
+\begin{definition}[Factor-revealing primal]\label{def:intermediate-frp}
+    Fix $n\geq 1$.
+    \begin{equation*}
+        \begin{aligned}
+            \smash{\max_{\substack{\\ \forall b_{i,j}\in\{0,1\} \\ \forall i,j: 1\leq j\leq i \leq n}}} \quad 
+            \max \quad 
+            & \sum_{j=1}^{n} \smash{\sum_{i=j}^{n} b_{i,j} \cdot (r_{j,i} -\Mcoeff \cdot r_{j,i+1}) - f} \span\span\span\span\\
+            \text{\emph{s.t.:}} \quad
+                &&&\sum_{i=1}^{n} d_i \le 1 && \text{($\rho$: Limit on distances)}\\
+                & \forall \ 1 \le j\le i \le n: 
+                \quad && m_i \le r_{j,i} + d_j && \text{($s_{i,j}$: Definition of $m_i$)}\\
+                & \forall \ 1 \le j \leq i \le n:
+                \quad && r_{j,i} \le m_i + d_j && \text{($t_{i,j}$: Metric constraint)}\\
+                & \forall \ 1 \le j \le i \le n: 
+                \quad &&r_{j,i} \ge r_{j,i+1} && \text{($y_{i,j}$: Monotonicity of $r_{j,i}$)}\\
+                & \forall \ 1 \le i < n: 
+                \quad && m_i \ge m_{i+1} && \text{($y'_i$: Monotonicity of $m_i$)}\\
+                & \forall \ 1\le j <i\le n: 
+                \quad && r_{j,i} - \Mcoeff \cdot d_j \le \gamma_{i,j} && \text{($g^a_{i,j}$: Bidding linearization)}\\
+                & \forall \ 1\le i\le j\le n: 
+                \quad && r_{i,i} -\Mcoeff \cdot d_j \le \beta_{i,j} && \text{($g^b_{i,j}$: Bidding linearization)}\\
+                & \forall \ 1\le i\le n: \quad && \sum_{j=1}^{i-1} \gamma_{i,j} + \sum_{j=i}^{n} \beta_{i,j} \le f && \text{($\hg_i$: No overbidding)}\\
+                & \forall \ 1\le i\le j\le n: && r_{j,i}, d_{j}, m_i, \beta_{i,j}, \gamma_{i,j}, f \ge 0 \span\span
+        \end{aligned}
+    \end{equation*}
+\end{definition}
+\begin{lemma}\label{lemma:generalized-factor-revealing-problem-metric-rewrite}
+    The result from the factor-revealing program defined in Definition~\ref{def:intermediate-frp}, defined as a maximization over a family of primal LPs, is an upperbound to the one presented in Definition~\ref{def:frp} for the specific bidding function $\beta_{\Mcoeff}(\alpha, d) = [\alpha - \Mcoeff \cdot d]^+$.
+\end{lemma}
+\begin{proof}    
+We only prove a one-way relation: every optimal solution of Definition~\ref{def:frp} extends to a feasible solution with the same objective value to Definition~\ref{def:intermediate-frp} for one specific linear program above. As such a solution would give an upperbound to this latter program, it is a valid proof. 
+
+Take an optimal solution to the original program and name its variables $r_{j,i}'$, $d_j'$ and $f'$. Let us now create the variables $r_{j,i}$, $d_j$ and $f$ by copying the previous ones, except that for $r_{j,n+1}$ we set it to $0$ for all $j$.
+
+
+Second, let us choose the specific linear program that we will be working with. Let us take $b_{i,j}=\ind[r_{j,i}-\Mcoeff \cdot r_{j,i+1}\ge0]$ for $i<n$, and let us take $b_{n,j}=1$ for all $j$. The expression for the new objective terms with $i<n$ become:
+\begin{align*}
+    b_{i,j} \cdot (r_{j,i} -\Mcoeff \cdot r_{j,i+1}) &= \ind[r_{j,i}-\Mcoeff \cdot r_{j,i+1}\ge0] \cdot (r_{j,i} -\Mcoeff \cdot r_{j,i+1}) \\
+    &= [r_{j,i} -\Mcoeff \cdot r_{j,i+1}]^+ = \beta_{\Mcoeff} (r_{j,i},r_{j,i+1})
+\end{align*}
+which makes the objective function equal to:
+\begin{equation*}
+    \sum_{j=1}^{n} \left(\sum_{i=j}^{n-1} \beta_{\Mcoeff}(r_{j,i}, r_{j,i+1}) + \beta_{\Mcoeff}(r_{j,n},0)\right)- f\,.
+\end{equation*}
+Knowing that $r_{j,i}=r_{j,i}'$ for all the $r_{j,i}$ shown in this equation and that $f'=f$, subtracting the objective function from the program in Definition~\ref{def:frp} on this equation gives:
+\begin{equation*}
+    \sum_{j=1}^{n} \left(\beta_{\Mcoeff}(r_{j,n},0)-\beta_{\Mcoeff}(r_{j,n},r_{j,n+1}) - r_{j,n+1}\right) = \sum_{j=1}^{n} \left(r_{j,n}-([r_{j,n}-\gamma \cdot r_{j,n+1}]^+ + r_{j,n+1})\right) \geq 0
+\end{equation*}
+where we have substituted the expression of $\beta_{\gamma}(\alpha,d)=[\alpha-\gamma d]^+$ and we have used that $[\alpha-\gamma d]^+ + d \leq \alpha$.
+Thus, with these variables we get that the objective value for the program in Definition~\ref{def:intermediate-frp} is an upperbound on the original one found in Definition~\ref{def:frp}.
+
+Third, for $m_i$, we set them as:
+\begin{equation*}\label{eq:mi-exact-definition}
+    m_i = \min_{1\le j \leq i} (r_{j,i} + d_j)\,.
+\end{equation*}
+Indeed, the inequalities $m_i \le r_{j,i} + d_j$ are immediate from this assignment and $r_{j,i} \le m_i + d_j$ are also direct since we had $r_{j,i} \le r_{j,k}+d_k + d_j$ for all $k$. For the monotonicity constraints $m_i \ge m_{i+1}$, if $\ell$ is the index that attains the minimum at time $i$, then the following holds $m_{i+1} \le r_{\ell,i+1} + d_\ell \le r_{\ell,i} + d_\ell = m_i$. 
+
+Finally, we set the values for $\gamma_{i,j}$ and $\beta_{i,j}$. These will be $\gamma_{i,j} = [r_{j,i}-\Mcoeff \cdot d_j]^+  =\beta_{\Mcoeff}(r_{j,i},d_j)$ and $\beta_{i,j} = [r_{i,i}-\Mcoeff\cdot d_j]^+=\beta_{\Mcoeff}(r_{i,i},d_j)$, which clearly satisfy the $g^a_{i,j}$ and $g^b_{i,j}$ constraints as well as the $\hg_i$ because the original "No Overbidding"\toni{change this?} constraint was satisfied. Thus, all $(g)$ constraints are satisfied.
+
+Therefore the feasible region of the original program is contained in the feasible region of the relaxed program, so any upper bound on the relaxed program is also an upper bound on the original program.
+\end{proof}
+
+However, the dual represented in Definition~\ref{def:frdual} is not the direct dual one gets from the Linear Programs in Definition~\ref{def:intermediate-frp}, there are still some extra steps. Let us first take this direct dual of the inner program for any $b_{i,j}$, using the notation that is on the right of each inequality to refer to each constraint:
+\begin{definition}[Dual of inner program]\label{def:intermediate-dual}
+    The linear dual of any inner program of the intermediate factor-revealing program is:
+    \begin{equation}\label{eq:direct-dual-lp}
+        \begin{aligned}
+        \text{minimize}& \quad \rho \\
+        \text{subject to:}& 
+            &&  \sum_{i=1}^{n} \hat{g}_i \leq 1 && \text{($f$)} \\
+            & \forall \ 1 \le i, j \le n: 
+            && \hat{g}_i \geq g_{i,j} && \text{($\gamma_{i,j}$, $\beta_{i,j}$)}\\
+            & \forall \ 1\le j \le n: 
+            && \sum_{q=j+1}^n g_{j,q} + \left(g_{j,j} + t_{j,j} - s_{j,j} \right) - y_{j,j} \geq b_{j,j}
+            && \text{($r_{j,j}$)}\\
+            & \forall \ 1\le j < i < n: 
+            && y_{i-1,j} + \left(g_{i,j} + t_{i,j} - s_{i,j}\right) - y_{i,j} \geq b_{i,j} - \Mcoeff \cdot b_{i-1,j}
+            && \text{($r_{j,i}$)}\\
+            & \forall \ 1\le j < i = n: 
+            && y_{n-1,j} + \left(g_{n,j} + t_{n,j} - s_{n,j}\right) \quad \ \ \ \geq b_{n,j} - \Mcoeff \cdot b_{n-1,j}
+            && \text{($r_{j,n}$)}\\
+            & \forall \ 1= i < n: 
+            && \ \ \ \qquad \sum_{j=1}^i s_{i,j} - \sum_{j=1}^i t_{i,j} - y_i' \ge 0 && \text{($m_1$)}\\
+            & \forall \ 1< i < n: 
+            && y_{i-1}' + \sum_{j=1}^i s_{i,j} - \sum_{j=1}^i t_{i,j} - y_i'\ge 0 && \text{($m_i$)}\\
+            & \forall \ 1< i = n: 
+            && y_{n-1}' + \sum_{j=1}^n s_{i,j} - \sum_{j=1}^n t_{i,j} \qquad \ge 0 && \text{($m_n$)}\\
+            & \forall \ 1\leq j\leq n:
+            && \rho \geq \ \Mcoeff\cdot \sum_{i=1}^n g_{i,j} + \sum_{i=j}^n s_{i,j} + \sum_{i=j}^n t_{i,j} && \text{($d_j$)} \\
+            & \forall \ 1 \le i,j \le n: && \hat{g}_{i}, \ g_{i,j}, \ t_{i,j}, \ s_{i,j}, \ y_{i,j},\ y_i' \geq 0
+        \end{aligned}
+    \end{equation}
+    where we have abused the notation and called both $g_{i,j}^a$ and $g_{i,j}^b$ as $g_{i,j}$, which is valid because the indices never overlap.
+\end{definition}
+
+Now let us prove the following lemma:
+\begin{lemma}\label{lem:fr-intermediate-eq-dual}
+    The inner program of the factor-revealing dual defined in Definition~\ref{def:frdual} and the linear program in Definition~\ref{def:intermediate-dual} are equivalent.
+\end{lemma}
+\begin{proof}
+    The main difference between the two programs is that in the second there are variables $y_{i,j}$ and $y_i'$. To move to the other representation in Definition~\ref{def:frdual}, we will interpret these variables as slack ones, which carry unused slack from $(r_{j,i})$ to the next timestep $(r_{j,i+1})$ for the case of $y_{i,j}$ or from $(m_i)$ to $(m_{i+1})$ for $y'_i$. We now prove that a feasible solution for the one in Definition~\ref{def:frdual} implies a feasible solution with the same cost in Definition~\ref{def:intermediate-dual}, and the reverse as well.
+    
+    First, given a feasible solution $(\rho, \hat{g}, g, t, s)$ for Definition~\ref{def:frdual}, we construct a feasible solution for the direct dual in Definition~\ref{def:intermediate-dual} by keeping the same variables and explicitly defining the slack variables $y_{i,j}$ and $y'_i$ as follows:
+    \begin{align*}
+        y_{i,j} &= \sum_{q=j+1}^n g_{j,q} + \sum_{p=j}^{i} \left(g_{p,j} + t_{p,j} - s_{p,j}\right) - b_{i,j} + \Mcoeffmone \sum_{p=j}^{i-1} b_{p,j} \\
+        y'_i &= \sum_{p=1}^i \sum_{j=1}^p s_{p,j} - \sum_{p=1}^i \sum_{j=1}^p t_{p,j}\,.
+    \end{align*}
+    By the $(r_{j,i})$ and $(m_i)$ constraints of Definition~\ref{def:frdual}, it trivially holds that $y_{i,j} \geq 0$ for all $1 \le j \le i \le n$ and $y'_i \geq 0$ for all $1 \le i \le n$. We now verify that these definitions satisfy the constraints of Definition~\ref{def:intermediate-dual}.
+    
+    For $i=j$, substituting $y_{j,j}$ in the $(r_{j,j})$ constraint gives:
+    \begin{align*}
+        \sum_{q=j+1}^n g_{j,q} + (g_{j,j} + t_{j,j} - s_{j,j}) - y_{j,j}
+        &=  \sum_{q=j+1}^n g_{j,q} + (g_{j,j} + t_{j,j} - s_{j,j}) \\
+        &\quad - \left(\sum_{q=j+1}^n g_{j,q} + (g_{j,j} + t_{j,j} - s_{j,j}) - b_{j,j}\right) \\
+        &= b_{j,j}
+    \end{align*}
+    which satisfies it with equality. For $i>j$, the difference $y_{i-1,j} - y_{i,j}$ algebraically evaluates to:
+    \begin{align*}
+        y_{i-1,j} - y_{i,j} 
+        % &= \left( \sum_{p=j}^{i-1} (g_{p,j} + t_{p,j} - s_{p,j}) - b_{i-1,j} + \Mcoeffmone \sum_{p=j}^{i-2} b_{p,j} \right) \\
+        % &\quad - \left( \sum_{p=j}^{i} (g_{p,j} + t_{p,j} - s_{p,j}) - b_{i,j} + \Mcoeffmone \sum_{p=j}^{i-1} b_{p,j} \right) \\
+        &= -(g_{i,j} + t_{i,j} - s_{i,j}) + b_{i,j} - b_{i-1,j} - \Mcoeffmone b_{i-1,j} \\
+        &= -(g_{i,j} + t_{i,j} - s_{i,j}) + b_{i,j} - \Mcoeff\cdot b_{i-1,j}\,.
+    \end{align*}
+    Rearranging this expression gives:
+    \begin{equation*}
+        y_{i-1,j} + (g_{i,j} + t_{i,j} - s_{i,j}) - y_{i,j} = b_{i,j} - \Mcoeff\cdot b_{i-1,j}\,.
+    \end{equation*}
+    This also fulfills the $(r_{j,i})$ constraint with equality. For $(r_{j,n})$, let us substitute the value of $y_{n-1,j}$:
+    \begin{align*}
+        b_{n,j} - \Mcoeff b_{n-1,j}
+        &\leq y_{n-1,j} + (g_{n,j} + t_{n,j} - s_{n,j}) \\
+        &= \sum_{q=j+1}^n g_{j,q} + \sum_{p=j}^{n} \left(g_{p,j} + t_{p,j} - s_{p,j}\right) - b_{n-1,j} + \Mcoeffmone \sum_{p=j}^{n-2} b_{p,j}\,.
+    \end{align*}
+    Rearranging this expression gives:
+    \begin{equation*}
+        b_{n,j} - \Mcoeffmone \sum_{p=j}^{n-1} b_{p,j} \leq \sum_{q=j+1}^n g_{j,q} + \sum_{p=j}^{n} \left(g_{p,j} + t_{p,j} - s_{p,j}\right)
+    \end{equation*}
+    which is satisfied as the feasibility of the first program because of its $(r_{j,i})$ constraint.
+    Similarly, we evaluate the $(m_i)$ constraints using the variables $y'_i$. For $i=1$:
+    \begin{equation*}
+        s_{1,1} - t_{1,1} - y'_1 = s_{1,1} - t_{1,1} - (s_{1,1} - t_{1,1}) = 0
+    \end{equation*}
+    satisfying the $(m_1)$ constraint.
+    For $1 < i \le n$:
+    \begin{align*}
+        y'_{i-1} - y'_i &= \sum_{p=1}^{i-1} \sum_{j=1}^p (s_{p,j} - t_{p,j}) - \sum_{p=1}^i \sum_{j=1}^p (s_{p,j} - t_{p,j}) \\
+        &= - \sum_{j=1}^i (s_{i,j} - t_{i,j})\,.
+    \end{align*}
+    Thus, $y'_{i-1} + \sum_{j=1}^i (s_{i,j} - t_{i,j}) - y'_i = 0$, satisfying the $(m_i)$ constraint with equality.
+    For the final $(m_n)$ constraint, we have $y'_{n-1} + \sum_{j=1}^n (s_{n,j} - t_{n,j}) = \sum_{p=1}^{n} \sum_{j=1}^p (s_{p,j} - t_{p,j})$. Since the feasibility of the first program ensures that this quantity is bigger than $0$ because of its ($m_{n})$ constraint, the inequality $y'_{n-1} + \sum_{j=1}^n (s_{n,j} - t_{n,j}) \ge 0$ naturally holds. All other constraints that do not involve $y_{i,j}$ and $y'_i$ remain trivially satisfied as they are identical across both programs.
+    
+    Conversely, suppose we have a feasible solution for the direct dual in Definition~\ref{def:intermediate-dual}. We show that this implies feasibility for Definition~\ref{def:frdual} by telescoping the inequalities.
+    For the $(r_{j,i})$ constraints, the direct dual gives:
+    \begin{align*}
+        \sum_{q=j+1}^n g_{j,q} + (g_{j,j} + t_{j,j} - s_{j,j}) - y_{j,j} &\geq b_{j,j} \\
+        y_{k-1,j} + (g_{k,j} + t_{k,j} - s_{k,j}) - y_{k,j} &\geq b_{k,j} - (1+\Mcoeffmone) b_{k-1,j} \quad \text{for } k > j\,.
+    \end{align*}
+    For $i<n$, summing these inequalities from $k=j$ to $i$, the slack variables $y_{k,j}$ telescope perfectly, and we obtain:
+    \begin{align*}
+        \sum_{q=j+1}^n g_{j,q} + \sum_{k=j}^i (g_{k,j} + t_{k,j} - s_{k,j}) - y_{i,j} &\geq b_{j,j} + \sum_{k=j+1}^i \big( b_{k,j} - (1+\Mcoeffmone) b_{k-1,j} \big) \\
+        &= b_{i,j} - \Mcoeffmone \sum_{k=j}^{i-1} b_{k,j}\,.
+    \end{align*}
+    Since $y_{i,j} \geq 0$, we can drop $-y_{i,j}$ from the left side and get:
+    \begin{equation*}
+        \sum_{q=j+1}^n g_{j,q} + \sum_{k=j}^i (g_{k,j} + t_{k,j} - s_{k,j}) \geq b_{i,j} - \Mcoeffmone \sum_{k=j}^{i-1} b_{k,j}\,,
+    \end{equation*}
+    which is exactly the $(r_{j,i})$ constraint in Definition~\ref{def:frdual}. For $i=n$, we sum the constraints $(r_{j,j})$, $(r_{j,j+1}), \ldots, (r_{j,n-1})$ together with the last constraint $(r_{j,n})$. The $y_{k,j}$ variables still telescope, but no final slack remains, giving directly
+    \begin{equation*}
+        \sum_{q=j+1}^n g_{j,q} + \sum_{k=j}^n (g_{k,j} + t_{k,j} - s_{k,j}) \geq b_{n,j} - \Mcoeffmone \sum_{k=j}^{n-1} b_{k,j}\,,
+    \end{equation*}
+    which is the desired constraint for $i=n$.
+    
+    Applying the same telescoping sum to the $(m_k)$ constraints from $k=1$ to $i$:
+    \begin{align*}
+        (s_{1,1} - t_{1,1}) - y'_1 &\ge 0 \\
+        y'_{k-1} + \sum_{j=1}^k (s_{k,j} - t_{k,j}) - y'_k &\ge 0 \quad \text{for } 1 < k \le i\,.
+    \end{align*}
+    For $i<n$, summing these yields:
+    \begin{equation*}
+        \sum_{p=1}^i \sum_{j=1}^p (s_{p,j} - t_{p,j}) - y'_i \geq 0\,.
+    \end{equation*}
+    Since $y'_i \geq 0$, it follows that $\sum_{p=1}^i \sum_{j=1}^p (s_{p,j} - t_{p,j}) \geq 0$, which is the $(m_i)$ constraint in Definition~\ref{def:frdual}. For $i=n$, summing $(m_1),\ldots,(m_{n-1})$ together with the last constraint $(m_n)$ gives directly
+    \begin{equation*}
+        \sum_{p=1}^n \sum_{j=1}^p (s_{p,j} - t_{p,j}) \geq 0\,,
+    \end{equation*}
+    which is the last $(m_i)$ constraint. This concludes the proof that the two representations are equivalent.
+
+    
+    We have therefore shown that, for every fixed choice of the binary variables $b_{i,j}$, the formulation in Definition~\ref{def:frdual} and \ref{def:intermediate-dual} have the same optimum value. 
+\end{proof}
+
+With this, the proof becomes direct, as it is just an application of strong duality.
+
+\begin{proof}[Proof of Lemma~\ref{lemma:mathematical-program-1.99}]
+    For every fixed choice of the binary variables $b_{i,j}$, the linear program in Definition~\ref{def:intermediate-dual} is exactly the LP dual of the corresponding primal linear program in Definition~\ref{def:intermediate-frp} by definition. Hence, by strong duality, these two inner programs have the same optimum value. 
+    
+    By now using Lemma~\ref{lem:fr-intermediate-eq-dual}, we know that the inner program in Definition~\ref{def:frdual} and the one in Definition~\ref{def:intermediate-frp} for one same fixed set of $b_{i,j}$ are equivalent.
+    Taking the outer maximum over all feasible choices of $b_{i,j}\in\{0,1\}$ preserves this equality, so the two overall formulations are equivalent.
+
+    Thus, now applying Lemma~\ref{lemma:generalized-factor-revealing-problem-metric-rewrite}, we get to our desired result that the solution of the program from Definition~\ref{def:intermediate-dual} is an upper-bound to the program from Definition~\ref{def:frp}, which proves our lemma.
+\end{proof}
+

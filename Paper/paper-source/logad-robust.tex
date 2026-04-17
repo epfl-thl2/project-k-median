@@ -1,0 +1,908 @@
+\section{Proof of Theorem~\ref{theorem:alg-lmp-robust}}
+\label{sec:logad-robust}
+
+The goal of this section is to prove Theorem~\ref{theorem:alg-lmp-robust}.
+We will prove the theorem in the following sections.
+The proof is concluded in Section~\ref{subsec:lmp-proof-robust}.
+We note that this section depends on the definitions in Section~\ref{sec:merging} that appear up to statement of Theorem~\ref{theorem:alg-lmp-robust}.
+
+\subsection{Preliminaries}
+Throughout the analysis, we will assume that $\delta > 0$ is small enough compared to $1/\gamma$ and similar, $\epsilon > 0$ is small enough compared to $1/\gamma$ and $\delta$.
+
+\paragraph{Execution of a solution.}
+As in~\cite{MR4928455-Cohen25}, we associate an $\eta$-valid solution $\mathcal{H} = \{ H_1, \dots, H_L \}$ with an algorithm.
+We define the {\em execution} of $\mathcal{H}$ as follows: Start with $S = \emptyset$ and $\theta = 1$, iterate over $p = 1, \dots, L$, and for each $p$ open the facilities in $H_p$ in the order in which they appear.
+When facility $i$ is opened, it is added to $S$.
+After each sequence $H_p$ with $p$ even, $\theta$ is increased to $(1+\eps^2) \theta$.
+At any step, the set of open facilities $S$ can be partitioned to be the set of the open free facilities $\Sf$ and the set of the open regular facilities $\Sr$. 
+We define an \emph{atomic step} in the algorithm as the opening of a facility or the increase of $\theta$ to $(1+\eps^2)\theta$.
+
+We note that in a $(\nu,\eta)$-valid sequence it is only required for a regular facility to be $(\nu,\eta)$-openable with respect to a \emph{superset} of the set of open facilities $S$.
+For the purposes of analysis, we will fix for each regular facility an arbitrary \emph{minimal} superset of $S$ with respect to which it was opened and a corresponding choice of bids $\tau_j$ in case the sequence is opened in a sequence of type $2$.
+In particular, if the facility us $(\nu,\eta)$-openable with respect to $S$, then the superset will be $S$.
+
+\paragraph{Active and inactive clients.}
+At a step with time $\theta$ with open facilities $S$, we let\linebreak $I_S = \Set{j \in D \mid \theta \geq (1-\delta) d(j, S)}$ and $A_S = D \setminus I_S$ denote the sets of inactive clients and active clients, respectively. We drop the subscript $S$ when it is clear from context.
+We say that a client $j$ \emph{becomes inactive} at an atomic step if $j \in I_S$ for the new set of open facilities $S$ and the $\theta$ at the beginning of that atomic step and if it never became inactive before.
+We refer to such a client as inactive in all future steps, and otherwise as active.
+
+For a client $j$, we denote by $\alpha_j^\star$ its ``value'' when it becomes inactive: Specifically, say that client $j$ becomes inactive at an atomic step in which a new facility was opened.
+If this happened in a sequence of type $1$, or if the facility was free, we let $\alpha_j^\star = \theta$.
+If this happened in a sequence of type $2$, if $j$ was inactive w.r.t. the superset w.r.t. which this facility was opened we let again $\alpha_j^\star = \theta$; otherwise we let $\alpha_j^\star = \tau_j$ as determined by the definition of $(2,\eta)$-openable.
+Finally, if client $j$ becomes inactive due to the increase of $\theta$ to $(1+\eps^2)\theta$, we let $\alpha_j^\star = (1-\delta) d(j, S)$ for the set of open facilities at that step.
+
+For the purposes of the analysis, we order the clients from $1$ to $n$ by the order of the atomic steps in which they become inactive. 
+In case two clients become inactive in the same atomic step, we order them non-decreasingly by their $\alpha^\star$ value.
+
+\paragraph{Variables $S^{(k)}$, $r_{jk}$ and $\zeta_{jk}$.}
+We denote by $S^{(k)}$ the set of open facilities at the beginning of the atomic step in which client $k$ becomes inactive.
+We also denote by $\tilde{S}^{(k)}$ the superset of $S^{(k)}$ with respect to which a facility is opened at this atomic step. (We let $\tilde{S}^{(k)} = S^{(k)}$ if this atomic step is one in which $\theta$ increases to $(1+\eps^2)\theta$ or if the opened facility is free.)
+We denote by $S^{(n+1)} = S^\star$ the set of open facilities at the end of the algorithm.
+
+\begin{observation}
+\label{obs:s-mono-robust}
+We have $S^{(k)} \subseteq S^{(k+1)}$ for all $1 \leq k \leq n$.
+\end{observation}
+\begin{proof}
+    Because $S$ is monotone, we have either $S^{(k)} \subseteq S^{(k+1)}$ or $S^{(k)} \supsetneq S^{(k+1)}$.
+    Suppose $k$ and $k+1$ become inactive in different atomic steps, as otherwise $S^{(k)} = S^{(k+1)}$.
+    Then we argue that $S^{(k)} \supsetneq S^{(k+1)}$ cannot be the case.
+    If that is the case, because $S$ is increased monotonically by the algorithm, it means that the atomic step in which $k$ became inactive was after the atomic step in which $k+1$ became inactive.
+    But this violates the order that we defined, so it must then be the case that $S^{(k)} \subseteq S^{(k+1)}$.
+\end{proof}
+
+For $1 \le j \leq k \le n$, we set 
+\[
+    r_{jk} =
+    \begin{cases}
+        \alpha^\star_j &
+        \begin{array}[t]{@{}l@{}}
+            \text{if $j$ is active w.r.t. $S^{(k)}$ at the beginning of the atomic step}\\
+            \text{in which $k$ becomes inactive},
+        \end{array}
+        \\[2mm]
+       (1-\delta)~d(j, S^{(k)}) & \text{otherwise},
+    \end{cases}
+\]
+and
+\[
+    \zeta_{jk} = 
+    \begin{cases}
+        \tau_j^{(k)} &
+        \begin{array}[t]{@{}l@{}}
+            \text{if $j$ is active w.r.t. $\tilde{S}^{(k)}$ at the beginning of the atomic step}\\
+            \text{in which $k$ becomes inactive},
+        \end{array}
+        \\[2mm]
+       (1-\delta)~d(j, \tilde{S}^{(k)}) & \text{otherwise}.
+    \end{cases}
+\]
+where $\tau_j^{(k)} = \alpha_j^\star$ if $j$ becomes inactive in the same atomic step in which $k$ becomes inactive and $\theta$ otherwise.
+% we mean the following:if $k$ becomes inactive in a sequence of type $2$ in an atomic step in which a regular facility is opened, then it is equal to value of $\tau_j$ used in the definition of $(2,\eta)$-openable; else, if $k$ becomes inactive in an atomic step when $\theta$ increases to $(1+\eps$ for a regular facility opened in the atomic step in which the $k$-th client becomes inactive, and $\theta$ otherwise (if $k$ becomes inactive in a type $1$ sequence, or $k$ becomes inactive in an atomic step that increases $\theta$ to $(1+\eps^2)\theta$, or if $k$ becomes inactive after opening a free facility).
+We also let $r_{j,n+1} = \zeta_{j,n+1} = (1-\delta)d(j, S^\star)$. 
+
+Let us prove some simple properties of these variables:
+
+\begin{observation}
+\label{obs:r-mono-robust}
+We have $r_{jk} \geq r_{jk+1}$ for all $1 \leq j \leq k \leq n$.
+\end{observation}
+\begin{proof}
+    We have trivially that $\alpha_j^\star \leq \alpha_j^\star$ and $(1-\delta) d(j, S^{(k)}) \geq (1-\delta) d(j, S^{(k')})$ for $k < k'$ as $S^{(k)}$ is monotone. Now consider the client $\ell$ such that $j$ is active w.r.t. $S^{(\ell)}$ and inactive w.r.t. $S^{(\ell+1)}$. Then, $r_{jl} = \alpha^\star_j$ and $r_{jl+1} = (1-\delta)d(j,S^{(\ell+1)})$. Moreover, if $\ell \neq j$ then $j$ and $\ell$ become inactive in the same atomic step. We consider different cases depending on whether the atomic step happens in during the execution of a sequence of type $1$, type $2$, or when $\theta$ increases to $(1+\eps^2)\theta$.
+    \begin{enumerate}
+        \item If $j$ becomes inactive in a type $1$ sequence, then $\alpha_j^\star = \theta \ge (1-\delta)d(j,S^{(\ell+1)})$.
+        \item Consider the case where $j$ becomes inactive in a type $2$ sequence. Then $\alpha^\star_j \ge \theta$ and  $\theta  \ge (1-\delta)d(j,S^{(\ell+1)})$.
+        \item If $j$ becomes inactive when $\theta$ increases, then we set $\alpha^\star_j = (1-\delta)d(j,S^{(\ell)}) = (1-\delta)d(j,S^{(\ell+1)})$.
+    \end{enumerate}   
+\end{proof}
+
+\begin{observation}
+\label{obs:tau}
+If $\tau_j > \theta$ at any point in the execution of a sequence of type $2$, then $\tau_j = \alpha_j^\star$.
+\end{observation}
+\begin{proof}
+If $\tau_j > \theta$, then for the facility $i$ that is opened in that atomic step we must have $d(j, i) \leq \epsilon \theta$, so $j$ becomes inactive when $i$ is opened and hence $\alpha_j^\star = \tau_j$.
+\end{proof}
+
+\begin{observation}
+\label{obs:rzdom}
+$\zeta_{jk} \leq r_{jk}$ for all $1 \leq j \leq k \leq n$.
+\end{observation}
+\begin{proof}
+If $k$ becomes inactive in an atomic step in which $\theta$ increases to $(1+\eps^2)\theta$, then $S^{(k)} = \tilde{S}^{(k)}$ and $\zeta_{jk} = r_{jk}$ as in this case both branches in the definitions of $\zeta$ and $r$ coincide.
+Else, suppose this is not the case.
+If $j$ is inactive with respect to $S^{(k)}$, then it is also inactive with respect to $\tilde{S}^{(k)}$, and the result holds because $(1-\delta) d(j, \tilde{S}^{(k)}) \leq (1-\delta) d(j, S^{(k)})$.
+If $j$ is active with respect to $S^{(k)}$ but inactive with respect to $\tilde{S}^{(k)}$, then the result holds because $\alpha_j^\star \geq \theta$ but $\theta \geq (1-\delta)d(j, \tilde{S}^{(k)})$.
+Finally, if $j$ is active with respect to both $S^{(k)}$ and $\tilde{S}^{(k)}$, then we have if $\tau_j^{(k)} = \theta$ that $\alpha^\star_j \geq \theta$, and otherwise we have by~\ref{obs:tau} that $j$ becomes inactive in the same atomic step as $k$, and hence $\tau_j^{(k)} = \alpha_j^\star$.
+\end{proof}
+
+\paragraph{Variables $S_k$, $R_{jk}$, and $Z_{jk}$.}
+Let $S_0 \subsetneq S_1 \subsetneq \ldots \subsetneq S_m = S^\star$ with $m = |S^\star|$ be the sets of opened facilities during the execution of the algorithm.
+Also let $\tilde{S}_k \supseteq S_k$ be the superset of facilities with respect to which the $k$-th facility is opened. (We let $\tilde{S}_k = S_k$ if the opened facility is free.)
+Let $s(j)$ be the index $k$ such that $S_k = S^{(j)}$ and $s(n+1)=m$.
+
+For $1 \le j \leq n$ and $0 \leq k \le m - 1$ such that $s(j) \leq k$, we set 
+\[
+    R_{jk} =
+    \begin{cases}
+        r_{j,j} & \text{if $k = s(j)$}\\
+        \alpha^\star_j &
+        \begin{array}[t]{@{}l@{}}
+            \text{if $j$ is active w.r.t. $S_k$ at the beginning of the atomic step}\\
+            \text{in which facility $S_{k+1}\setminus S_k$ is opened},
+        \end{array}
+        \\[2mm]
+        (1-\delta)d(j,S_k) & \text{otherwise},
+    \end{cases}
+\]
+and
+\[
+    Z_{jk} =
+    \begin{cases}
+        \zeta_{j,j} & \text{if $k = s(j)$}\\
+        \tau_{j,k} &
+        \begin{array}[t]{@{}l@{}}
+            \text{if $j$ is active w.r.t. $\tilde S_k$ at the beginning of the atomic step}\\
+            \text{in which facility $S_{k+1}\setminus S_k$ is opened},
+        \end{array}
+        \\[2mm]
+        (1-\delta)d(j,\tilde{S}_k) & \text{otherwise},
+    \end{cases}
+\]
+where $\tau_{j,k} = \alpha_j^\star$ if $j$ becomes inactive in the same atomic step in which facility $k$ is opened and $\theta$ otherwise.
+We also define $R_{j,m}= Z_{j,m} = (1-\delta) d(j, S^\star)$ for all $j$.
+By the same reasoning as in Observations~\ref{obs:r-mono-robust} and~\ref{obs:rzdom}, we also have $R_{j,k} \geq R_{j,k+1}$ and $Z_{j,k} \leq R_{j,k}$ for all valid $j, k$.
+
+We note that the special case $k = s(j)$ in the definitions of $R$ and $Z$ is used such that $r_{j,k} = R_{j,s(k)}$ and $z_{j,k}=Z_{j,s(k)}$ are satisfied even in the special case when $k$ becomes inactive in an atomic step in which $\theta$ increases.
+In that case, it is possible for $j$ to be active w.r.t. $S^{(k)}$ (resp. $\tilde{S}^{(k)}$) at the beginning of the atomic step in which $k$ becomes inactive but for it to be inactive w.r.t. $S^{(k)}$ (resp. $\tilde{S}^{(k)}$) at the beginning of the atomic step in which the next facility is opened.
+
+
+\textbf{Candidate facilities.}
+Our analysis will also use the notion of a candidate facility:
+\begin{definition}
+We say that a facility $i$ at some point of the algorithm is a candidate if, for some superset $\tilde S$ of the set of open facilities $S$ and sets of active and inactive clients with respect to it $\tilde A=A_{\tilde S}$, $\tilde I = I_{\tilde S}$,
+\begin{align*}
+    \sum_{j\in \tilde A}\beta((1+\eps^2) \theta, (1- \delta/2)\dist(i,j))
+    \;+\;
+    \sum_{j\in \tilde I}\beta((1-\delta)\dist(j,\tilde S), (1-\delta/2)\dist(i,j))
+    \;\ge\; \hat f - n \eta.
+\end{align*}   
+\end{definition}
+
+In fact, if a facility $i$ is a candidate, then it is also a candidate with respect to the set of open facilities $S$ directly.
+Specifically, because $\tilde A \subseteq A$, $d(j, \tilde S) \leq d(j,S)$ and for $j \in A \cap \tilde I$ we have $(1-\delta)d(j,\tilde S) \leq \theta$, then the fact that $i$ is a candidate with respect to $\tilde S$ also implies that
+\begin{align*}
+    \sum_{j\in A}\beta((1+\eps^2) \theta, (1- \delta/2)\dist(i,j))
+    \;+\;
+    \sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta/2)\dist(i,j))
+    \;\ge\; \hat f - n \eta.
+\end{align*}
+
+\subsection{Algorithm Properties}
+
+First, we prove that at every step of the algorithm the clients do not overbid toward any facility.
+
+\begin{lemma}[Robust no overbidding]
+    \label{lem:overbidding-robust}
+    At any point of the execution of the sequence $\mathcal{H} = \{ H_1, \dots, H_L \}$ with time $\theta$ and any superset $\tilde S$ of the set of open facilities $S$, with $\tilde I = \{j \in D \mid \theta \geq (1-\delta) d(j, \tilde S)\}$, $\tilde A = D \setminus \tilde I$, we have for all $i_0 \in F$ that 
+    \[\sum_{j\in \tilde A}\beta(\theta,\dist(i_0,j))
+\;+\;
+\sum_{j\in \tilde I}\beta((1-\delta)  \dist(j,\tilde S), \dist(i_0,j))
+\;\le\; \hat f.\]
+\end{lemma}
+\begin{proof}
+Note that $\tilde A \subseteq A$ and $\tilde I \supseteq I$.
+We have $d(j, \tilde S) \leq d(j,S)$ and for $j \in A \cap \tilde I$ we have $(1-\delta)d(j,\tilde S) \leq \theta$,
+so
+\begin{align*}
+\sum_{j\in \tilde A}\beta(\theta,\dist(i_0,j)) + \sum_{j\in \tilde I}\beta((1-\delta)  \dist(j,\tilde S), \dist(i_0,j))
+\leq \sum_{j\in A}\beta(\theta,\dist(i_0,j)) + \sum_{j\in I}\beta((1-\delta)  \dist(j,S), \dist(i_0,j)),
+\end{align*}
+so it suffices to prove that
+\begin{equation}
+\label{eq:invariant}
+    \sum_{j\in A}\beta(\theta,\dist(i_0,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)  \dist(j,S), \dist(i_0,j))
+\;\le\; \hat f.
+\end{equation}
+The inequality holds at the beginning of the execution because $S = \emptyset$ so $A=D$ and $\theta = 1 \le d(i_0,j)$ for every client $j$. 
+For every $H_p \in \mathcal{H}$, we will show that the invariant still holds after opening a facility $h_t \in H_p$ and after raising $\theta$ to $(1+\epsilon^2)\theta$ at the end of executing $H_p$ if $p$ is even.
+
+\paragraph{Type 1 and type 2}
+Opening up a facility $h_t$ decreases the left hand side since $d(j,S)$ is monotonically decreasing with $S$. The only other change to the left hand side that can happen is that a client $j$ becomes inactive. In that case, however, $\theta \ge (1-\delta)d(j,S\cup \{h_t\})$. Thus, the left hand side decreases by the monotonicity of $\beta$.
+% If we open a new facility $h_t$, then the bids $\beta((1-\delta)  \dist(j,S), \dist(i_0,j))$ of inactive clients $j$ decreases since $d(j,S)$ is decreasing with $S$. Moreover, if a client becomes inactive because of this opening then $\theta \ge (1-\delta)d(i,S\cup \{h_t\})$ and his bid decreases from $\beta(\theta,\dist(i_0,j))$ to
+% $\beta((1-\delta) \dist(j,S), \dist(i_0,j))$. 
+
+\paragraph{Increasing $\theta$}
+Next, consider a sequence $H_p \in \mathcal{H}$ with even $p$.
+Let $A, I$ be the sets of active and inactive clients after raising $\theta$ to $(1+\eps^2)\theta$.
+Assume for contradiction that after raising $\theta$ to $(1+\eps^2)\theta$ the invariant is violated for some facility, and let $F_0$ be the set of all such facility, such that for all $i \in F_0$
+\[
+    \sum_{j \in A} \beta((1+\epsilon^2)\theta, d(i,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i,j)) > \hat f.
+\]
+Note that none of the facilities $i \in F_0$ are open because otherwise there would be no client with a positive bid to $i$ (for clients $j \in A$ we would have $(1+\eps^2)\theta < (1-\delta)d(j,S) \leq (1-\delta)d(j, i)$, and for clients $j \in I$ we would have $(1-\delta)d(j,S) \leq (1-\delta)d(j,i) \leq d(j, i)$).
+
+Also let $A' \supseteq A$ and $I' \subseteq I$ be the active and inactive sets before the raising of $\theta$, i.e., at the end of the execution of the previous sequence of type $2$.
+For each facility $i_0 \in F_0$ compute $\theta \le \tau^{(i_0)} \le (1+\eps^2)\theta$ such that for $\alpha^\prime_{i_0,j} = \min\bigl(\tau^{(i_0)},\,(1-\delta)\dist(j,S)\bigr)$ the invariant holds with equality
+\[
+    \sum_{j \in A'} \beta(\alpha^\prime_{i_0,j}, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) = \hat f.
+\]
+Let us prove that such $\tau^{(i_0)}$ exists: We know by the invariant before this atomic step that
+\[\sum_{j \in A'} \beta(\theta, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) \leq \hat f,\]
+so it also holds for $\alpha^\prime_{i_0,j}$ with the choice $\tau^{(i_0)} = \theta$.
+We also show that the invariant is violated for $\alpha^\prime_{i_0,j}$ with the choice $\tau^{(i_0)} = (1+\eps^2)\theta$, and then the existence of $\tau^{(i_0)}$ follows by continuity.
+Recall that
+\[\sum_{j \in A} \beta((1+\epsilon^2)\theta, d(i_0,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i_0,j)) > \hat f.\]
+Then, for $j \in A$ we have $(1+\eps^2)\theta < (1-\delta)d(j,S)$ and so $\alpha^\prime_{i_0,j} = (1+\eps^2)\theta$, and for $j \in A' \cap I$ we have $(1+\eps^2)\theta \geq (1-\delta) d(j,S)$ and so $\alpha^\prime_{i_0,j} = (1-\delta)d(j,S)$, so also
+\[\sum_{j \in A'} \beta(\alpha^\prime_{i_0,j}, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) > \hat f.\]
+Therefore $\tau^{(i_0)}$ exists by continuity.
+
+Now select the facility $i \in F_0$ that minimizes $\tau^{(i)}$. This implies that $\alpha^\prime_{i,j} \leq \alpha^\prime_{i_0,j}$ for all $i_0 \in F_0$ and $j \in D$, so
+\begin{equation}
+    \label{eq:minimal-facility-robust}
+    \sum_{j \in A'} \beta(\alpha^\prime_{i,j}, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) \le \hat f\,.
+\end{equation}
+From now on, let $\alpha_j^\prime = \alpha_{i,j}^\prime$.
+We will show that $i$ was $(2, 0)$-openable with bids $\tau_j = \min\bigl(\tau^{(i)},\,(1-\delta)\dist(j,S), (1+\epsilon) \theta - d(j,i)\bigr)$ for all $j \in A' \cap B(i,\epsilon \theta)$ and $\tau_j = \theta$ for all $j \in A'\setminus B(i,\epsilon \theta)$. This is a contradiction to the maximality of the $(2,\eta)$-valid sequence $H_p$.
+Let us check the conditions one by one which are satisfied just as in the proof of Lemma \ref{lem:overbidding},
+\begin{enumerate}
+        \item[\textbf{(i)} - \textbf{(ii)}] Clearly holds by the definition of $\tau$.
+        \item[\textbf{(iii)}]
+        We have that 
+        \begin{align*}
+            \hat f & = \sum_{j \in A'} \beta(\alpha_j^\prime, d(i,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i,j)) \\ 
+            & \le \sum_{j \in A'} \beta(\tau_j, (1- \delta/2)\dist(i,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), (1- \delta/2)\dist(i,j)).
+        \end{align*}
+        Let us verify that the inequality holds. First, consider $j \in B(i,\epsilon \theta)$. In the case where $\tau_j = \alpha^\prime_j$ we have by the monotonicity of $\beta$ that $\beta(\alpha_j^\prime, d(i,j)) \le \beta(\tau_j,  (1-\delta/2) d(i,j))$. In the other case when $\tau_j = (1+\epsilon) \theta - d(i,j)$ observe that
+        \begin{align*}
+            \beta(\alpha_j^\prime, d(i,j)) & \le \pos{(1+\epsilon^2)\theta - \gamma  d(i,j)} \\ & \le \pos{(1+\epsilon)\theta - d(i,j) - \gamma (1-\delta/2) d(i,j)} 
+            \\ & = \beta(\tau_j,  (1-\delta/2) d(i,j))
+        \end{align*}
+        because using that $\gamma \geq \gamma (1-\delta/2) + \eps$ for $\delta \gg \eps$ we have
+    \begin{align*}
+        (1+\epsilon) \theta - d(i, j)-(\gamma (1-\delta/2)) d(i, j)
+        &= (1+\epsilon) \theta - (1-\eps)d(i, j)-(\gamma (1-\delta/2) + \eps) d(i, j)\\
+        &\geq (1+\eps^2) \theta - (\gamma (1-\delta/2) + \eps)d(i,j)\\
+        &\geq (1+\eps^2)\theta - \gamma d(i, j)\\
+        &\geq \alpha_j' - \gamma d(i, j)\,.
+    \end{align*}
+        For $j \in A' \setminus B(i,\epsilon \theta)$, using that $\eps^2 \theta \le \epsilon \gamma \delta /2~\theta \le \gamma \delta/2~ d(i,j)$,
+        \begin{align*}
+            \beta(\alpha_j^\prime, d(i,j)) = \pos{\alpha_j^\prime - \gamma  d(i,j)} \le \pos{\theta - \gamma (1-\delta/2) d(i,j)} = \beta(\tau_j,  (1-\delta/2) d(i,j)).
+        \end{align*}
+        \item[\textbf{(iv)}] Assume that the no-overbidding inequality is violated for some facility $i_0 \in F_0$,
+        \begin{align*}
+            \hat f & < \sum_{j\in A'}\beta(\tau_j,\dist(i_0,j))
+                  \;+\;
+                  \sum_{j\in I'}\beta((1-\delta)  \dist(j,S), \dist(i_0,j))
+                  \\ & \le \sum_{j\in A'} \beta(\alpha^\prime_j,\dist(i_0,j))
+                  \;+\;
+                  \sum_{j\in I'}\beta((1-\delta)  \dist(j,S), \dist(i_0,j)).
+        \end{align*}
+        The last inequality holds by the monotonicity of $\beta$.
+        We arrive at a contradiction to the minimal choice of $i$. In particular, a contradiction to (\ref{eq:minimal-facility-robust}). 
+        On the other hand, for $i_0 \in F \setminus F_0$, the claim follows because we have 
+        \[
+\sum_{j \in A} \beta((1+\epsilon^2)\theta, d(i_0,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i_0,j)) \leq \hat f
+    \]
+        and we have $(1+\epsilon^2)\theta \geq \tau_j$ and for $j \in A' \cap I$ we have $(1-\delta)d(j, S) \geq \tau_j$ so also
+        \[
+\sum_{j \in A'} \beta(\tau_j, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) \leq \hat f\,.
+    \]
+        \item[\textbf{(v)}] We have to show that
+              \[
+                  \tau_j \le \tau_k + \dist(j,k)
+                  \qquad \forall j,k\in A'
+              \]
+              which is clearly true if $\tau_j = \theta$ or $\tau_k = \tau^{(i)}$. Moreover, if $\tau_k = (1+\epsilon)\theta - d(i,k)$ then
+              \[
+                \tau_j \leq (1+\epsilon) \theta - d(i, j) \leq (1+\epsilon) \theta - (d(i, k) - d(j, k)) = \tau_k + d(j,k)\,.
+            \]
+            From now on we assume that $j \in B(i,\epsilon \theta)$. 
+            Consider the two remaining cases where either $\tau_k =\theta$ and $k \in A' \setminus B(i,\epsilon \theta)$ or $\tau_k = (1-\delta)d(k,S) = (1-\delta)d(k,i_0)$ for some open facility $i_0$. In the first case,
+              \[
+                \tau_j \le (1+\epsilon) \theta - d(j,i) \le (1+\epsilon) \theta - (d(k,i) - d(j,k)) \le \theta + d(j,k) = \tau_k + d(j,k).
+              \]
+              In the second case, 
+              \[
+                \tau_j \le (1-\delta)d(j,S) \le (1-\delta)d(j,i_0) \le (1-\delta) (d(i_0,k) + d(j,k)) \le \tau_k + d(j,k).
+              \]
+    \end{enumerate}
+\end{proof}
+
+Next, we will show that after the execution of sequence of type $1$, all facilities that are candidates during the execution of the following sequence of type $2$ are either far apart or close together. This structural property will be crucial to prove feasibility for the factor revealing program.
+
+\begin{lemma}
+\label{lem:structure-robust}
+    Assume $\hat{f} > n \eta$.
+    Suppose two facilities $i_1$ and $i_2$ are candidates at the same step during the execution of a sequence of type $2$.
+    Then either
+    $d(i_1,i_2)\le \delta \theta$ or $d(i_1,i_2)\ge \theta / \gamma$.
+\end{lemma}
+\begin{proof}
+If $i_1 = i_2$ then the claim is immediate so we assume $i_1 \neq i_2$.
+Let $N_1 = A \cap B(i_1, \epsilon \theta)$ and $N_2 = A \cap B(i_2, \epsilon \theta)$.
+Let us assume without loss of generality that $|N_1| \le |N_2|$.
+Let us also assume for the sake of contradiction that $\delta \theta < d(i_1, i_2) < \theta/\gamma$, which implies that $N_1$ and $N_2$ are disjoint as $\delta \gg \eps$.
+
+Let 
+\[P = \sum_{j\in A}\beta((1+\eps^2) \theta, (1- \delta/2)\dist(i_1,j)) +
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta/2)\dist(i_1,j))\]
+and 
+\[Q = \sum_{j\in A}\beta(\theta, (1-\delta)\dist(i_1,j)) +\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta)\dist(i_1,j))\,.\]
+Because $i_1$ is a candidate, $P \geq \hat f - n \eta$.
+We also claim that $Q < \hat f$.
+If $i_1 \not\in S$, we claim that this is true because otherwise facility $i_1$ would have been $(1,0)$-openable during the execution of the previous sequence of type $1$, and the sequence would not have been maximal.
+To see this, let us inspect the state of the algorithm at the beginning of the execution of the sequence of type $2$.
+Let $S' \subseteq S$ be the set of open facilities at the beginning of the execution of the sequence of type $2$, and let $A', I'$ be the set of active and inactive clients at that time.
+Note that $A' \supseteq A$ and $I' \subseteq I$.
+For $j \in I'$ we use $(1-\delta) d(j,S) \leq (1-\delta) d(j, S')$, and for $j \in A' \cap I$ we use $(1-\delta) d(j,S) \leq \theta$.
+The last inequality is immediate if $\alpha_j^\star = \theta$, and if $\alpha_j^\star > \theta$ then $j$ must have been $\eps \theta$-close to some facility in $S$ and hence $d(j,S) \leq \eps\theta$.
+Then
+\begin{align*}
+Q &= \sum_{j\in A}\beta(\theta, (1- \delta)\dist(i_1,j)) +
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta)\dist(i_1,j))\\
+&\leq \sum_{j\in A'}\beta(\theta, (1- \delta)\dist(i_1,j)) +
+\sum_{j\in I'}\beta((1-\delta)\dist(j,S'), (1-\delta)\dist(i_1,j))\,,
+\end{align*}
+so the last term would have been at least $\hat f$ if $Q \geq \hat f$, and then facility $i_1$ would have been $(1,0)$-openable in the execution of the previous sequence of type $1$.
+On the other hand, if $i_1 \in S$, the claim is true simply because $\theta < (1-\delta) d(i_1, j)$ for $j \in A$ and $d(j, S) \leq d(i_1, j)$ for $j \in I$, so the left-hand side would be zero.
+Hence $Q < \hat f$.
+
+We will prove that $Q \geq P + n \eta$, which is impossible because $Q < \hat f \leq P + n \eta$, and thus we reach the desired contradiction.
+Let us start by analyzing the active terms in $P$ and $Q$.
+% Note that the inactive term of $P$ is trivially upper bounded by the inactive term of $Q$, so it suffices to prove that this is also true for their active terms.
+We consider three cases:
+\begin{itemize}
+    \item \textbf{Case $j \in N_1$.} 
+    Then, because $d(i_1, j) \leq \eps \theta$, we have that $\beta((1+\eps^2)\theta, (1-\delta/2)d(i_1,j))$ and $\beta(\theta,(1-\delta)d(i_1,j))$ are both positive and
+    \begin{align*}
+    &[\theta - \gamma(1-\delta)d(i_1,j)]^+ - [(1+\eps^2)\theta - \gamma(1-\delta/2)d(i_1,j)]^+\\
+    =& -\eps^2 \theta + (\gamma \delta / 2) d(i_1, j)
+    \geq -\eps^2 \theta + n \eta\,.
+    \end{align*}
+    \item \textbf{Case $j \in N_2$.}
+    Then $\delta \theta - \eps \theta \leq d(i_1, j) \leq \theta / \gamma + \eps \theta$, and we have again that $\beta((1+\eps^2)\theta, (1-\delta/2)d(i_1,j))$ and $\beta(\theta,(1-\delta)d(i_1,j))$ are both positive and 
+    \begin{align*}
+    &[\theta - \gamma(1-\delta)d(i_1,j)]^+ - [(1+\eps^2)\theta - \gamma(1-\delta/2)d(i_1,j)]^+\\
+    =& -\eps^2 \theta + (\gamma \delta / 2) d(i_1, j)
+    \geq -\eps^2 \theta + (\gamma \delta / 2)(\delta-\eps)\theta
+    \geq \eps^2 \theta + n\eta\,,
+    \end{align*}
+    where we used $\delta \gg \eps$.
+    \item \textbf{Case $j \in A \setminus (N_1 \cup N_2)$.}
+    Then $d(i_1, j) \geq \eps \theta$.
+    First, we claim that $\beta((1+\eps^2)\theta, (1-\delta/2)d(i_1,j))$ is positive only if $\beta(\theta,(1-\delta)d(i_1,j))$ is positive:
+    Suppose
+    \[(1+\eps^2)\theta - \gamma(1-\delta/2)d(i_1, j) \geq 0\,.\]
+    Then
+    \begin{align*}
+    \theta - \gamma (1-\delta) d(i_1, j)
+    \geq \frac{\gamma(1-\delta/2)}{1+\eps^2}d(i_1,j)-\gamma(1-\delta)d(i_1,j) \geq 0\,,
+    \end{align*}
+    where we used $\delta \gg \eps$.
+    So it suffices to consider the case when both are positive.
+    In that case,
+    \begin{align*}
+    &[\theta - \gamma(1-\delta)d(i_1,j)]^+ - [(1+\eps^2)\theta - \gamma(1-\delta/2)d(i_1,j)]^+\\
+    =& -\eps^2 \theta + (\gamma \delta / 2) d(i_1, j)
+    \geq -\eps^2 \theta + (\gamma \delta / 2) \eps \theta
+    \geq n \eta\,,
+    \end{align*}
+    where we used again $\delta \gg \eps$.
+\end{itemize}
+Summing up these contributions over all $j \in A$, and using that $|N_1| \leq |N_2|$, we get that $Q \geq P$.
+In fact, if there exists some $j \in A$ with non-zero contribution to $P$, summing up this contributions gives the stronger bound $P \leq Q - n \eta$.
+Note that the inactive term of $P$ is trivially upper bounded by the inactive term of $Q$.
+Therefore we reach the desired contradiction as long as there exists some $j \in A$ with non-zero contribution to $P$.
+
+Finally, consider the special case when all clients $j \in A$ have zero contribution to $P$: $\beta((1+\eps^2)\theta, (1-\delta/2)d(i_1, j)) = 0$.
+Because $P \geq \hat f - n \eta > 0$, there exists some $j \in I$ such that $\beta((1-\delta)d(j,S), (1-\delta/2)d(i_1, j)) > 0$, and then also $\beta((1-\delta)d(j,S), (1-\delta)d(i_1, j)) > 0$, i.e., the contribution of $j$ to $Q$ is also positive and at least as large.
+Then, in fact, the contribution of $j$ to $Q$ is larger by at least $n \eta$:
+\[[(1-\delta)d(j,S) - \gamma(1-\delta)d(i_1,j)]^+ - [(1-\delta)d(j,S) - \gamma(1-\delta/2)d(i_1,j)]^+ \geq (\gamma\delta/2)d(i_1,j) \geq n\eta\]
+because $d(i_1,j) \geq 1$ as discussed in Section~\ref{sec:prelim}.
+Thus, we reach again the desired contradiction, and this concludes the proof.
+\end{proof}
+
+We also have the following analogue of the structural result in Lemma~\ref{lem:freezing}.
+
+\begin{lemma}
+    \label{lem:freezing-robust}
+    Assume $\hat{f} > n \eta$ and $\rho \geq 1.01 \gamma$.
+    Consider a regular facility $i^\star$ and a subset of clients $D^\star \subseteq [n]$ such that for all $j \in D^\star$ it holds that $\alpha^\star_j \geq \rho \cdot d(j, i^\star)$.
+    Suppose that a client $j \in D^\star$ becomes inactive in the execution of a sequence of type $2$ with $\alpha_j^\star > \theta$ and a regular facility $i_0$ is opened.
+    Suppose also that facility $i^\star$ was a candidate at the beginning of that atomic step.
+    Then, for the facility $i_0$ that was opened at that time, we have $d(i^\star, i_0) \leq \delta \theta$.
+    Furthermore, all other clients in $D^\star$  that were active before this atomic step become inactive in this atomic step.
+\end{lemma}
+\begin{proof}
+    Both $i^\star$ and $i_0$ are candidates, so by Lemma~\ref{lem:structure-robust} we have that either $d(i^\star,i_0) \leq \delta \theta$ or $d(i^\star,i_0) \geq \theta/\gamma$.
+    Note that, because $\alpha_j^\star > \theta$, we have $d(j, i_0) \leq \epsilon \theta$.
+    In the execution of a sequence of type 2 we have $\alpha^\star_j \leq (1+\eps^2) \theta$, so combining with $\alpha_j^\star \geq \rho \cdot d(j, i^\star)$ we get that $(1+\eps^2) \theta \geq \rho \cdot d(j, i^\star)$.
+
+    If $d(i^\star, i_0) \geq \theta/\gamma$, we have that $d(j, i^\star) \geq d(i^\star, i_0) - d(j, i_0) \geq \theta/\gamma - \epsilon\theta \geq 0.999 \cdot \theta/\gamma$ (using $1/\gamma \gg \epsilon$), which violates the assumption that $d(j, i^\star) \leq (1+\eps^2) \theta/\rho$.
+
+    Hence, it must be the case that $d(i^\star, i_0) \leq \delta \theta$.
+    Suppose some $k \in D^\star$ that is active before this atomic step does not become inactive at this atomic step.
+    This implies that $\theta < (1-\delta) d(k, i_0)$.
+    However, after $i_0$ is opened, this client will become inactive at the latest when its $\theta$ value increases to at least $(1-\delta) d(k, i_0)$.
+    Then, because $\theta$ increases in multiples of $1+\eps^2$, we have that $\alpha^\star_k \leq (1+\eps^2)(1-\delta)d(k, i_0)$.
+    On the other hand,
+    \[\alpha^\star_k \geq \rho \cdot d(k, i^\star) \geq \rho \cdot (d(k, i_0) - d(i^\star, i_0)) \geq \rho \cdot d(k, i_0) - \rho \delta \theta \geq \rho \Paren{1 - \delta(1-\delta)} d(k, i_0)\,.\]
+    Putting the two together, we get that
+    \[\rho \Paren{1 - \delta(1-\delta)} d(k, i_0) \leq (1+\eps^2)(1-\delta)d(k, i_0)\,,\]
+    which is a contradiction for $\rho \geq 1.01$ for $\delta \gg \eps > 0$ small enough.
+\end{proof}
+
+\subsection{Algorithm Cost}
+
+We now bound the cost of the algorithm in terms of the variables $Z$ and $R$.
+
+\begin{lemma}
+\label{lemma:alg-cost-robust}
+    The cost (with respect to opening cost $\hat{f}$) of a solution output by our execution is at most
+    \[\sum_{j=1}^n \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} + \delta \cdot \sum_{j=1}^n d(j,S^\star) + |\Sr^\star| n \eta\,.\]
+\end{lemma}
+\begin{proof}
+    The $j$-th client has connection cost $d(j, S^\star)$.
+    We also need to calculate the contribution of $j$ to the opening of each facility in $S^\star$.    
+    We note that, by definition, if $i$ is a free facility then its opening cost is zero.
+    Otherwise, it costs $\hat{f}$ to open a regular facility, and we know that at the atomic step when it was opened we had
+\[
+\sum_{j\in A}\beta(\theta, (1-\delta)\dist(i,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta)\dist(i,j))
+\;\ge\; \hat f - n \eta.
+\]
+    if it was opened in a sequence of type $1$ (by Definition~\ref{def:openable-mod-eta-1})
+    or 
+\[
+\sum_{j\in A}\beta(\tau_j, (1-\delta/2)\dist(i,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta/2)\dist(i,j))
+\;\ge\; \hat f - n \eta.
+\]
+  if it was opened in a sequence of type $2$ (by Definition~\ref{def:openable-mod-eta-2}).
+  Therefore, up to an extra cost of $|\Sr^\star| n \eta$, it will suffice to bound these left-hand sides.
+
+    \textbf{Type $1$ sequences.}
+    Suppose that $i$ is opened in a sequence of type $1$ with respect to a set $S$ of open facilities at the beginning of that atomic step, and with active and inactive sets $A = A_S$ and $I=I_S$, respectively.
+    (We observe that, if $i$ is $(1,\eta)$-openable w.r.t. a superset $\tilde{S}$, then it is also $(1,\eta)$-openable w.r.t. $S$ (because $d(j, S)$ is monotone in $S$ and by Lemma~\ref{lem:overbidding-robust} there is no overbidding), so it suffices to consider $\tilde{S} = S$, and $\zeta_{jk} = r_{jk}$ for all $j,k$.)
+    Then, if $j \in A$ then the contribution is $\beta(\theta, (1-\delta)d(i,j))$ and if $j \in I$ then the contribution is $\beta((1-\delta)d(j,S), (1-\delta)d(i, j))$.
+    
+    We note that if $i$ is opened before the atomic step in which $j$ becomes inactive, we have that the contribution is zero, because $j$ is active after the opening of $i$ and hence $\theta < (1-\delta)d(j,S \cup \{i\})$.
+
+    We now bound the contribution of client $j$ to the opening of the facility $S_{k+1} \setminus S_{k}$, for $k \geq s(j)$, by $\beta(Z_{j,k}, R_{j,k+1})$.
+    This follows by the definitions of $Z$ and $R$.
+    Specifically, if $j \in A$, then $Z_{j,s(j)} = \alpha^\star_j = \theta$, matching the above.
+    If $j \in I$ but $k = s(j)$, which can happen if $j$ becomes inactive in an atomic step when $\theta$ increases, we have $Z_{j,s(j)} = \zeta_{j,j} = (1-\delta)d(j, S)$, again matching the above.
+    For $k > s(j)$ we have by definition $Z_{j, k} = (1-\delta)d(j, S)$, matching the above.
+    Finally, for all $k \geq s(j)$, $R_{j,k+1} = (1-\delta) d(j, S_{k+1})$, where $d(j, S_{k+1})$ is a lower bound on the distance from $j$ to the facility, so together the above suffice to upper bound the contribution by $\beta(Z_{j,k}, R_{j,k+1})$.
+
+    \textbf{Type $2$ sequences.}
+    Suppose that $i$ is opened in a sequence of type $2$ with respect to a superset $\tilde{S}$ of the set $S$ of open facilities at the beginning of that atomic step, and with active and inactive sets with respect to $\tilde{S}$ denoted as $\tilde{A} = A_{\tilde{S}}$ and $\tilde{I}=I_{\tilde{S}}$, respectively.
+    If $j \in \tilde{A}$ then the contribution is $\beta(\tau_j, (1-\delta/2)d(j,i))$ and if $j \in \tilde{I}$ then the contribution is $\beta((1-\delta)d(j,\tilde S), (1-\delta/2) d(j, i))$.
+
+    Suppose $i$ is opened before the atomic step in which $j$ becomes inactive.
+    We argue again that the contribution is zero in this case.
+    We have again that $j$ is active after the opening of $i$ and hence $\theta < (1-\delta) d(j, S \cup\{i\})$.
+    Consider two cases.
+    If $j \in \tilde{A}$ then we must have $\tau_j = \theta$, because otherwise by Observation~\ref{obs:tau} we have that $j$ also becomes inactive in the same atomic step.
+    But $\theta < (1-\delta) d(j,S \cup \{i\})$, so then $\beta(\tau_j, (1-\delta/2)d(j,i))= 0$.
+    If $j \in \tilde{I}$ then we have $\theta \geq (1-\delta)d(j,\tilde S)$ but $\theta < (1-\delta) d(j, S \cup \{i\}) \leq (1-\delta) d(j, i)$, so $\beta((1-\delta)d(j,\tilde S), (1-\delta/2) d(j, i)) = 0$ too.
+
+    We now bound the contribution of client $j$ to the opening of the facility $S_{k+1} \setminus S_{k}$, for $k \geq s(j)$, by $\beta(Z_{j,k}, R_{j,k+1})$.
+    This follows by the definitions of $Z$ and $R$.
+    Specifically, if $j \in \tilde{A}$, then $Z_{j,s(j)} = \alpha_j^\star = \tau_j$, matching the above.
+    If $j \in \tilde{I}$ but $k = s(j)$, we have $Z_{j,s(j)} = (1-\delta)d(j, \tilde{S})$, again matching the above.
+    For $k > s(j)$ we have by definition $Z_{j, k} = (1-\delta)d(j, \tilde{S})$, matching the above.
+    Finally, for all $k \geq s(j)$, $R_{j,k+1} = (1-\delta) d(j, S_{k+1})$, where $(1-\delta)d(j, S_{k+1})$ is a lower bound on $(1-\delta/2)$ times the distance from $j$ to the facility, so together the above suffice to upper bound the contribution by $\beta(Z_{j,k}, R_{j,k+1})$.
+
+    \textbf{Putting things together.}
+    The costs above only ensure that each facility is paid $\hat{f} - n \eta$, so we need to add $|\Sr^\star| n \eta$ to the final cost.
+    Then the total opening costs are upper bounded by
+    \[\sum_{j=1}^n \sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j, i+1}) + |\Sr^\star|n\eta\,.\]
+    Using that $R_{j,m} = (1-\delta)d(j, S^\star)$, we also have that the connection cost satisfies $d(j, S^\star) = R_{j,m} + \delta d(j, S^\star)$.
+    Then the total cost is upper bounded by
+    \[\sum_{j=1}^n \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} + \delta \cdot \sum_{j=1}^n d(j,S^\star) + |\Sr^\star| n \eta\,.\]
+\end{proof}
+
+\subsection{Factor-Revealing Program Feasibility}
+\label{sec:fr-feasiblity-robust}
+
+In this subsection we consider some $i^\star \in F$ and a subset of clients $\Dgood \subseteq D$ such that, for all $j \in \Dgood$, $\alpha_j^\star \geq \rho \cdot d(j, i^\star)$.
+Recall $q(i) = \min \Set{i' \mid i' > i, i' \in \Dgood \cup \{n+1\}}$.
+We will assume throughout that $\hat{f} > n \eta$ and $\rho \geq 1.01 \gamma$.
+
+We define a new set of variables $r^\star_{jk}$ for $j \in \Dgood$, $k \in \Dgood \cup \{n + 1\}$ and $k \geq j$, that we will use with the role of $r$ in the factor revealing program in Definition~\ref{def:frp}.
+Importantly, we show that the cost of the algorithm associated with clients $j \in \Dgood$ is upper bounded (up to a small error) by the objective of the factor revealing program with $r^\star$ variables.
+We proceed to define $r^\star$, which will depend on the definition of an event \specialevent.
+
+\begin{definition}
+Let $\klast \in \Dgood$ be the client with the largest index in $\Dgood$. Suppose that:
+\begin{itemize}
+    \item The atomic step in which $\klast$ becomes inactive corresponds to a sequence of type $2$.
+    \item $\alpha^\star_{\klast} > \theta$ for the $\theta$ at the atomic step in which $\klast$ becomes inactive.
+    \item In the atomic step in which $\klast$ becomes inactive, a regular facility $i_0^\star$ is opened that is $(2,\eta)$-openable only with respect to a strict superset $\tilde{S}^{(\klast)}$ of $S^{(\klast)}$.
+    \item $i^\star$ is a candidate with respect to $S^{(\klast)}$.
+\end{itemize}
+Then we say that the event \specialevent\ happens.
+In that case, we also denote $\kfirst \in \Dgood$ to be the client with the smallest index in $\Dgood$ that becomes inactive in the same atomic step as $\klast$ and has $\alpha^\star_{\kfirst} > \theta$, where $\theta$ is the time of the atomic step in which $\klast$ becomes inactive.
+\end{definition}
+
+We can now define $r^\star$ for $j \in \Dgood$ and $k \in \Dgood \cup \{n + 1\}$ with $k \geq j$:
+\[
+    r^\star_{jk} = 
+    \begin{cases}
+        0 & \text{if \specialevent\ and } k=n+1\\
+       \zeta_{jk} & \text{if \specialevent\ and } k \geq \kfirst \text{ and } d(j,i_0^\star) \leq \theta/3,\\
+       \min(r_{j,k},\max(\zeta_{jk}, d(j, i^\star))) & \text{if \specialevent\ and } k \geq \kfirst \text{ and } d(j,i_0^\star) > \theta/3,\\
+        r_{jk} & \text{otherwise}.
+    \end{cases}
+\]
+
+We note that \specialevent\ captures the conditions of Lemma~\ref{lem:freezing-robust}.
+In the analysis below we will make use of the following property when \specialevent\ happens:
+
+\begin{lemma}
+\label{lem:superset-far}
+In the event \specialevent, we have for all $i \in \tilde{S}^{\klast}$ that $d(i_0^\star, i) \geq \theta$.
+\end{lemma}
+\begin{proof}
+Suppose there exists some $i \in \tilde{S}^{\klast}$ such that $d(i_0^\star, i) < \theta$.
+Then, for every $j \in B(i_0^\star, \epsilon \theta)$ we have $d(j, \tilde{S}^{\klast}) \leq d(j, i) \leq d(j, i_0^\star) + d(i, i_0^\star) \leq \epsilon \theta + \theta$, so $(1-\delta) d(j, \tilde{S}^{\klast}) \leq \theta$ and all such $j$ are either inactive or have $\tau_j = \theta$.
+
+Using the above, we prove that it is impossible for $i_0^\star$ to be $(2,\eta)$-openable only with respect to a strict superset of $S^{\klast}$.
+Because $i_0^\star$ is $(2,\eta)$-openable with respect to $\tilde{S}^{\klast}$ and all clients are either inactive or have $\tau_j=\theta$, we get
+\[\sum_{j \in \tilde A} \beta(\theta, (1-\delta/2)d(i_0^\star,j)) + \sum_{j \in \tilde I} \beta((1-\delta)d(j,\tilde{S}^{\klast}), (1-\delta/2)d(i_0^\star,j)) \geq \hat{f} - n \eta\,.\]
+Note that $\tilde A \subseteq A$ and $\tilde I \supseteq I$.
+We have $(1-\delta) d(j, \tilde S^{\klast}) \leq (1-\delta) d(j, S^{\klast})$ and $(1-\delta)d(j, \tilde{S}^{\klast}) \leq \theta$ for all $j \in \tilde{I}$, and this then implies
+\[\sum_{j \in A} \beta(\theta, (1-\delta/2)d(i_0^\star,j)) + \sum_{j \in I} \beta((1-\delta)d(j,S^{\klast}), (1-\delta/2)d(i_0^\star,j)) \geq \hat{f} - n \eta\,.\]
+Thus, $i_0^\star$ is $(2,\eta)$-openable with respect to $S$, as it satisfies all constraints with $\tau_j = \theta$ for all $j \in A$:
+The first two and the fifth constraints are trivial, the third constraint is the inequality we obtained above, and the fourth constraint follows by Lemma~\ref{lem:overbidding-robust}.
+\end{proof}
+
+We can now state the relation between the cost of the algorithm associated with clients $j \in \Dgood$ is upper bounded (up to a small error) and the objective of the factor revealing program with $r^\star$ variables.
+
+\begin{lemma}
+\label{lem:r-star-upper-bound}
+We have 
+\[\sum_{j \in \Dgood} \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} \leq \sum_{j \in \Dgood} \Paren{\sum_{\substack{i=j\\i \in \Dgood}}^n \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + r^\star_{j,n+1}} + 6 \delta \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+\end{lemma}
+\begin{proof}
+We will prove the inequality term by term for each $j \in \Dgood$, i.e., 
+\[\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m} \leq \sum_{\substack{i=j\\i \in \Dgood}}^n \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + r^\star_{j,n+1} + 6 \delta d(j, i^\star)\,.\]
+If the event \specialevent\ does not happen, then the bound follows by superadditivity of $\beta$, since $Z_{j,i} \leq R_{j,i}$ for all $j,i$, $R_{j,s(j)} = r_{j,j} = r^\star_{j,j}$, $R_{j,m} = r^\star_{j,n+1}$, and $R_{j, i} \geq R_{j,i+1}$ for all valid $j, i$.
+Suppose then that \specialevent\ happens.
+Then, using that $Z_{j,i} \leq R_{j,i}$ for all $j, i$,
+\[\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}
+\leq \sum_{i=s(j)}^{s(\klast) - 1} \beta(R_{j,i}, R_{j,i+1}) + \sum_{i=s(\klast)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j,m}\,.\]
+If $j \geq \kfirst$, we note that $s(j) = s(\klast)$ and the first term is equal to $0$.
+Otherwise, for the first term, because $j \in \Dgood$ and $\klast \in \Dgood$, and because $R_{j,s(j)} = r_{j,j}$, $R_{j,s(\klast)} = r_{j,\klast}$, and $R_{j,k} \geq R_{j,k+1}$ for all $j,k$, we can use the superadditivity of $\beta$ to get
+\begin{align*}
+\sum_{i=s(j)}^{s(\klast) - 1} \beta(R_{j,i}, R_{j,i+1})
+&\leq \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r_{j,i}, r_{j,q(i)})
+\leq \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r^\star_{j,i}, r^\star_{j,q(i)})\,,
+\end{align*}
+where in the last inequality we used that $r^\star_{j,i} = r_{j,i}$ for $i < \kfirst$ and $r_{j,i} = r_{j,q(i)}$ for $\kfirst < q(i) \leq \klast - 1$ (hence in this latter case $\beta(r_{j,i}, r_{j,q(i)}) =0$), and then for the last term $r^\star_{j,\klast} \leq r_{j,\klast}$, which gives an upper bound.
+Then we have
+\begin{align*}
+&\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}\\
+\leq& \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + \beta(Z_{j,s(\klast)}, R_{j,s(\klast)+1}) + \sum_{i=s(\klast) + 1}^{m-1} \beta(R_{j,i}, R_{j,i+1}) + R_{j,m}\\
+\leq& \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + \beta(Z_{j,s(\klast)}, R_{j,s(\klast)+1}) + \beta(R_{j,s(\klast)+1}, R_{j,m}) + R_{j,m}\,.
+\end{align*}
+Also note that $Z_{j,s(\klast)} = \zeta_{j,\klast}$.
+For the last three terms, let us consider two cases.
+
+\textbf{Case $d(j, i_0^\star) \leq \theta/3$.}
+In this case $r^\star_{j, \klast} = \zeta_{j, \klast}$.
+If $j$ is active with respect to $\tilde{S}^{(\klast)}$, then $\zeta_{j, \klast} \geq \theta$.
+Else, by Lemma~\ref{lem:superset-far}, we have for every $i \in \tilde{S}^{(\klast)}$ that $d(i, i_0^\star) \geq \theta$, so $d(j, i) \geq d(i, i_0^\star) - d(j, i_0^\star) \geq 2\theta/3$, so also $\zeta_{j, \klast} \geq (1-\delta)2\theta/3$.
+% We know that $\zeta_{j, \klast} \geq \theta$. \rares{This is not necessarily true.}
+Then in all cases, because $i_0^\star$ is then added to the set of open facilities, we also have $R_{j,m} \leq R_{j,s(\klast)+1} \leq d(j, i_0^\star) \leq \theta/3 \leq \zeta_{j, \klast}$, where we use that any $j \in \Dgood$ must be inactive after the atomic step.
+Then, because $\zeta_{j, \klast} \geq R_{j,s(\klast)+1} \geq R_{j,m}$, we can use the superadditivity of $\beta$ to conclude
+\begin{align*}
+\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}
+&\leq \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + r^\star_{j,\klast}\\
+&= \sum_{\substack{i=j\\i \in \Dgood}}^n \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + r^\star_{j,n+1}\,,
+\end{align*}
+where we also used that $r^\star_{j,n+1}=0$.
+
+\textbf{Case $d(j, i_0^\star) > \theta/3$.} In this other case $r^\star_{j, \klast} = \min(r_{j, \klast}, \max(\zeta_{j, \klast}, d(j, i^\star)))$.
+Because $i_0^\star$ is then added to the set of open facilities, we also have $R_{j,m} \leq R_{j,s(\klast)+1} \leq d(j, i_0^\star) \leq d(j, i^\star) + d(i_0^\star, i^\star)$, where we use that any $j \in \Dgood$ must be inactive after the atomic step.
+We have by Lemma~\ref{lem:freezing-robust} that $d(i^\star, i_0^\star) \leq \delta \theta$, so then the upper bound above becomes $d(j, i^\star) + \delta \theta$.
+We also note that if $r^\star_{j, \klast} \geq R_{j, s(\klast) + 1}$ then we can apply the superadditivity of $\beta$ and the result follows as in the previous case, so we assume that $r^\star_{j, \klast} < R_{j, s(\klast) + 1}$, which also implies that $r^\star_{j, \klast} < r_{j,\klast}$ as $R_{j, s(\klast) + 1} \leq R_{j, s(\klast)} = r_{j,\klast}$.
+Then $r^\star_{j, \klast} = \max(\zeta_{j,\klast}, d(j, i^\star)) \geq d(j, i^\star) \geq R_{j,s(\klast)+1} - \delta \theta$.
+Then, also using that $r^\star_{j, \klast} \geq \zeta_{j,\klast}$, we conclude
+\begin{align*}
+\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}
+&\leq \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + \beta(r^\star_{j,\klast}, R_{j,s(\klast)+1}) + \beta(R_{j,s(\klast)+1}, R_{j,m}) + R_{j,m}\\
+&= \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + \beta(R_{j,s(\klast)+1}, R_{j,m}) + R_{j,m},
+\end{align*}
+where we dropped the term $\beta(r^\star_{j,\klast}, R_{j,s(\klast)+1})$ because it equals zero as $r^\star_{j,\klast} < R_{j,s(\klast)+1}$.
+Continuing, because $R_{j,m}=\beta(R_{j,m},0)$, by using the superadditivity of $\beta$,
+\begin{align*}
+\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}
+&\leq \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + R_{j,s(\klast)+1}\\
+&\leq \sum_{\substack{i=j\\i \in \Dgood}}^{\klast - 1} \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + r^\star_{j,\klast} + \delta \theta\\
+&= \sum_{\substack{i=j\\i \in \Dgood}}^n \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + r^\star_{j,n+1} + \delta \theta\,,
+\end{align*}
+where in the last step we used that $r^\star_{j,n+1}=0$. We also have that $\theta \leq 3 d(j, i_0^\star) \leq 3 (d(j, i^\star) + d(i^\star,i_0^\star)) \leq 3d(j,i^\star) + 3 \delta \theta$, which implies $\theta \leq 6 d(j, i^\star)$, so we get
+\[\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m} \leq \sum_{\substack{i=j\\i \in \Dgood}}^n \beta(r^\star_{j,i}, r^\star_{j,q(i)}) + r^\star_{j,n+1} + 6 \delta d(j, i^\star)\,.\]
+\end{proof}
+
+In the rest of this section we will show that $\{r^\star_{jk} \mid j \leq k, j \in \Dgood, k \in \Dgood \cup \{n + 1\}\}, \{d(j, i^\star) \mid j \in \Dgood\}, \hat f$ is feasible for the factor revealing program in Definition~\ref{def:frp}, except for the normalization constraint (\ref{eq:fr-norm}).
+
+First we will prove that the facility constraints (\ref{eq:fr-facility}).
+\begin{lemma}
+\label{lem:fr-facility-robust}
+    Consider the central facility $i^\star$ and let $k \in \Dgood$. Then,
+    \[
+        \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r^\star_{jk}, d(i^\star,j)) \le \hat f.
+    \]
+\end{lemma}
+\begin{proof}
+    Consider the phase when $k$ goes inactive. 
+    $k$ goes inactive either in an atomic step in a sequence of type $1$, type $2$, or when $\theta$ increases.
+    \paragraph{Type $1$ sequence}
+    Consider the state $(S=S^{(k)},\theta)$ of the algorithm just before the atomic step in which $k$ becomes inactive.
+    If $k$ becomes inactive in a type $1$ sequence then $\alpha^\star_k = \theta$. Thus, by Lemma \ref{lem:overbidding-robust},
+    \begin{align*}
+        \hat f & \ge \sum_{j \in A \cap \Dgood} \beta(\theta, d(i^\star,j)) + \sum_{j \in I \cap \Dgood} \beta((1-\delta)d(j, S), d(i^\star,j)) 
+        \\ & \ge \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r^\star_{jk}, d(i^\star,j)),
+    \end{align*}
+    where we use that if $j < k$ but $j \in A$ then we have $r^\star_{jk} = \alpha_j^\star = \theta$.
+    \paragraph{Type $2$ sequence}
+    Again, consider the state $(S= S^{(k)},\theta)$ of the algorithm just before the atomic step in which $k$ becomes inactive.
+    
+    If $k$ becomes inactive in a step in which a free facility is opened, we have essentially the same case as in the type $1$ sequence and the same argument works.
+    
+    The case $\alpha_k^\star = \theta$ is also easy:
+    We have $r_{jk}^\star = r_{jk}$, as even if \specialevent\ happens it only affects $k \geq \kfirst$ with $\alpha^\star_{\kfirst} > \theta$.
+    Note that $r_{jk} = \alpha_j^\star = \theta$ for all $j < k$ with $j \in A$, as $\alpha_j^\star \geq \theta$ and $\alpha_j^\star \leq \alpha_k^\star$ (because if $j < k$ and $j \in A$ then $j$ must become inactive in the same atomic step as $k$).
+    Then by Lemma \ref{lem:overbidding-robust},
+    \begin{align*}
+        \hat f & \ge \sum_{j \in A \cap \Dgood} \beta(\theta, d(i^\star,j)) + \sum_{j \in I\cap \Dgood} \beta((1-\delta)d(j, S), d(i^\star,j)) 
+        \\ & \ge \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r^\star_{jk}, d(i^\star,j)),
+    \end{align*}
+    where we use that if $j < k$ but $j \in A$ then we have $r^\star_{jk} = \alpha_j^\star = \theta$.
+    
+    Else, we have $\theta < \alpha_k^\star \leq (1+\eps^2) \theta$. Assume for contradiction that
+    \[
+        \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r^\star_{jk}, d(i^\star,j)) >  \hat f.
+    \]
+    If $j < k$, we claim that $r^\star_{jk} \leq (1-\delta)d(j,S)$ if $j \in I$ and $r^\star_{jk} \leq \alpha^\star_j \leq (1+\epsilon^2)\theta$ if $j \in A$.
+    These hold because $r^\star_{jk} \leq r_{jk}$, and then for $j \in I$ we have $r_{jk} = (1-\delta) d(j,S)$ and for $j \in A$ we have $r_{jk} = \alpha_j^\star$.
+    Then, $i^\star$ is a candidate since
+    \begin{align*}
+        & \sum_{j\in A\cap \Dgood}\beta((1+\epsilon^2)\theta, (1- \delta/2)d(i^\star,j)) + \sum_{j\in I\cap \Dgood}\beta((1-\delta)\dist(j,S), (1-\delta/2)d(i^\star,j)) \\
+        \ge & \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r^\star_{jk}, d(i^\star,j)) > \hat f
+    \end{align*}
+    and all omitted terms are non-negative.
+    Here, the inequality holds by the properties of $\beta$, monotonicity and the scaling.
+    So $k \in \Dgood$ becomes inactive in a sequence of type $2$ while $i^\star$ is a candidate in a step in which a regular facility is opened. Thus, by Lemma \ref{lem:freezing-robust} we know that all clients in $A \cap \Dgood$ become inactive in the same atomic step as $k$.
+    Let $i^\star_0$ be the facility that is opened in this atomic step with respect to a superset $\tilde{S} \supseteq S^{(k)}$.
+
+    Note that, because $\alpha_k^\star > \theta$ we have $k \in \tilde{A}$.
+    Let $\tilde{I} = \{j \in D \mid \theta \geq (1-\delta)d(j,\tilde S)\}$ and $\tilde{A} = D \setminus \tilde{I}$.
+    We have
+    \begin{align*}
+    \hat f &\ge \sum_{j \in \tilde A\cap \Dgood} \beta(\tau_j, d(i^\star,j)) + \sum_{j \in \tilde  I\cap \Dgood} \beta((1-\delta)d(j, \tilde  S), d(i^\star,j))\,.
+    \end{align*}
+    We also have that $\alpha_j^\star \geq \alpha_k^\star > \theta$ for all $j \geq k$ in $\Dgood$ since all clients become inactive in the same atomic step and are hence ordered by $\alpha^\star$. Because of this, all these $j$ are also in $\tilde A$ and satisfy $\tau_j = \alpha_j^\star$.
+    Also note that, for $j < k$ such that $j \in \tilde A$, we have $r^\star_{j,k} = r_{j,k} = \zeta_{j,k} = \alpha_j^\star$.
+    Then
+    \[\hat f \geq \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \tilde A \cap \Dgood}} \beta(r^\star_{j,k}, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \tilde I \cap \Dgood}} \beta((1-\delta)d(j, \tilde S), d(i^\star,j))\,.\]
+
+    Let us reason now about the $r^\star_{jk}$ in the case $j \in \tilde I$.
+    If $\tilde{S} = S$, then we have that $r^\star_{jk} = r_{jk} = (1-\delta) d(j, S)$ and the bound will follows easily, as shown below.
+    Else, $\tilde{S}$ is a strict superset of $S$ and event \specialevent\ happens.
+    In this case also $k \geq \kfirst$ since $\alpha_k^\star > \theta$.
+    Consider then two cases.
+    First, suppose $d(j, i_0^\star) \leq \theta / 3$.
+    Then $r_{j,k}^\star = \zeta_{j,k} = (1-\delta)d(j, \tilde S)$.
+    Second, suppose $d(j, i_0^\star) > \theta / 3$.
+    Then $r_{j,k}^\star \leq \max((1-\delta) d(j, \tilde S), d(j,i^\star))$.
+    The only worry is the case $d(j, i^\star) \geq (1-\delta) d(j,\tilde S)$.
+    But then $\beta((1-\delta)d(j,\tilde S), d(j, i^\star)) = 0$ and $\beta(r^\star_{jk}, d(j, i^\star)) \leq \beta(d(j,i^\star), d(j,i^\star))=0$, so we have trivially that $\beta((1-\delta) d(j,\tilde{S}), d(i^\star, j)) \geq \beta(r^\star_{jk}, d(i^\star, j))$.
+    Hence, in all these cases,
+    \begin{align*}
+    \hat f
+    &\geq \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r^\star_{jk}, d(i^\star,j))\,.
+    \end{align*}
+    \paragraph{Increase of $\theta$}
+    In this case $k$ becomes inactive when we increase $\theta$ to $(1+\eps^2)\theta$.
+    Let $S$ be the set of open facilities at the end of that atomic step, and note that $S=S^{(k)}$ since no facility is added.
+    Let $A$ and $I$ be the sets of active and inactive clients w.r.t. $S$ and $(1+\eps^2)\theta$.
+    By Lemma \ref{lem:overbidding-robust},
+    \begin{align*}
+    \hat f
+    &\ge \sum_{j \in A\cap \Dgood} \beta((1+\eps^2)\theta, d(i^\star,j)) + \sum_{j \in I\cap \Dgood} \beta((1-\delta)d(j, S), d(i^\star,j))\\
+    &\ge \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k,  d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r^\star_{jk}, d(i^\star,j)).
+    \end{align*}
+    Let us verify that the last inequality holds. For $j \geq k$, if $j \in A$ then $(1+\eps^2)\theta \geq \alpha_k^\star$, and if $j \in I$ then $j$ became inactive in the same atomic step as $k$ so $(1-\delta)d(j,S) = \alpha_j^\star \geq \alpha_k^\star$, where we used that in this case the clients are ordered by $\alpha^\star$.
+    Next, if $j < k$ then $j \in I$ since $k \in I$. 
+    If $j$ became inactive in the same atomic step as $k$, we have $r_{jk} = \alpha_j^\star = (1-\delta)d(j, S)$.
+    Else, by definition $r^\star_{jk} = (1-\delta)d(j, S)$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:fr-r-mono-robust}
+    For all $1 \le j \le k \le n$ with $j, k \in \Dgood$ we have $r^\star_{j,k} \ge r^\star_{j,q(k)}$.
+\end{lemma}
+\begin{proof}
+    Let us consider first the case when \specialevent\ does not happen, or it does happen but $q(k) < \kfirst$.
+    We consider different cases depending on when $j$ becomes inactive. First, consider the case where $j$ becomes inactive strictly before $k$. Then $r^\star_{jk} = (1-\delta)d(j,S^{(k)}) \ge (1-\delta)d(j,S^{(q(k))}) = r^\star_{j q(k)}$ since $d(j, S)$ is monotonically decreasing with $S$ and $S^{(k)} \subseteq S^{(q(k))}$. Next, consider the case where $j$ becomes inactive together with $k$ but strictly before $q(k)$ then $r^\star_{jk} = \alpha^\star_j \ge (1-\delta)d(j,S^{(q(k))}) = r^\star_{jq(k)}$. In the remaining case when $j$, $k$ and $q(k)$ become inactive at the same time we have $r^\star_{jk} = r_{j q(k)} = \alpha^\star_j$.  
+
+    Next, suppose \specialevent\ happens and $q(k) \geq \kfirst$.
+    First, consider the border case $q(k) = \kfirst$.
+    Then we note that $r^\star_{j,k} = r_{j, k}$, $r_{j, k} \geq r_{j, \kfirst}$, and $r_{j, \kfirst} \geq r^\star_{j,\kfirst}$, so $r^\star_{j,k} \geq r^\star_{j,\kfirst}$ is true.
+    For $\kfirst \leq k \leq \klast - 1$, we have $r^\star_{j,k} = r^\star_{j,q(k)}$ because the clients become inactive in the same atomic step, so the claim is also true.
+    Finally, $r^\star_{j,n+1}=0$, so $r^\star_{j,\klast} \geq r^\star_{j,n+1}$ is also true.
+\end{proof}
+
+\begin{lemma}
+\label{lem:fr-triangle-robust}
+    For all $1 \le j < k \le n$ with $j, k \in \Dgood$ we have $\alpha^\star_k \le r^\star_{jk} + d_j + d_k$.
+\end{lemma}
+\begin{proof}
+    Let us consider first the case when \specialevent\ does not happen, or it does happen but $k < \kfirst$.
+    First, consider the case when $j$ becomes inactive strictly before $k$.
+    Then $r^\star_{jk} = (1-\delta)d(j,S^{(k)}) = (1-\delta)d(j,i_0)$ for some facility $i_0 \in S^{(k)}$.
+    If the client $k$ becomes inactive either in a type $1$ sequence or type $2$ sequence at the opening of a free facility or with $k$ inactive with respect to the relevant superset, then $\alpha_k^\star = \theta \leq (1-\delta) d(k,S^{(k)}) \leq (1-\delta)d(k, i_0)$.
+    Else, in a type $2$ sequence at the opening of a regular facility with $k$ active with respect to the relevant superset, $\alpha_k^\star = \tau_k \leq (1-\delta)d(k,S^{(k)}) \leq (1-\delta) d(k, i_0)$.
+    Finally, when $\theta$ increases to $(1+\eps^2)\theta$, $\alpha_k^\star = (1-\delta)d(k,S) \leq (1-\delta) d(k, i_0)$.
+    Then, by triangle inequality,
+    \[
+        \alpha^\star_k \le (1-\delta)d(k,i_0) \le (1-\delta)(d(k, i^\star) + d(i^\star, j) + d(j, i_0)) \le r^\star_{jk} + d_j + d_k.
+    \]
+    In the remaining case $k$ and $j$ become inactive at the same time and $r^\star_{jk} = \alpha^\star_j$.
+    If $k$ and $j$ become inactive in the execution of a sequence of type $1$, or of a sequence of type $2$ when a free facility is opened, then $\alpha^\star_k = \alpha^\star_j = \theta$.
+    Else, if $k$ and $j$ become inactive in the execution of a sequence of type $2$ then we consider a few cases: If $k$ and $j$ are active with respect to $\tilde{S}^{(k)}$, then $\alpha^\star_k \le \alpha^\star_j + d(k,j) \le \alpha^\star_j + d_k + d_j$ by condition $(v)$ in Definition~\ref{def:openable-mod-eta-2}.
+    If $k$ is active with respect to $\tilde{S}^{(k)}$ but $j$ is not, then $\alpha_k^\star \leq (1-\delta)d(k, \tilde{S}^{(k)})$ by (i) and (ii) in Definition~\ref{def:openable-mod-eta-2} together with $\theta < (1-\delta)d(k, \tilde{S}^{(k)})$, and $\alpha_j^\star = \theta \geq (1-\delta)d(j, \tilde{S}^{(k)})$, so
+    \[
+        \alpha^\star_k \le (1-\delta)d(k,\tilde S^{(k)}) \le (1-\delta)(d(k, i^\star) + d(i^\star, j) + d(j, \tilde S^{(k)})) \le r^\star_{jk} + d_j + d_k.
+    \]
+    Lastly, if $k$ is inactive with respect to $\tilde{S}^{(k)}$ then $\alpha^\star_k = \theta$, and we have $r^\star_{jk} = \alpha^\star_j \geq \theta$ so the inequality is trivially satisfied.
+    
+    Otherwise, $k$ and $j$ become inactive when $\theta$ increases to $(1+\eps^2)\theta$ and 
+    \[
+        \alpha^\star_k = (1-\delta)d(k,S^{(k)}) \le (1-\delta)d(k,i_0) \le (1-\delta)(d(k,i^\star) + d(i^\star,j) + d(j,i_0)) \le \alpha^\star_j + d_k + d_j
+    \]
+    where $i_0$ is the facility that $j$ connects to, $\alpha^\star_j = (1-\delta)d(j,S^{(k)}) = (1-\delta)d(j,i_0)$. 
+
+    Next, suppose \specialevent\ happens and $k \geq \kfirst$.
+    Because $\alpha_k^\star > \theta$, we know that $k$ is active w.r.t. the superset $\tilde{S}^{(k)}$.
+    Suppose first that $j$ is inactive w.r.t. $\tilde{S}^{(k)}$.
+    Then $r^\star_{jk} \geq (1-\delta) d(j, \tilde{S}^{(k)})$.
+    We also have $\alpha_k^\star \leq (1-\delta) d(k, \tilde{S}^{(k)})$ by condition (ii) in Definition~\ref{def:openable-mod-eta-2}, so
+    \[\alpha_k^\star \leq (1-\delta) (d(j,i^\star) + d(k,i^\star) + d(j,\tilde{S}^{(k)})) \leq r^\star_{jk} + d_j + d_k\,.\]
+    Else, $j$ is active w.r.t. $\tilde{S}^{(k)}$.
+    Then $r^\star_{jk} = \alpha^\star_j$, and the claim follows because of the triangle inequality condition in the definition of $(2,\eta)$-openable: $\alpha^\star_k \leq \alpha^\star_j + d(j, k) \leq r^\star_{jk} + d(j, i^\star) + d(k, i^\star)$.
+\end{proof}
+
+\begin{lemma}
+\label{lem:fr-r-metric-robust}
+    For all $1 \le j,\ell < k \le n + 1$ with $j, \ell, k \in \Dgood \cup \{n+1\}$ we have $r^\star_{jk} \le r^\star_{\ell k} + d_j + d_\ell$.
+\end{lemma}
+\begin{proof}
+    Let us consider first the case when \specialevent\ does not happen, or it does happen but $k < \kfirst$.
+    If $k = n + 1$, we have $r^\star_{jk} = (1-\delta)d(j, S^\star)$ and $r^\star_{\ell k} = (1-\delta) d(\ell, S^\star)$, and then 
+    \[r^\star_{jk} \leq (1-\delta)(d(j, i^\star) + d(\ell, i^\star) + d(\ell, S^\star)) \leq r^\star_{\ell k} + d_j + d_\ell\,,\]
+    so assume $k \leq n$.
+    
+    First, consider the case where $j$ becomes inactive strictly before $k$. Then $r^\star_{jk} = (1-\delta)d(j,S^{(k)}) = (1-\delta)d(j,i_1)$ for some open facility $i_1$. If $\ell$ becomes inactive strictly before $k$, then $r^\star_{lk} = (1-\delta)d(\ell,S^{(k)}) = (1-\delta)d(\ell,i_2)$ for some open facility $i_2$, and because $i_1$ minimizes $(1-\delta)d(j,S^{(k)})$, 
+    \[
+        r^\star_{jk} = (1-\delta)d(j,i_1) \le (1-\delta)d(j,i_2) \le (1-\delta)(d(j,i^\star) + d(i^\star,\ell) + d(\ell,i_2)) \le r^\star_{\ell k} + d_j + d_\ell.
+    \]
+    Now if $\ell$ becomes inactive with $k$ then $r^\star_{\ell k} = \alpha^\star_\ell$. 
+    Assume $j$ becomes inactive in the execution of a sequence of type $2$ when opening a regular facility $i_0$ and when it is active with respect to the superset with respect to which $i_0$ is opened.
+    Suppose $i_0$ opens with bids $(\tau_j)_{j \in A}$.
+    Let $\theta_0$ be the time at the atomic step in which $i_0$ is opened.
+    Because $j$ was becomes inactive when $i_0$ is opened, we must have $(1-\delta) d(j, i_0) \leq \theta_0$.
+    Because $i_0$ is still open at the time when $k$ becomes inactive, we also have $r^\star_{jk} = (1-\delta)d(j, S^{(k)}) \leq (1-\delta)d(j,i_0)$.
+    Hence $r^\star_{jk} \leq \theta_0$, but we must have $\alpha^\star_\ell \geq \theta_0$, so $r^\star_{jk} \leq r^\star_{\ell k}$.
+     
+    % By $(v)$ in Definition~\ref{def:openable-mod-eta-2} we have
+    % \[
+    %     r^\star_{jk} = (1-\delta)d(j, S^{(k)}) \le (1-\delta)d(j,i_0) \le \tau_j \le \tau_\ell + d(j,\ell) \le \alpha^\star_\ell + d_j + d_\ell,
+    % \]
+    % \rares{CANNOT USE $\tau_j \leq \tau_\ell + d(j,\ell)$.}
+    % where $(1-\delta) d(j, i_0) \leq \tau_j$ because if $\tau_j > \theta$ then we must have $d(j, i_0) \leq \epsilon \theta$ and if $\tau_j = \theta$ then we must have $(1-\delta) d(j, i_0) \leq \theta$ because $j$ was active but became inactive after $i_0$ was opened.
+    Otherwise $j$ becomes inactive in the execution of a sequence of type $1$, or of type $2$ when a free facility was opened or $j$ was inactive with respect to the relevant superset, or when $\theta$ increases to $(1+\eps^2)\theta$, and
+    \[
+        r^\star_{jk} = (1-\delta)d(j,S^{(k)}) \le \alpha^\star_j \le \alpha^\star_\ell = r^\star_{\ell k}
+    \]
+    since $\ell$ becomes inactive strictly after $j$: this implies that in a type $1$ sequence or in a type $2$ sequence in which $j$ was inactive with respect to the relevant superset $\alpha^\star_j$ is equal to the $\theta$ at that step and when $\theta$ increases $\alpha^\star_j$ is equal to at most $(1+\eps^2)\theta$ for the $\theta$ at that step, but then $\alpha^\star_\ell$ is in both cases at least as large.
+    
+    Next, consider the case where $j$ becomes inactive with $k$. Then $r^\star_{jk} = \alpha^\star_j$. If $\ell \ge j$ then $j$, $\ell$ and $k$ become inactive in the same atomic step and $r^\star_{\ell k} = \alpha^\star_\ell$. By the ordering of $\alpha^\star$ we know that 
+    \[
+        r^\star_{jk} = \alpha^\star_j \le \alpha^\star_\ell = r^\star_{\ell k}
+    \]
+    Thus, we can assume that $\ell < j$. Observe that $r^\star_{\ell k} = r^\star_{\ell j}$ since $k$ and $j$ become inactive in the same atomic step. Notice that now the proof follows from Lemma $\ref{lem:fr-triangle-robust}$ as $r^\star_{jk} = \alpha^\star_{j}$ and $r^\star_{\ell k} = r^\star_{\ell j}$.
+
+    Next, suppose \specialevent\ happens and $k \geq \kfirst$.
+    We also note that, in the case $k=n+1$ the claim holds trivially, because if \specialevent\ happens then $r^\star_{j,n+1} = 0$ for all $j$, so assume $k \leq n$.
+    
+    \textbf{Case 1.} If both $j$ and $\ell$ are active in the superset $\tilde{S}^{(k)}$, we have $r^\star_{jk} = \alpha_j^\star$ and $r^\star_{\ell k} = \alpha_\ell^\star$, and then the inequality $\alpha_j^\star \leq \alpha_\ell^\star + d_j + d_\ell$ follows because of the triangle inequality condition in the definition of $(2,\eta)$-openable: $\alpha^\star_j \leq \alpha^\star_\ell + d(j, \ell) \leq \alpha^\star_\ell + d(j, i^\star) + d(\ell, i^\star)$.
+    
+    \textbf{Case 2.} If $j$ is active in the superset $\tilde{S}^{(k)}$ but $\ell$ is not, we have $r^\star_{jk} = \alpha_j^\star$ and $r^\star_{\ell k} \geq (1-\delta)d(\ell, \tilde{S}^{(k)})$.
+    Since $j$ is active with respect to $\tilde{S}^{(k)}$, we have $\alpha_j^\star \leq (1-\delta)d(j, \tilde{S}^{(k)})$ by (i) and (ii) in Definition~\ref{def:openable-mod-eta-2} together with $\theta < (1-\delta)d(j, \tilde{S}^{(k)})$.
+    Then 
+    \[r^\star_{jk} \leq (1-\delta)(d(j, i^\star) + d(\ell, i^\star) + d(\ell, \tilde S^{(k)})) \leq r^\star_{\ell k} + d(j, i^\star) + d(\ell, i^\star)\,.\]
+    
+    \textbf{Case 3.} If $j$ is inactive in the superset but $\ell$ is active, we have $r_{jk}^\star \leq \max((1-\delta)d(j, \tilde S^{(k)}), d(i^\star, j))$ and $r^\star_{\ell k} = \alpha^\star_\ell$.
+    If $r^\star_{jk} \leq (1-\delta) d(j, \tilde S^{(k)})$, we also note that because $j$ is inactive we have $\theta \geq (1-\delta) d(j, \tilde S^{(k)})$ and $\alpha^\star_\ell \geq \theta$, so $\alpha^\star_\ell \geq (1-\delta) d(j, \tilde S^{(k)})$, so we trivially have $r^\star_{jk} \leq r^\star_{\ell k}$.
+    Else $r^\star_{jk} \leq d(i^\star, j)$, and the claim follows trivially as the right-hand side contains a term $d(i^\star, j)$.
+
+    \textbf{Case 4.} If $j$ and $\ell$ are both inactive in the superset, we use again that 
+    \[r_{jk}^\star \leq \max((1-\delta)d(j, \tilde S^{(k)}), d(i^\star, j)).\]
+    If $r^\star_{jk} \leq (1-\delta) d(j, \tilde S^{(k)})$, we also note that $r^\star_{\ell k } \geq (1-\delta) d(\ell, \tilde S^{(k)})$, so
+    \[r^\star_{jk} \leq (1-\delta)(d(j, i^\star) + d(\ell, i^\star) + d(\ell, \tilde S^{(k)})) \leq r^\star_{\ell k} + d(j, i^\star) + d(\ell, i^\star)\,.\]
+    Else $r^\star_{jk} \leq d(i^\star, j)$, and the claim follows trivially as the right-hand side contains a term $d(i^\star, j)$.
+
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{theorem:alg-lmp-robust}}
+\label{subsec:lmp-proof-robust}
+Before we prove the theorem, we will need the following gluing result that bounds the cost of the algorithm in terms of the upper bound on the factor-revealing program.
+
+\begin{lemma}
+\label{lem:dgood-cost-robust}
+    Assume $\hat{f} > n \eta$ and let $\rho \geq 1.01 \gamma$ be an upper bound on the optimal value of the factor-revealing program in Definition~\ref{def:frp}.
+    For some $i^\star \in F$, consider any subset of clients $\Dgood \subseteq D$ such that, for all $j \in \Dgood$, $\alpha_j^\star \geq \rho \cdot d(j, i^\star)$.
+    Then
+    \[\sum_{j \in \Dgood} \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} \leq \hat{f} + (\rho+6\delta) \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+\end{lemma}
+\begin{proof}
+We know that the variables $\{r^\star_{jk} \mid j \leq k, j \in \Dgood, k \in \Dgood \cup \{n + 1\}\}$, $\{d(j, i^\star) \mid j \in \Dgood\}$, $\hat f$ (see Section~\ref{sec:fr-feasiblity-robust}), with the clients reindexed to $1, \ldots, |\Dgood|$  in the same order as the original indices and $n+1$ reindexed to $|\Dgood|+1$, satisfy the constraints of the factor-revealing program in Definition~\ref{def:frp} (note that we identify $r^\star_{jj} = \alpha^\star_j$), except for the normalization constraint (\ref{eq:fr-norm}): this follows by Lemma~\ref{lem:fr-facility-robust}, Lemma~\ref{lem:fr-r-mono-robust}, Lemma~\ref{lem:fr-triangle-robust}, and Lemma~\ref{lem:fr-r-metric-robust}, and because all these variables are non-negative.
+
+Let $\dsum = \sum_{j \in \Dgood} d(j, i^\star)$, which we know is strictly positive because $d(j, i) \geq 1$ for all $j \in F$, $i \in D$.
+Then, because the factor-revealing program is scale-invariant (except for the normalization constraint), it follows that $\{r^\star_{jk} / \dsum \mid j \leq k, j \in \Dgood, k \in \Dgood \cup \{n + 1\}\}$, $\{d(j, i^\star) / \dsum \mid j \in \Dgood\}$, $\hat f / \dsum$ satisfy all the constraints of the factor-revealing program in Definition~\ref{def:frp}.
+
+Let $q(i) = \min \Set{i' \mid i' > i, i' \in \Dgood \cup \{n+1\}}$.
+Then the upper bound $\rho$ on the value of the factor revealing program implies that
+\[\sum_{j \in \Dgood} \Paren{\sum_{\substack{i \in \Dgood\\i \geq j}} \beta\Paren{\frac{r^\star_{j,i}}{\dsum}, \frac{r^\star_{j,q(i)}}{\dsum}} + \frac{r^\star_{j,n+1}}{\dsum} } \leq \frac{\hat{f}}{\dsum} + \rho\,,\]
+so multiplying by $\dsum$, 
+\[\sum_{j \in \Dgood} \Paren{\sum_{\substack{i \in \Dgood\\i \geq j}} \beta\Paren{r^\star_{j,i}, r^\star_{j,q(i)}} + r^\star_{j,n+1}} \leq \hat{f} + \rho \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+Finally, by Lemma~\ref{lem:r-star-upper-bound}, the above also implies that
+\[\sum_{j \in \Dgood} \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}}  \leq \hat{f} + (\rho + 6 \delta) \cdot \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+\end{proof}
+
+We are ready to prove the main theorem of this section.
+
+\begin{proof}[Proof of Theorem~\ref{theorem:alg-lmp-robust}]
+    Consider an optimal solution of cost $\mathrm{OPT}$ to the original problem with facility cost $f = \frac{\hat{f}}{\rho + 6 \delta}$, and let $k^\star$ denote the number of facilities opened in this solution.
+    Let $\{i_1^\star, \ldots, i_{k^\star}^\star\}$ be the facilities opened by the optimal solution, and let $\{D_1^\star, \ldots, D_{k^\star}^\star\}$ such that $D_\ell^\star$ is the set of clients connected to facility $i_\ell^\star$ in the optimal solution.
+    
+    Let $C_{\mathrm{SOL}}$ and $F_{\mathrm{SOL}}$ be the connection cost and opening cost (with respect to $f$) of our algorithm, and let $C_{\mathrm{OPT}}$ and $F_{\mathrm{OPT}}$ be defined analogously for $\mathrm{OPT}$.
+    By Lemma~\ref{lemma:alg-cost-robust}, which bounds the cost with respect to $\hat{f}$, and using that $f = \frac{\hat{f}}{\rho+6\delta}$, we know that 
+    \[C_{\mathrm{SOL}} + (\rho + 6 \delta) \cdot F_{\mathrm{SOL}} \leq \sum_{j=1}^n \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} + \delta \cdot \sum_{j=1}^n d(j,S^\star) + |\Sr^\star| n \eta\,.\]
+    Note that $\sum_{j=1}^n d(j, S^\star) = C_{\mathrm{SOL}}$, so we can rewrite
+    \[(1-\delta) \cdot C_{\mathrm{SOL}} + (\rho + 6 \delta) \cdot F_{\mathrm{SOL}} \leq \sum_{j=1}^n \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} + |\Sr^\star| n \eta\,.\]
+
+    Fix now some $\ell \in \{1, \ldots, k^\star\}$ and set $i^\star = i^\star_\ell$ and $D^\star = D^\star_{\ell}$.
+    Define the subset of $D^\star$
+    \[\Dgood = \Set{j \in D^\star \Bigg| \alpha^\star_j \geq \rho \cdot d(j, i^\star)}\,.\]
+    For the clients in $\Dgood$, we have by Lemma~\ref{lem:dgood-cost-robust} that
+    \[\sum_{j \in \Dgood} \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} \leq \hat{f} + (\rho+6\delta) \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+    Furthermore, for the clients $j \in D^\star \setminus \Dgood$, because $R_{j,s(j)} = \alpha_j^\star$, $R_{j,m} = \beta(R_{j,m}, 0)$, $Z_{j,i} \leq R_{j,i}$ for all valid $j,i$, and $R_{j,i} \geq R_{j,i+1}$ for all valid $j,i$, we have by the superadditivity of $\beta$ that
+    \[\sum_{j \in D^\star \setminus \Dgood} \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} \leq \sum_{j \in D^\star \setminus \Dgood} \alpha^\star_j \leq \rho \sum_{j \in D^\star \setminus \Dgood} d(j, i^\star)\,.\]
+    Overall, then,
+    \[\sum_{j \in D^\star} \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}} \leq \hat{f} + (\rho + 6 \delta) \sum_{j \in D^\star} d(j, i^\star)\,.\]
+    
+    Note that $D_1^\star, \ldots, D^\star_{k^\star}$ partition $[n]$. Then, summing the above over all $(i_{\ell}^\star, D^\star_{\ell})$,
+    \begin{align*}
+    \sum_{j=1}^n \Paren{\sum_{i=s(j)}^{m-1} \beta(Z_{j,i}, R_{j,i+1}) + R_{j, m}}
+    &\leq k^\star \cdot \hat{f} + (\rho + 6 \delta) \cdot C_{\mathrm{OPT}}\\
+    &= (\rho + 6 \delta) \cdot F_{\mathrm{OPT}} + (\rho+6\delta) \cdot C_{\mathrm{OPT}}\\
+    &= (\rho + 6 \delta) \cdot \mathrm{OPT}\,.
+    \end{align*}
+    Hence, 
+    \[(1-\delta) \cdot C_{\mathrm{SOL}} + (\rho + 6 \delta) \cdot F_{\mathrm{SOL}} \leq (\rho + 6 \delta) \cdot \mathrm{OPT} + |\Sr^\star| n \eta\,,\]
+    so 
+    \[C_{\mathrm{SOL}} \leq \frac{\rho + 6 \delta}{1-\delta} \Paren{\mathrm{OPT} - F_{\mathrm{SOL}}} + 2 |\Sr^\star| n \eta \leq (1+8\delta) \rho \Paren{\mathrm{OPT} - F_{\mathrm{SOL}}} + 2|\Sr^\star| n \eta\]
+    for $\delta > 0$ smaller than $0.125$ and $\rho \geq 1$.
+    Then the conclusion follows because $F_{\mathrm{SOL}} = |S^\star_{\mathrm{reg}}| \cdot f$.
+\end{proof}

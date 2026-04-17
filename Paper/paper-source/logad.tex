@@ -1,0 +1,741 @@
+
+\section{Log-Adaptive Algorithm}
+\label{sec:logad}
+% ============================================================
+% 1) NEW LOG-ADAPTIVE GREEDY (DISCRETIZED) PSEUDOCODE
+% ============================================================
+
+% ============================================================
+% 2) NEW "OPENABLE" DEFINITION (CHANGED 4th BULLET)
+% ============================================================
+
+In this section we present a \textit{smooth} version (Algorithm \ref{alg:log-adaptive-greedy}) of our greedy algorithm with general bids (Algorithm \ref{alg:dual_generalized}), which we call the log-adaptive algorithm.
+Thus, we follow the recipe of~\cite{MR4928455-Cohen25} for obtaining an approximation algorithm for $k$-median that opens $k + O(\log n)$ centers: they first develop a log-adaptive version of the Greedy algorithm, and then combine it with a merging procedure that walks between solutions to find one at opens $k + O(\log n)$ centers.
+We also follow these two steps, although our strategy for analyzing the log-adaptive algorithm is substantially different from theirs.
+We then state our guarantees for $k$-median in Subsection~\ref{subsec:k-median}; the merging procedure is deferred to Section~\ref{sec:merging}.
+
+% See Subsection~\ref{subsec:k-median} for our result for $k$-median.
+% Our merging procedure is very similar to that in~\cite{MR4928455-Cohen25} and is deferred to Section~\ref{sec:merging}.
+
+% Following the framework by \cite{MR4928455-Cohen25}, we arrive at $\rho$-approximation to $k$-median which opens at most $k+O(\log n/\eps^2)$ centers. Here, we merge two $\rho$-LMP-approximate solutions, one with less than $k$ centers and on with more than $k$ centers. The merging procedure is addressed in Appendix \ref{sec:merging}.       
+
+The analysis of~\cite{MR4928455-Cohen25} derives the guarantees of their log-adaptive algorithm from scratch, by redoing the analysis of~\cite{JMS02,JainMMSV03} in the log-adaptive context.
+In contrast, our goal is to connect the approximation ratio of the log-adaptive algorithm to the factor-revealing program in Definition~\ref{def:frp}.
+Thus, we show that the log-adaptive algorithm induces a feasible solution to the factor-revealing program, and transfer the upper bound on the value of that program to an upper bound on the cost of our algorithm.
+% In that sense, we treat the factor-revealing program as a black-box certificate: once we can show that the log-adaptive algorithm induces a feasible solution to that program, every upper bound on its value immediately transfers to the log-adaptive algorithm as well.
+% This cleanly separates the analysis into two parts.
+% The first part of the paper proves an LMP approximation ratio for metric uncapacitated facility location bounding the factor-revealing program (Definition~\ref{def:frp}), while the present section shows how to simulate that continuous process with only logarithmically many updates, losing only the controlled $(1+O(\delta))$ slack needed for discretization. \rares{Not fully accurate. The loss $\delta$ is from the scaling down of the metric. Although of course related to the discretization.}
+% This perspective is important since the framework is designed to work with the generalized bidding functions considered in this paper, and in particular with bids of the form $\beta(\alpha,d)=[\alpha-\gamma d]^+$ that underlie our $1.95$-LMP bound. 
+
+To make the Greedy algorithm smoother, \cite{MR4928455-Cohen25} increase the $\alpha$-values in geometrically spaced steps, i.e., the time parameter $\theta$ takes values in $\{1,(1+\eps^2),(1+\eps^2)^2,(1+\eps^2)^3, \dots\}$.
+With this strategy, however, it is possible for clients to significantly overbid for facilities when $\theta$ jumps to $(1+\eps^2)\theta$.
+% This strategy has the drawback that for some $\theta$-value we might not bid enough to open a facility $i$ but when raising the $\alpha$-values to $(1+\epsilon^2)\theta$ we might overbid significantly.
+To fix this issue, \cite{MR4928455-Cohen25} scale down the metric $d$ by a $1-\delta$ factor, which leads to a multiplicative $(1-O(\delta))$ loss in the LMP-approximation ratio.
+This still only resolves the issue for clients that are far from facilities, so they choose to allow clients that are close to facilities to raise their $\alpha$-value in-between steps.
+% This resolves the issue for all clients $j$ that are far from $i$ as this decreases their bid by $\gamma \delta d(j,i) \gg \epsilon^2 \theta$. \rares{You probably don't want $\gamma$ here?}\lukas{the decrease depends on $\beta$ so I put $\gamma$. Otherwise, I can also state it with the function $\beta$ but then it is not as immediate why it is a bound on the distance.}
+% To handle clients located close to $i$, the algorithm will be able to raise their $\alpha$-value in between steps.
+We also apply these fixes, but in addition we will need stronger structural properties in our analysis, and thus our algorithm will alternate between two stages of opening facilities which use \emph{different} scalings of the metric.
+This gives us a clusterability property that we prove in Lemma~\ref{lem:structure}.
+
+Below, we define two notions of openable facilities, which we call 1-openable (Definition \ref{def:openable-mod-1}) and 2-openable (Definition \ref{def:openable-mod-2}), used in Stage 1 and Stage 2 of the algorithm, respectively.
+Similarly to Algorithm \ref{alg:dual_generalized}, we maintain a set of active clients $A$ and a set of open facilities $S$, initialized to $A=D$ and $S = \emptyset$, respectively.
+Moreover, the state of the algorithm can be identified with the triple $(S,A,\theta)$ where $\theta$ is the time parameter.
+\begin{definition}[1-openable facility]
+\label{def:openable-mod-1}
+Fix a state $(S,A,\theta)$ where $S\subseteq F$ is the set of opened facilities, $A\subseteq D$ are the active clients, $I:=D\setminus A$ are the inactive clients, and
+    $\alpha_j=\theta$ for all $j\in A$.
+A facility $i\in F\setminus S$ is 1-\emph{openable} w.r.t.\ $(S,A,\theta)$ if it 
+satisfies:
+\[
+\sum_{j\in A}\beta(\theta, (1-\delta)\dist(i,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta)\dist(i,j))
+\;\ge\; f\,.
+\]
+\end{definition}
+
+\begin{definition}[2-openable facility]
+    \label{def:openable-mod-2}
+    Fix a state $(S,A,\theta)$ where $S\subseteq F$ is the set of opened facilities,
+    $A\subseteq D$ are the active clients, $I:=D\setminus A$ are the inactive clients, and
+    $\alpha_j=\theta$ for all $j\in A$.
+    A facility $i\in F\setminus S$ is 2-\emph{openable} w.r.t.\ $(S,A,\theta)$ if there exist bids $(\tau_j)_{j\in A}$
+    satisfying:
+    \begin{enumerate}
+        \item[\textbf{(i)}] (\textbf{Only nearby clients may increase})
+              \[
+                  \tau_j=\alpha_j \qquad \forall j\in A\setminus \Ball{i}{\epsilon\theta}\,.
+              \]
+        \item[\textbf{(ii)}] (\textbf{Nearby clients increase only slightly})
+              \[
+                  \alpha_j \le \tau_j \leq \min\Bigl\{(1-\delta)\dist(j,S),\, (1+\epsilon^2) \theta \Bigr\}
+                  \qquad \forall j\in A\cap \Ball{i}{\epsilon\theta}\,.
+              \]
+        \item[\textbf{(iii)}] (\textbf{Facility $i$ is paid for in the $(1-\delta/2)$-scaled metric})
+              \[
+                  \sum_{j\in A}\beta(\tau_j, (1- \delta/2)\dist(i,j))
+                  \;+\;
+                  \sum_{j\in I}\beta((1-\delta)\dist(j,S), (1- \delta/2)\dist(i,j))
+                  \;\ge\; f\,.
+              \]
+        \item[\textbf{(iv)}] (\textbf{No-overbidding after updating to $\tau$})
+              \[
+                  \forall i_0\in F:\qquad
+                  \sum_{j\in A}\beta(\tau_j,\dist(i_0,j))
+                  \;+\;
+                  \sum_{j\in I}\beta((1-\delta)  \dist(j,S), \dist(i_0,j))
+                  \;\le\;  f\,.
+              \]     
+        \item[\textbf{(v)}] (\textbf{Triangle inequality})
+              \[
+                  \tau_j \le \tau_k + \dist(j,k)
+                  \qquad \forall j,k\in A\,.
+              \]
+    \end{enumerate}
+\end{definition}
+Here, 1-openable facilities are facilities that are paid for with the current value of $\theta$, when the existing active clients contribute enough in the scaled metric.
+Thus, Stage~1 captures facilities that can be opened immediately. 
+On the other hand, 2-openable facilities are facilities where we have to raise the bids of clients that are close to the facility in order to pay for the opening cost: clients in $B(i,\epsilon \theta)$ may increase their bid from $\theta$ to intermediate values $\tau_j$.
+The no-overbidding constraint makes sure that we do not overbid towards another facility when raising the $\alpha$-values to $\tau$.
+Furthermore, the triangle constraints are necessary because the factor-revealing program requires triangle inequalities on the $\alpha$-values, see constraint \eqref{eq:fr-triangle}. %Moreover, the metric $d$ is scaled down only by $(1-\delta/2)$ instead of $(1-\delta)$. This has technical reasons and is crucial to prove the structural properties in Lemma \ref{lem:structure}. \rares{I say this above}
+
+The log-adaptive algorithm (Algorithm \ref{alg:log-adaptive-greedy}) has a three-stage structure within each phase. Stage~1 greedily opens 1-openable facilities. Stage~2 opens 2-openable facilities, potentially raising the $\alpha$-values of some clients. Then, once there are no more 2-openable facilities, we proceed to Stage~3, increasing $\theta$ to $(1+\eps^2)\theta$.
+%This way we ensure that we never overbid a facility (Lemma \ref{lem:overbidding}). \rares{I don't think it's very necessary to say this now}
+
+\begin{algorithm}[H]
+    \caption{Log-Adaptive Algorithm}
+    \label{alg:log-adaptive-greedy}
+    \textbf{Initialization:} Set $S = \emptyset$, $A = D$, $\theta = 1$, and
+    $\alpha_j = \theta$ for every $j \in A = D$.
+
+    \textbf{Repeat the following while} $A \neq \emptyset$:
+              \begin{enumerate}
+                  \item While there is an unopened facility $i$ that is 1-openable (chosen arbitrarily if there are many):
+                        \begin{quote}
+                            Open $i$ (i.e., add it to $S$) and mark all
+                            clients $j \in A$ such that $\alpha_j \geq (1-\delta)\dist(j,S)$ as served
+                            (i.e., remove them from $A$).
+                        \end{quote}
+                  \item While there is an unopened facility $i$ that is 2-openable (chosen arbitrarily if there are many):
+                        \begin{quote}
+                            Calculate $(\tau_j)_{j\in A}$ so that $i$ is openable with bids $(\tau_j)_{j\in A}$.
+                            Open $i$ (i.e., add it to $S$), let $\alpha_j \leftarrow \tau_j$ for every $j \in A$
+                            (note that only the values of the clients in $A \cap B(i,\eps\theta)$ change), and mark all
+                            clients $j \in A$ such that $\alpha_j \geq (1-\delta)\dist(j,S)$ as served
+                            (i.e., remove them from $A$).
+                        \end{quote}
+                  \item Perform the following step and proceed to the next phase:
+                        \begin{quote}
+                            For every remaining $j \in A$, let
+                            \[
+                                \alpha_j \leftarrow \min\bigl((1+\eps^2)\theta,\,(1-\delta)\dist(j,S)\bigr)\,,
+                            \]
+                            remove $j$ from $A$ when $\alpha_j = (1-\delta)\dist(j,S)$, and update
+                            $\theta \leftarrow (1+\eps^2)\theta$.
+                        \end{quote}
+              \end{enumerate}
+    \textbf{Output $S$.}
+\end{algorithm}
+
+\begin{remark}
+In Stage 2, if a client $j \in A$ has $\tau_j > \theta$, then it is $\epsilon \theta$-close to the facility that is opened at that step and it immediately becomes inactive.
+Therefore, it is valid to assume in Definition~\ref{def:openable-mod-2} that $\alpha_j = \theta$ for all $j \in A$.
+\end{remark}
+In this section we will prove the following main theorem that states that the log-adaptive algorithm (Algorithm \ref{alg:log-adaptive-greedy}) is indeed an LMP-approximation algorithm with factor $\rho$, where $\rho$ is an upper bound on the factor revealing program. In other words, the connection cost of the algorithm is bounded by $(\mathrm{OPT} - |S^\star| \cdot f)$ times the approximation factor $\rho$.
+\begin{theorem}
+\label{theorem:alg-lmp}
+    Let $\gamma \geq 1$ and let $\beta(\alpha,d) = [\alpha - \gamma \cdot d]^+$. Let $\rho \geq 1.01 \gamma$ be an upper bound on the optimal value of the factor-revealing program in Definition~\ref{def:frp} over all $n \geq 1$.
+    For any $\delta > 0$ small enough compared to $1/\gamma$ as well as any $\eps > 0$ small enough compared to $1/\gamma$ and $\delta$,
+    Algorithm~\ref{alg:log-adaptive-greedy} run with facility cost $\hat{f} = \rho \cdot f$ is a $(1+2\delta)\rho$-LMP approximation for UFL instances with facility cost $f$.
+    %outputs a set of facilities $S^\star$ such that
+    %\[\sum_{j \in D} d(j, S^\star) \leq (1+2\delta) \rho \cdot (\mathrm{OPT} - |S^\star| \cdot f)\,.\]
+\end{theorem}
+This theorem is analogous to Theorem~\ref{theorem:facility-location}, with an additional loss of $2\delta$ because of the log-adaptivity.
+We will prove the theorem in the following sections. The proof is concluded in Section~\ref{subsec:lmp-proof}.
+
+\subsection{Preliminaries}
+Throughout this section we use two small absolute constants $\delta,\eps > 0$ satisfying
+\[
+    1/\gamma \gg \delta \gg \eps > 0\,,
+\]
+where ``$\gg$'' means that each quantity is chosen sufficiently small as a function of the preceding one.
+%We will always make this dependence explicit in the statements where it matters.
+
+%Throughout the analysis, we will assume that $\delta > 0$ is small enough compared to $1/\gamma$ and similar, $\epsilon > 0$ is small enough compared to $1/\gamma$ and $\delta$.
+
+We define an \emph{atomic step} in the algorithm as the execution of one iteration in Stage 1, the execution of one iteration in Stage 2, or the execution of Stage 3.
+When we say something holds at ``every step'' in the algorithm, we mean before and after every atomic step.
+
+For a client $j \in D$, we denote by $\alpha_j^\star$ its final $\alpha_j$ value.
+For the purposes of the analysis, we order the clients from $1$ to $n$ by the order of the atomic steps in which they become inactive. 
+In case two clients become inactive in the same atomic step, we order them non-decreasingly by their $\alpha^\star$ value.
+We denote by $S^{(k)}$ the set of open facilities at the beginning of the atomic step in which client $k$ becomes inactive.
+We denote by $S^{(n+1)} = S^\star$ the set of open facilities at the end of the algorithm.
+For $1 \le j \leq k \le n$, we set 
+\[
+    r_{jk} = 
+    \begin{cases}
+        \alpha_j^\star &
+        \begin{array}[t]{@{}l@{}}
+            \text{if $j$ is active at the beginning of the atomic step}\\
+            \text{in which $k$ becomes inactive}\,,
+        \end{array}
+        \\[2mm]
+       (1-\delta)~d(j, S^{(k)}) & \text{otherwise}\,.
+    \end{cases}
+\]
+In other words, if $j \le k$ become inactive in the same atomic step, then $ r_{jk} = \alpha^\star_j$ and otherwise $ r_{jk} =  (1-\delta)~d(j, S^{(k)})$.
+We also set $r_{j,n+1} = (1-\delta)d(j, S^\star)$. 
+
+\begin{observation}
+\label{obs:r-noninc}
+We have $r_{jk} \geq r_{jk+1}$ for all $1 \leq j \leq k \leq n$.
+\end{observation}
+\begin{proof}
+    We have trivially that $\alpha_j^\star \leq \alpha_j^\star$ and $(1-\delta) d(j, S^{(k)}) \geq (1-\delta) d(j, S^{(k')})$ for $k < k'$ as $S^{(k)}$ is monotone.
+    Moreover, $\alpha_j^\star \geq (1-\delta)d(j, S^{(k)})$ for the atomic step when $j$ becomes inactive so the claim follows.
+\end{proof}
+
+Our analysis will also use the notion of candidate facilities which are facilities that are paid for as in the definition of 2-openable. 
+\begin{definition}
+We say that a facility $i$ is a candidate at some point of the algorithm if it satisfies
+\begin{align*}
+    \sum_{j\in A}\beta((1+\eps^2) \theta, (1- \delta/2)\dist(i,j))
+    \;+\;
+    \sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta/2)\dist(i,j))
+    \;\ge\; \hat f\,.
+\end{align*}
+\end{definition}
+In other words, a candidate has the possibility to be paid for by increasing all the active clients to the maximum of that stage. In particular, all facilities that are opened in Stage 2 will be candidate facilities at that point of the algorithm. 
+
+\subsection{Algorithm Properties}
+First, we prove that at every step of the algorithm the clients do not overbid toward any facility.
+\begin{lemma}[No overbidding]
+    \label{lem:overbidding}
+    At any step of the algorithm, for every facility $i \in F$, 
+    \[
+        \sum_{j \in A} \beta(\theta, d(i,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i,j)) \leq \hat f\,.
+    \]
+\end{lemma}
+\begin{proof}
+The inequality holds at the beginning of the algorithm because $\alpha_j = 1 \le d(i,j)$ for every client $j$ by assumption \eqref{eq:dist-bound}.
+We will show that invariant holds after every atomic step of the algorithm.
+The atomic step might happen in each of the three stages.
+
+\paragraph{Stage 1 and Stage 2}
+Opening up a facility $i_0$ decreases the left hand side since $d(j,S)$ is monotonically decreasing with $S$.
+The only other change to the left hand side that can happen is that a client $j$ becomes inactive.
+In that case, however, either $\theta = \alpha_j^\star \ge (1-\delta)d(j,S\cup \{i_0\})$ or $j \in B(i_0,\epsilon \theta)$ and $\epsilon \theta \ge d(j,i_0) \ge  (1-\delta)d(j,S\cup \{i_0\})$.
+Thus, the left hand side decreases by the monotonicity of $\beta$.
+
+\paragraph{Stage 3}
+Let $A, I$ be the sets of active and inactive clients after raising all $\alpha_j$ to $\min\bigl((1+\eps^2)\theta,\,(1-\delta)\dist(j,S)\bigr)$ for all $j$ that are active at the beginning of this step.
+Assume for contradiction that after raising $\theta$ to $(1+\eps^2)\theta$ the invariant is violated for some facility, and let $F_0$ be the set of all such facility, such that for all $i \in F_0$
+\[
+    \sum_{j \in A} \beta((1+\epsilon^2)\theta, d(i,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i,j)) > \hat f\,.
+\]
+Note that none of the facilities $i \in F_0$ are open because otherwise there would be no client with a positive bid to $i$ (for clients $j \in A$ we would have $(1+\eps^2)\theta < (1-\delta)d(j,S) \leq (1-\delta)d(j, i)$, and for clients $j \in I$ we would have $(1-\delta)d(j,S) \leq (1-\delta)d(j,i) \leq d(j, i)$).
+
+Also let $A' \supseteq A$ and $I' \subseteq I$ be the active and inactive sets at the beginning of Stage 3, respectively.
+For each facility $i_0 \in F_0$ compute $\theta \le \tau^{(i_0)} \le (1+\eps^2)\theta$ such that for $\alpha^\prime_{i_0,j} = \min\bigl(\tau^{(i_0)},\,(1-\delta)\dist(j,S)\bigr)$ we have
+\[
+    \sum_{j \in A'} \beta(\alpha^\prime_{i_0,j}, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) = \hat f\,.
+\]
+Let us prove that such $\tau^{(i_0)}$ exists: We know by the invariant before this atomic step that
+\[\sum_{j \in A'} \beta(\theta, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) \leq \hat f,\]
+so it also holds for $\alpha^\prime_{i_0,j}$ with the choice $\tau^{(i_0)} = \theta$.
+We also show that the invariant is violated for $\alpha^\prime_{i_0,j}$ with the choice $\tau^{(i_0)} = (1+\eps^2)\theta$, and then the existence of $\tau^{(i_0)}$ follows by continuity.
+Recall that
+\[\sum_{j \in A} \beta((1+\epsilon^2)\theta, d(i_0,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i_0,j)) > \hat f.\]
+Then, for $j \in A$ we have $(1+\eps^2)\theta < (1-\delta)d(j,S)$ and so $\alpha^\prime_{i_0,j} = (1+\eps^2)\theta$, and for $j \in A' \cap I$ we have $(1+\eps^2)\theta \geq (1-\delta) d(j,S)$ and so $\alpha^\prime_{i_0,j} = (1-\delta)d(j,S)$, so also
+\[\sum_{j \in A'} \beta(\alpha^\prime_{i_0,j}, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) > \hat f.\]
+Therefore $\tau^{(i_0)}$ exists by continuity.
+
+Now select the facility $i \in F_0$ that minimizes $\tau^{(i)}$. This implies that $\alpha^\prime_{i,j} \leq \alpha^\prime_{i_0,j}$ for all $i_0 \in F_0$ and $j \in D$, so
+\begin{equation}
+    \label{eq:minimal-facility}
+    \sum_{j \in A'} \beta(\alpha^\prime_{i,j}, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) \le \hat f\,.
+\end{equation}
+From now on, let $\alpha_j^\prime = \alpha_{i,j}^\prime$.
+We will show that $i$ was 2-openable at the end of Stage 2 with bids $\tau_j = \min\bigl(\tau^{(i)},\,(1-\delta)\dist(j,S), (1+\epsilon) \theta - d(j,i)\bigr)$ for all $j \in A' \cap B(i,\epsilon \theta)$ and $\tau_j = \theta$ for all $j \in A'\setminus B(i,\epsilon \theta)$.
+Let us check the conditions one by one,
+\begin{enumerate}
+        \item[\textbf{(i)} - \textbf{(ii)}] Clearly holds by the definition of $\tau$.
+        \item[\textbf{(iii)}]
+        We have that 
+        \begin{align*}
+            \hat f & = \sum_{j \in A'} \beta(\alpha_j^\prime, d(i,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i,j)) \\ 
+            & \le \sum_{j \in A'} \beta(\tau_j, (1- \delta/2)\dist(i,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), (1- \delta/2)\dist(i,j))\,.
+        \end{align*}
+        Let us verify that the inequality holds. First, consider $j \in B(i,\epsilon \theta)$. In the case where $\tau_j = \alpha^\prime_j$ we have by the monotonicity of $\beta$ that $\beta(\alpha_j^\prime, d(i,j)) \le \beta(\tau_j,  (1-\delta/2) d(i,j))$. In the other case when $\tau_j = (1+\epsilon) \theta - d(i,j)$ observe that
+        \begin{align*}
+            \beta(\alpha_j^\prime, d(i,j)) & \le \pos{(1+\epsilon^2)\theta - \gamma  d(i,j)} \\ & \le \pos{(1+\epsilon)\theta - d(i,j) - \gamma (1-\delta/2) d(i,j)} 
+            \\ & = \beta(\tau_j,  (1-\delta/2) d(i,j))
+        \end{align*}
+        because using that $\gamma \geq \gamma (1-\delta/2) + \eps$ for $\delta \gg \eps$ we have
+    \begin{align*}
+        (1+\epsilon) \theta - d(i, j)-(\gamma (1-\delta/2)) d(i, j)
+        &= (1+\epsilon) \theta - (1-\eps)d(i, j)-(\gamma (1-\delta/2) + \eps) d(i, j)\\
+        &\geq (1+\eps^2) \theta - (\gamma (1-\delta/2) + \eps)d(i,j)\\
+        &\geq (1+\eps^2)\theta - \gamma d(i, j)\\
+        &\geq \alpha_j' - \gamma d(i, j)\,.
+    \end{align*}
+        For $j \in A' \setminus B(i,\epsilon \theta)$, using that $\eps^2 \theta \le \epsilon \gamma \delta /2~\theta \le \gamma \delta/2~ d(i,j)$,
+        \begin{align*}
+            \beta(\alpha_j^\prime, d(i,j)) = \pos{\alpha_j^\prime - \gamma  d(i,j)} \le \pos{\theta - \gamma (1-\delta/2) d(i,j)} = \beta(\tau_j,  (1-\delta/2) d(i,j))\,.
+        \end{align*}
+        \item[\textbf{(iv)}] Assume that the no-overbidding inequality is violated for some facility $i_0 \in F_0$,
+        \begin{align*}
+            \hat f & < \sum_{j\in A'}\beta(\tau_j,\dist(i_0,j))
+                  \;+\;
+                  \sum_{j\in I'}\beta((1-\delta)  \dist(j,S), \dist(i_0,j))
+                  \\ & \le \sum_{j\in A'} \beta(\alpha^\prime_j,\dist(i_0,j))
+                  \;+\;
+                  \sum_{j\in I'}\beta((1-\delta)  \dist(j,S), \dist(i_0,j))\,.
+        \end{align*}
+        The last inequality holds by the monotonicity of $\beta$.
+        We arrive at a contradiction to the minimal choice of $i$. In particular, a contradiction to (\ref{eq:minimal-facility}). 
+        
+        On the other hand, for $i_0 \in F \setminus F_0$, the claim follows because we have 
+        \[
+\sum_{j \in A} \beta((1+\epsilon^2)\theta, d(i_0,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i_0,j)) \leq \hat f
+    \]
+        and we have $(1+\epsilon^2)\theta \geq \tau_j$ and for $j \in A' \cap I$ we have $(1-\delta)d(j, S) \geq \tau_j$ so also
+        \[
+\sum_{j \in A'} \beta(\tau_j, d(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d(j, S), d(i_0,j)) \leq \hat f\,.
+    \]
+        \item[\textbf{(v)}] We have to show that
+              \[
+                  \tau_j \le \tau_k + \dist(j,k)
+                  \qquad \forall j,k\in A'
+              \]
+              which is clearly true if $\tau_j = \theta$ or $\tau_k = \tau^{(i)}$. Moreover, if $\tau_k = (1+\epsilon)\theta - d(i,k)$ then
+              \[
+                \tau_j \leq (1+\epsilon) \theta - d(i, j) \leq (1+\epsilon) \theta - (d(i, k) - d(j, k)) = \tau_k + d(j,k)\,.
+            \]
+            From now on we assume that $j \in B(i,\epsilon \theta)$. 
+            Consider the two remaining cases where either $\tau_k =\theta$ and $k \in A' \setminus B(i,\epsilon \theta)$ or $\tau_k = (1-\delta)d(k,S) = (1-\delta)d(k,i_0)$ for some open facility $i_0$. In the first case,
+              \[
+                \tau_j \le (1+\epsilon) \theta - d(j,i) \le (1+\epsilon) \theta - (d(k,i) - d(j,k)) \le \theta + d(j,k) = \tau_k + d(j,k)\,.
+              \]
+              In the second case, 
+              \[
+                \tau_j \le (1-\delta)d(j,S) \le (1-\delta)d(j,i_0) \le (1-\delta) (d(i_0,k) + d(j,k)) \le \tau_k + d(j,k)\,.
+              \]
+    \end{enumerate}
+\end{proof}
+
+Next, we will show that without 1-openable facilities, which is the case after finishing Stage 1, all facilities that are candidates in Stage 2 are either far apart or close together. This structural property will be crucial to prove feasibility for the factor revealing program.
+\begin{lemma}
+\label{lem:structure}
+    Suppose two facilities $i_1$ and $i_2$ are candidates at the same step during Stage 2.
+    Then either
+    $d(i_1,i_2)\le \delta \theta$ or $d(i_1,i_2)\ge \theta / \gamma$.
+\end{lemma}
+\begin{proof}
+If $i_1 = i_2$ then the claim is immediate so we assume $i_1 \neq i_2$.
+Let $N_1 = A \cap B(i_1, \epsilon \theta)$ and $N_2 = A \cap B(i_2, \epsilon \theta)$.
+Let us assume without loss of generality that $|N_1| \le |N_2|$.
+Let us also assume for the sake of contradiction that $\delta \theta < d(i_1, i_2) < \theta/\gamma$, which implies that $N_1$ and $N_2$ are disjoint as $\delta \gg \eps$.
+
+Let 
+\[P = \sum_{j\in A}\beta((1+\eps^2) \theta, (1- \delta/2)\dist(i_1,j)) +
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta/2)\dist(i_1,j))\]
+and 
+\[Q = \sum_{j\in A}\beta(\theta, (1-\delta)\dist(i_1,j)) +\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta)\dist(i_1,j))\,.\]
+Because $i_1$ is a candidate, $P \geq \hat f$.
+We also claim that $Q < \hat f$.
+If $i_1 \not\in S$, we claim that this is true because otherwise facility $i_1$ would have been 1-openable in Stage 1.
+Let $S' \subseteq S$ be the set of open facilities at the beginning of Stage 2, and let $A', I'$ be the set of active and inactive clients at the beginning of Stage 2.
+Note that $A' \supseteq A$ and $I' \subseteq I$.
+For $j \in I'$ we use $(1-\delta) d(j,S) \leq (1-\delta) d(j, S')$, and for $j \in A' \cap I$ we use $(1-\delta) d(j,S) \leq \theta$.
+The last inequality is immediate if $\alpha_j^\star = \theta$, and if $\alpha_j^\star > \theta$ then $j$ must have been $\eps \theta$-close to some facility in $S$ and hence $d(j,S) \leq \eps\theta$.
+Then
+\begin{align*}
+Q &= \sum_{j\in A}\beta(\theta, (1- \delta)\dist(i_1,j)) +
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta)\dist(i_1,j))\\
+&\leq \sum_{j\in A'}\beta(\theta, (1- \delta)\dist(i_1,j)) +
+\sum_{j\in I'}\beta((1-\delta)\dist(j,S'), (1-\delta)\dist(i_1,j))\,,
+\end{align*}
+so the last term would have been at least $\hat f$ if $Q \geq \hat f$, and then facility $i_1$ would have been 1-openable in Stage 1.
+On the other hand, if $i_1 \in S$, the claim is true simply because $\theta < (1-\delta) d(i_1, j)$ for $j \in A$ and $d(j, S) \leq d(i_1, j)$ for $j \in I$, so the left-hand side would be zero.
+Hence $Q < \hat f$.
+
+We will prove that $Q \geq P$, which is impossible because $Q < \hat f \leq P$, and thus we reach the desired contradiction.
+Note that the inactive term of $P$ is trivially upper bounded by the inactive term of $Q$, so it suffices to prove that this is also true for their active terms.
+We consider three cases:
+\begin{itemize}
+    \item \textbf{Case $j \in N_1$.} 
+    Then, because $d(i_1, j) \leq \eps \theta$, we have that $\beta((1+\eps^2)\theta, (1-\delta/2)d(i_1,j))$ and $\beta(\theta,(1-\delta)d(i_1,j))$ are both positive and
+    \begin{align*}
+    &[\theta - \gamma(1-\delta)d(i_1,j)]^+ - [(1+\eps^2)\theta - \gamma(1-\delta/2)d(i_1,j)]^+\\
+    =& -\eps^2 \theta + (\gamma \delta / 2) d(i_1, j)
+    \geq -\eps^2 \theta\,.
+    \end{align*}
+    \item \textbf{Case $j \in N_2$.}
+    Then $\delta \theta - \eps \theta \leq d(i_1, j) \leq \theta / \gamma + \eps \theta$, and we have again that $\beta((1+\eps^2)\theta, (1-\delta/2)d(i_1,j))$ and $\beta(\theta,(1-\delta)d(i_1,j))$ are both positive and 
+    \begin{align*}
+    &[\theta - \gamma(1-\delta)d(i_1,j)]^+ - [(1+\eps^2)\theta - \gamma(1-\delta/2)d(i_1,j)]^+\\
+    =& -\eps^2 \theta + (\gamma \delta / 2) d(i_1, j)
+    \geq -\eps^2 \theta + (\gamma \delta / 2)(\delta-\eps)\theta
+    \geq \eps^2 \theta\,,
+    \end{align*}
+    where we used $\delta \gg \eps$.
+    \item \textbf{Case $j \in A \setminus (N_1 \cup N_2)$.}
+    Then $d(i_1, j) \geq \eps \theta$.
+    First, we claim that $\beta((1+\eps^2)\theta, (1-\delta/2)d(i_1,j))$ is positive only if $\beta(\theta,(1-\delta)d(i_1,j))$ is positive:
+    Suppose
+    \[(1+\eps^2)\theta - \gamma(1-\delta/2)d(i_1, j) \geq 0\,.\]
+    Then
+    \begin{align*}
+    \theta - \gamma (1-\delta) d(i_1, j)
+    \geq \frac{\gamma(1-\delta/2)}{1+\eps^2}d(i_1,j)-\gamma(1-\delta)d(i_1,j) \geq 0\,,
+    \end{align*}
+    where we used $\delta \gg \eps$.
+    So it suffices to consider the case when both are positive.
+    In that case,
+    \begin{align*}
+    &[\theta - \gamma(1-\delta)d(i_1,j)]^+ - [(1+\eps^2)\theta - \gamma(1-\delta/2)d(i_1,j)]^+\\
+    =& -\eps^2 \theta + (\gamma \delta / 2) d(i_1, j)
+    \geq -\eps^2 \theta + (\gamma \delta / 2) \eps \theta
+    \geq 0\,,
+    \end{align*}
+    where we used again $\delta \gg \eps$.
+\end{itemize}
+Summing up these contributions over all $j \in A$, and using that $|N_1| \leq |N_2|$, we get that $Q \geq P$, finishing the proof.
+\end{proof}
+
+Finally, we prove a structural that is rather technical but is essential in the proof that our solution is feasible for the factor-revealing program:
+For any fixed facility $i^\star$, if one considers the subset of clients that are not too far from $i^\star$ when they become inactive, then if any of these clients $j$ is active in Stage $2$ with $\tau_j > \theta$, then all other active clients in this subset also become inactive in the same atomic step.
+
+\begin{lemma}
+    \label{lem:freezing}
+    Assume $\rho \geq 1.01 \gamma$.
+    Consider a facility $i^\star$ and a subset of clients $D^\star \subseteq [n]$ such that for all $j \in D^\star$ it holds that $\alpha_j^\star \geq \rho \cdot d(j, i^\star)$.
+    Suppose that a client $j \in D^\star$ becomes inactive in Stage 2 and has $\alpha_j^\star > \theta$ at that step.
+    Suppose also that facility $i^\star$ was a candidate at that step.
+    Then, for the facility $i_0$ that was opened at that step, we have $d(i^\star, i_0) \leq \delta \theta$.
+    Furthermore, all other clients in $D^\star$ that were active before this atomic step become inactive in this atomic step.
+\end{lemma}
+\begin{proof}
+    Both $i^\star$ and $i_0$ are candidates, so by Lemma~\ref{lem:structure} we have that either $d(i^\star,i_0) \leq \delta \theta$ or $d(i^\star,i_0) \geq \theta/\gamma$.
+    Note that, because $\alpha_j^\star > \theta$, we have $d(j, i_0) \leq \epsilon \theta$.
+    In Stage 2 we have $\alpha^\star_j \leq (1+\eps^2) \theta$, so combining with $\alpha_j^\star \geq \rho \cdot d(j, i^\star)$ we get that $(1+\eps^2) \theta \geq \rho \cdot d(j, i^\star)$.
+
+    If $d(i^\star, i_0) \geq \theta/\gamma$, we have that $d(j, i^\star) \geq d(i^\star, i_0) - d(j, i_0) \geq \theta/\gamma - \epsilon\theta \geq 0.999 \cdot \theta/\gamma$ (using $1/\gamma \gg \epsilon$), which violates the assumption that $d(j, i^\star) \leq (1+\eps^2) \theta/\rho$.
+
+    Hence, it must be the case that $d(i^\star, i_0) \leq \delta \theta$.
+    Suppose some $k \in D^\star$ that is active before this atomic step does not become inactive at this atomic step. 
+    This implies that $\tau_k < (1-\delta) d(k, i_0)$, but we must also have $\tau_k = \theta$ because otherwise $k$ would have been $\epsilon \theta$-close to $i_0$ and it would have become inactive at this atomic step, so $\theta < (1-\delta) d(k, i_0)$.
+    However, after $i_0$ is opened, this client will become inactive at the latest when its $\theta$ value increases to at least $(1-\delta) d(k, i_0)$.
+    Then, because $\theta$ increases in multiples of $1+\eps^2$, we have that $\alpha^\star_k \leq (1+\eps^2)(1-\delta)d(k, i_0)$.
+    On the other hand,
+    \[\alpha^\star_k \geq \rho \cdot d(k, i^\star) \geq \rho \cdot (d(k, i_0) - d(i^\star, i_0)) \geq \rho \cdot d(k, i_0) - \rho \delta \theta \geq \rho \Paren{1 - \delta(1-\delta)} d(k, i_0)\,.\]
+    Putting the two together, we get that
+    \[\rho \Paren{1 - \delta(1-\delta)} d(k, i_0) \leq (1+\eps^2)(1-\delta)d(k, i_0)\,,\]
+    which is a contradiction for $\rho \geq 1.01$ for $\delta \gg \eps > 0$ small enough.
+\end{proof}
+
+\subsection{Algorithm Cost}
+
+We now bound the cost of the algorithm in terms of the variables $r$.
+
+\begin{lemma}
+\label{lemma:alg-cost}
+    The cost (with respect to opening cost $\hat{f}$) of a solution output by our algorithm is at most
+    \[\sum_{j=1}^n \Paren{\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} + \delta \cdot \sum_{j=1}^n d(j,S^\star)\,.\]
+\end{lemma}
+\begin{proof}
+    The $j$-th client has connection cost $d(j, S^\star)$.
+    We also need to calculate the contribution of $j$ to the opening of each facility in $S^\star$.
+    It costs $\hat{f}$ to open a facility, and we know that at the atomic step when it was opened we had
+    \[
+\sum_{j\in A}\beta(\theta, (1-\delta)\dist(i,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta)\dist(i,j))
+\;\ge\; \hat f.
+\]
+    if it was opened in Stage 1 (by Definition~\ref{def:openable-mod-1})
+    or 
+  \[
+      \sum_{j\in A}\beta(\tau_j, (1- \delta/2)\dist(i,j))
+      \;+\;
+      \sum_{j\in I}\beta((1-\delta)\dist(j,S), (1- \delta/2)\dist(i,j))
+      \;\ge\; \hat f.
+  \]
+  if it was opened in Stage 2 (by Definition~\ref{def:openable-mod-2}).
+  Therefore, it will suffice to bound these left-hand sides.
+    
+    Also let $S_0 \subsetneq S_1 \subsetneq \ldots \subsetneq S_m = S^\star$ with $m = |S^\star|$ be the sets of opened facilities during the execution of the algorithm.
+    Let $s(j)$ be the index $k$ such that $S_k = S^{(j)}$ and $s(n+1) = m$.
+    For $1 \le j \leq n$ and $0 \leq k \le m - 1$ such that $s(j) \leq k$, we set 
+    \[
+    R_{jk} =
+    \begin{cases}
+        \alpha^\star_j &
+        \begin{array}[t]{@{}l@{}}
+            \text{if $j$ is active at the beginning of the atomic step}\\
+            \text{in which facility $S_{k+1}\setminus S_k$ is opened}\,,
+        \end{array}
+        \\[2mm]
+        (1-\delta)d(j,S_k) & \text{otherwise}\,.
+    \end{cases}
+    \]
+    We also define $R_{j,m}= (1-\delta)d(j, S^\star)$ for all $j$.
+    We note that $r_{j,k} = R_{j, s(k)}$ for all valid $j,k$: The only potential difficulty is if $k$ becomes inactive in Stage 3, because then it is possible for $j$ to be active w.r.t. $S^{(k)}$ at the beginning of the atomic step in which $k$ becomes inactive but for it to be inactive w.r.t. $S^{(k)}$ at the beginning of the atomic step in which the next facility is opened.
+    However, in this one special case, we have in fact $\alpha^\star_j = (1-\delta)d(j,  S^{(k)})$, so the difference in definitions does not matter and we still have $r_{j,k} = R_{j, s(k)}$.
+
+    \paragraph{Stage $1$}
+    Suppose that $i$ is opened in Stage $1$ with respect to a set of open facilities $S$ and with active and inactive sets $A$ and $I$, respectively.
+    Then, if $j \in A$ then the contribution is $\beta(\theta, (1-\delta)d(i,j))$ and if $j \in I$ then the contribution is $\beta((1-\delta)d(j,S), (1-\delta)d(i, j))$.
+    
+    We note that if $i$ is opened before the atomic step in which $j$ becomes inactive, we have that the contribution is zero, because $j$ is active after the opening of $i$ and hence $\theta < (1-\delta)d(j,S \cup \{i\})$.
+
+    We now bound the contribution of client $j$ to the opening of the facility $S_{k+1} \setminus S_{k}$, for $k \geq s(j)$, by $\beta(R_{j,k}, R_{j,k+1})$.
+    This follows by the definition of $R$.
+    Specifically, if $j \in A$, then $R_{j,s(j)} = \alpha_j^\star = \theta$ because $j$ must become inactive in this atomic step, matching the above.
+    If $j \in I$ but $k = s(j)$, which can happen if $j$ becomes inactive in Stage 3, we have $R_{j,s(j)} = \alpha_j^\star = (1-\delta)d(j, S)$, again matching the above.
+    For $k > s(j)$ we have by definition $R_{j, k} = (1-\delta)d(j, S)$, again matching the above.
+    Finally, for all $k \geq s(j)$, $R_{j,k+1} = (1-\delta) d(j, S_{k+1})$, where $d(j, S_{k+1})$ is a lower bound on the distance from $j$ to the facility, so together the above suffice to upper bound the contribution by $\beta(R_{j,k}, R_{j,k+1})$.
+
+    \paragraph{Stage $2$.}
+    Suppose that $i$ is opened in Stage $2$ with respect to a set of open facilities $S$ and with active and inactive sets $A$ and $I$, respectively.
+    If $j \in A$ then the contribution is $\beta(\tau_j, (1-\delta/2)d(j,i))$ and if $j \in I$ then the contribution is $\beta((1-\delta)d(j, S), (1-\delta/2) d(j, i))$.
+
+    Suppose $i$ is opened before the atomic step in which $j$ becomes inactive.
+    If $\tau_j > \theta$ then $d(j, i) \leq \epsilon \theta$ and $j$ in fact becomes inactive in this step, so we must have $\tau_j = \theta$.
+    But then, because $j$ is active after the opening of $i$, $\theta < (1-\delta) d(j, S \cup\{i\}) \leq (1-\delta) d(j, i)$, which implies that $\beta(\tau_j, (1-\delta/2)d(j,i)) = 0$.
+
+    We now bound the contribution of client $j$ to the opening of the facility $S_{k+1} \setminus S_{k}$, for $k \geq s(j)$, by $\beta(R_{j,k}, R_{j,k+1})$.
+    This follows by the definition of $R$.
+    Specifically, if $j \in A$, then $R_{j,s(j)} = \alpha_j^\star = \tau_j$ because $j$ must become inactive in this atomic step, matching the above.
+    If $j \in I$ but $k = s(j)$, which can happen if $j$ becomes inactive in Stage 3, we have $R_{j,s(j)} = \alpha_j^\star = (1-\delta)d(j, S)$, again matching the above.
+    For $k > s(j)$ we have by definition $R_{j, k} = (1-\delta)d(j, S)$, matching the above.
+    Finally, for all $k \geq s(j)$, $R_{j,k+1} = (1-\delta) d(j, S_{k+1})$, where $(1-\delta)d(j, S_{k+1})$ is a lower bound on $(1-\delta/2)$ times the distance from $j$ to the facility, so together the above suffice to upper bound the contribution by $\beta(R_{j,k}, R_{j,k+1})$.
+    
+    \paragraph{Putting things together.}
+    The above gives that the total opening costs are upper bounded by
+    \begin{align*}
+    \sum_{j=1}^n \sum_{k=s(j)}^{m-1} \beta(R_{j,k}, R_{j, k+1})
+    &= \sum_{j=1}^n \Paren{\sum_{i=j}^n \sum_{k=s(i)}^{s(i+1)-1} \beta(R_{j,k}, R_{j, k+1})}\,.
+    \end{align*}
+    Then, because $r_{j,i} = R_{j,s(i)}$ for all valid $j,i$, and because $R_{j,k} \geq R_{j,k+1}$ for all valid $j,k$ (by the same reason as in Observation~\ref{obs:r-noninc}), we have by the superadditivity of $\beta$ that furthermore
+    \[\sum_{j=1}^n \Paren{\sum_{i=j}^n \sum_{k=s(i)}^{s(i+1)-1} \beta(R_{j,k}, R_{j, k+1})} \leq \sum_{j=1}^n \sum_{i=j}^n \beta(r_{j,i}, r_{j,i+1})\,.\]
+    Using that $r_{j,n+1} = (1-\delta)d(j, S^\star)$, we also have that the connection cost satisfies $d(j, S^\star) = r_{j,n+1} + \delta d(j, S^\star)$.
+    Then the total cost is upper bounded by
+    \[\sum_{j=1}^n \Paren{\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} + \delta \cdot \sum_{j=1}^n d(j,S^\star)\,.\]
+\end{proof}
+
+\subsection{Factor-Revealing Program Feasibility}
+\label{sec:fr-feasiblity}
+In this subsection we consider some $i^\star \in F$ and a subset of clients $\Dgood \subseteq D$ such that, for all $j \in \Dgood$, $\alpha_j^\star \geq \rho \cdot d(j, i^\star)$.
+Let $q(i) = \min \Set{i' \mid i' > i, i' \in \Dgood \cup \{n+1\}}$.
+We will assume throughout that $\hat{f} > 0$ and $\rho \geq 1.01 \gamma$.
+
+We will show that $\{r_{jk} \mid j \leq k, j \in \Dgood, k \in \Dgood \cup \{n + 1\}\}, \{d(j, i^\star) \mid j \in \Dgood\}, \hat f$ is feasible for the factor revealing program in Definition~\ref{def:frp}, except for the normalization constraint (\ref{eq:fr-norm}).
+
+First we will prove that the facility constraints (\ref{eq:fr-facility}).
+\begin{lemma}
+\label{lem:fr-facility}
+    Consider the central facility $i^\star$ and let $k \in \Dgood$. Then,
+    \[
+        \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r_{jk}, d(i^\star,j)) \le \hat f\,.
+    \]
+\end{lemma}
+\begin{proof}
+    Consider the phase when $k$ goes inactive. 
+    $k$ goes inactive either in Stage 1, Stage 2 or Stage 3.
+    \paragraph{Stage 1}
+    Consider the state $(S=S^{(k)},A,\theta)$ of the algorithm just before the atomic step in which $k$ becomes inactive.
+    If $k$ goes inactive in stage 1 then $\alpha^\star_k = \theta$ and by Lemma \ref{lem:overbidding},
+    \begin{align*}
+        \hat f & \ge \sum_{j \in A} \beta(\theta, d(i^\star,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i^\star,j)) 
+        \\ & = \sum_{j \ge k} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{j < k} \beta(r_{jk}, d(i^\star,j)) 
+        \\ & \ge \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r_{jk}, d(i^\star,j))\,,
+    \end{align*}
+    where we use that if $j < k$ but $j \in A$ then we have $r_{jk} = \alpha_j^\star = \theta$.
+    \paragraph{Stage 2}
+    Again, consider the state $(S^{(k)},A,\theta)$ of the algorithm just before the atomic step in which $k$ becomes inactive.
+
+    The case $\alpha_k^\star = \theta$ is easy:
+    Note that $r_{jk} = \alpha_j^\star = \theta$ for all $j < k$ with $j \in A$, as $\alpha_j^\star \geq \theta$ and $\alpha_j^\star \leq \alpha_k^\star$ (because if $j < k$ and $j \in A$ then $j$ must become inactive in the same atomic step as $k$).
+    Then by Lemma \ref{lem:overbidding},
+    \begin{align*}
+        \hat f & \ge \sum_{j \in A} \beta(\theta, d(i^\star,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i^\star,j)) 
+        \\ & = \sum_{j \ge k} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{j < k} \beta(r_{jk}, d(i^\star,j)) 
+        \\ & \ge \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r_{jk}, d(i^\star,j))\,,
+    \end{align*}
+    where we use that if $j < k$ but $j \in A$ then we have $r_{jk} = \alpha_j^\star = \theta$.
+    
+    Else, $\alpha_k^\star > \theta$.
+    Assume for contradiction,
+    \[
+        \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r_{jk}, d(i^\star,j)) >  \hat f\,.
+    \]
+    Observe that $\alpha^\star_k \leq (1+\epsilon^2)\theta$. Moreover, for $j < k$ and $j \in A$ we have $r_{jk} = \alpha^\star_j \leq (1+\epsilon^2)\theta$. Then, $i^\star$ is a candidate in Stage 2 since
+    \begin{align*}
+        & \sum_{j\in A}\beta((1+\epsilon^2)\theta, (1- \delta/2)d(i^\star,j)) + \sum_{j\in I}\beta((1-\delta)\dist(j,S^{(k)}), (1-\delta/2)d(i^\star,j)) \\
+        \ge & \sum_{j \ge k} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{j < k} \beta(r_{jk}, d(i^\star,j)) \\
+        \ge & \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r_{jk}, d(i^\star,j)) > \hat f\,.
+    \end{align*}
+    Here, the first inequality holds by the monotonicity of $\beta$.
+    So $k \in \Dgood$ becomes inactive in Stage 2 while $i^\star$ is a candidate. Thus, by Lemma \ref{lem:freezing} we know that all clients in $A \cap \Dgood$ become inactive in the same atomic step as $k$ and $\alpha^\star_j = \tau_j$ for all $j \in A\cap \Dgood$. In particular, by property (iv) in $2$-openable,
+    \begin{align*}
+        \hat f & \ge \sum_{j \in A} \beta(\tau_j, d(i^\star,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S^{(k)}), d(i^\star,j)) \\
+        & \ge \sum_{j \in A \cap \Dgood} \beta(\alpha^\star_j, d(i^\star,j)) + \sum_{j \in I \cap \Dgood} \beta((1-\delta)d(j, S^{(k)}), d(i^\star,j)) \\
+        & \ge \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k, d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r_{jk}, d(i^\star,j))\,.
+    \end{align*}
+    For the last inequality we used that $\beta$ is monotone together with $\alpha^\star_j \ge \alpha^\star_k$ for all $j \ge k, j \in A$ since both $k$ and $j$ become inactive in the same atomic step and are hence ordered by $\alpha^\star$. Moreover, for $j < k$, we set $r_{jk} = \alpha^\star_j$ if $j \in A$ and $r_{jk} = (1-\delta)d(j,S^{(k)})$ if $j \in I$.
+    \paragraph{Stage 3}
+    In this case $k$ goes inactive when we increase the $\alpha$-values in Stage 3. Let $(S,A,\theta)$ be the state of the algorithm at the end of Stage 3. By Lemma \ref{lem:overbidding},
+    \[
+        \hat f \ge \sum_{j \in A} \beta(\theta, d(i^\star,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), d(i^\star,j))  \ge \sum_{\substack{j \ge k\\ j \in \Dgood}} \beta(\alpha^\star_k,  d(i^\star,j)) + \sum_{\substack{j < k\\ j \in \Dgood}} \beta(r_{jk}, d(i^\star,j))\,.
+    \]
+    Let us verify that the last inequality holds. First consider some $j \ge k$. For $j \in A$ note that $\theta \ge \alpha^\star_k$. Otherwise, $j \in I$ and $j$ became inactive in Stage 3 as well. In that case $(1-\delta)d(j,S) = \alpha^\star_j \ge \alpha^\star_k$ because $j$ and $k$ become inactive in the same atomic step and are hence ordered by $\alpha^\star$. Thus, we can use the monotonicity of $\beta$. Next, if $j < k$ then $j \in I$ since $k \in I$.
+    If $j$ became inactive in the same atomic step as $k$, we have $r_{jk} = \alpha_j^\star = (1-\delta)d(j, S)$.
+    Else, by definition $r_{jk} = (1-\delta)d(j, S)$. Here, $S = S^{(k)}$ since we do not open any new facilities in Stage 3. 
+\end{proof}
+
+\begin{lemma}
+\label{lem:fr-r-mono}
+    For all $1 \le j \leq k \le n$ we have $r_{jk} \ge r_{j k+1}$.
+\end{lemma}
+\begin{proof}
+    We consider different cases depending on when $j$ becomes inactive.
+    First, consider the case where $j$ becomes inactive strictly before $k$.
+    Then $r_{jk} = (1-\delta)d(j,S^{(k)}) \ge (1-\delta)d(j,S^{(k+1)}) = r_{jk+1}$ since $d(j, S)$ is monotonically decreasing with $S$ and $S^{(k)} \subseteq S^{(k+1)}$.
+    Next, consider the case where $j$ becomes inactive together with $k$ but strictly before $k+1$ then $r_{jk} = \alpha^\star_j \ge (1-\delta)d(j,S^{(k+1)}) = r_{jk+1}$.
+    In the remaining case when $j$, $k$ and $k+1$ become inactive at the same time we have $r_{jk} = r_{jk+1} = \alpha^\star_j$.  
+\end{proof}
+
+\begin{lemma}
+\label{lem:fr-triangle}
+    For all $1 \le j < k \le n$ we have $\alpha^\star_k \le r_{jk} + d_j + d_k$.
+\end{lemma}
+\begin{proof}
+    First, consider the case when client $j$ becomes inactive strictly before client $k$.
+    Then $r_{jk} = (1-\delta)d(j,S^{(k)}) = (1-\delta)d(j,i_0)$ for some facility $i_0 \in S^{(k)}$.
+     The client $k$ becomes inactive either in Stage 1 with $\alpha_k^\star = \theta \leq (1-\delta) d(k,S^{(k)}) \leq (1-\delta)d(k, i_0)$, in Stage 2 with $\alpha_k^\star = \tau_k \leq (1-\delta)d(k,S^{(k)}) \leq (1-\delta) d(k, i_0)$ or in Stage 3 with $\alpha_k^\star = (1-\delta)d(k,S) \leq (1-\delta) d(k, i_0)$.
+    Then, by triangle inequality,
+    \[
+        \alpha^\star_k \le (1-\delta)d(k,i_0) \le (1-\delta)(d(k, i^\star) + d(i^\star, j) + d(j, i_0)) \le r_{jk} + d_j + d_k\,.
+    \]
+    In the remaining case $k$ and $j$ become inactive at the same time and $r_{jk} = \alpha^\star_j$.
+    If $k$ and $j$ become inactive in Stage 1 then $\alpha^\star_k = \alpha^\star_j = \theta$.
+    If $k$ and $j$ become in inactive in Stage 2 then $\alpha^\star_k \le \alpha^\star_j + d(k,j) \le \alpha^\star_j + d_k + d_j$ by condition $(v)$ in Definition~\ref{def:openable-mod-2}.
+    Otherwise $k$ and $j$ become inactive in Stage 3 and 
+    \[
+        \alpha^\star_k = (1-\delta)d(k,S^{(k)}) \le (1-\delta)d(k,i_0) \le (1-\delta)(d(k,i^\star) + d(i^\star,j) + d(j,i_0)) \le \alpha^\star_j + d_k + d_j
+    \]
+    where $i_0$ is the facility that $j$ connects to, $\alpha^\star_j = (1-\delta)d(j,S^{(k)}) = (1-\delta)d(j,i_0)$. 
+\end{proof}
+
+\begin{lemma}
+\label{lem:fr-r-metric}
+    For all $1 \le j,\ell < k \le n + 1$ we have $r_{jk} \le r_{\ell k} + d_j + d_\ell$.
+\end{lemma}
+\begin{proof}
+    First, consider the case where $j$ becomes inactive strictly before $k$. Then $r_{jk} = (1-\delta)d(j,S^{(k)}) = (1-\delta)d(j,i_1)$ for some open facility $i_1 \in S^{(k)}$.
+    If $\ell$ becomes inactive strictly before $k$, then $r_{\ell k} = (1-\delta)d(\ell,S^{(k)}) = (1-\delta)d(\ell,i_2)$ for some open facility $i_2 \in S^{(k)}$, and because $i_1$ minimizes $(1-\delta)d(j,S^{(k)})$, 
+    \[
+        r_{jk} = (1-\delta)d(j,i_1) \le (1-\delta)d(j,i_2) \le (1-\delta)(d(j,i^\star) + d(i^\star,\ell) + d(\ell,i_2)) \le r_{\ell k} + d_j + d_\ell\,.
+    \]
+    Now if $\ell$ becomes inactive with $k$ then $r_{\ell k} = \alpha^\star_\ell$. 
+    Assume $j$ becomes inactive in Stage 2 when opening a facility $i_0$ with bids $(\tau_j)_{j \in A}$. By $(v)$ in Definition~\ref{def:openable-mod-2} we have
+    \[
+        r_{jk} = (1-\delta)d(j,S^{(k)}) \le (1-\delta)d(j,i_0) \le \tau_j \le \tau_\ell + d(j,\ell) \le \alpha^\star_\ell + d_j + d_\ell\,,
+    \]
+    where $(1-\delta) d(j, i_0) \leq \tau_j$ because if $\tau_j > \theta$ then we must have $d(j, i_0) \leq \epsilon \theta$ and if $\tau_j = \theta$ then we must have $(1-\delta) d(j, i_0) \leq \theta$ because $j$ was active but became inactive after $i_0$ was opened.
+    
+    Otherwise $j$ becomes inactive in Stage 1 or Stage 3 and
+    \[
+        r_{jk} = (1-\delta)d(j,S^{(k)}) \le \alpha^\star_j \le \alpha^\star_\ell = r_{\ell k}
+    \]
+    since $\ell$ becomes inactive strictly after $j$: this implies that in Stage 1 $\alpha^\star_j$ is equal to the $\theta$ at that stage and in Stage 3 $\alpha^\star_j$ is equal to at most $(1+\eps^2)\theta$ for the $\theta$ at that stage, but then $\alpha^\star_\ell$ is in both cases at least as large.
+    
+    Next, consider the case where $j$ becomes inactive with $k$. Then $r_{jk} = \alpha^\star_j$. If $\ell \ge j$ then $j$, $\ell$ and $k$ become inactive in the same atomic step and $r_{\ell k} = \alpha^\star_\ell$. By the ordering of $\alpha^\star$ we know that 
+    \[
+        r_{jk} = \alpha^\star_j \le \alpha^\star_\ell = r_{\ell k}\,.
+    \]
+    Thus, we can assume that $\ell < j$. Observe that $r_{\ell k} = r_{\ell j}$ since $k$ and $j$ become inactive in the same atomic step. Notice that now the proof follows from Lemma $\ref{lem:fr-triangle}$ as $r_{jk} = \alpha^\star_{j}$ and $r_{\ell k} = r_{\ell j}$.
+
+    Finally, if $k = n + 1$, we have $r_{jk} = (1-\delta)d(j, S^\star)$ and $r_{\ell k} = (1-\delta) d(\ell, S^\star)$, and then 
+    \[r_{jk} \leq (1-\delta)(d(j, i^\star) + d(\ell, i^\star) + d(\ell, S^\star)) \leq r_{\ell k} + d_j + d_\ell\,.\]
+\end{proof}
+
+\subsection{Proof of Theorem~\ref{theorem:alg-lmp}}
+\label{subsec:lmp-proof}
+Before we prove the theorem, we will need the following gluing result that bounds the cost of the algorithm in terms of the upper bound on the factor-revealing program.
+
+\begin{lemma}
+\label{lem:dgood-cost}
+    Let $\rho \geq 1.01 \gamma$ be an upper bound on the optimal value of the factor-revealing program in Definition~\ref{def:frp}.
+    For some $i^\star \in F$, consider any subset of clients $\Dgood \subseteq D$ such that, for all $j \in \Dgood$, $\alpha_j^\star \geq \rho \cdot d(j, i^\star)$.
+    Then
+    \[\sum_{j \in \Dgood} \Paren{\sum_{i=j}^n \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} \leq \hat{f} + \rho \cdot \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+\end{lemma}
+\begin{proof}
+We know that the variables $\{r_{jk} \mid j \leq k, j \in \Dgood, k \in \Dgood \cup \{n + 1\}\}$, $\{d(j, i^\star) \mid j \in \Dgood\}$, $\hat f$ (see Section~\ref{sec:fr-feasiblity}), with the clients reindexed to $1, \ldots, |\Dgood|$  in the same order as the original indices and $n+1$ reindexed to $|\Dgood|+1$, satisfy the constraints of the factor-revealing program in Definition~\ref{def:frp} (note that we identify $r_{jj} = \alpha^\star_j$), except for the normalization constraint (\ref{eq:fr-norm}): this follows by Lemma~\ref{lem:fr-facility}, Lemma~\ref{lem:fr-r-mono}, Lemma~\ref{lem:fr-triangle}, Lemma~\ref{lem:fr-r-metric}, and because all these variables are non-negative.
+
+Let $\dsum = \sum_{j \in \Dgood} d(j, i^\star)$, which we know is strictly positive because $d(j, i) \geq 1$ for all $j \in F$, $i \in D$ by assumption \eqref{eq:dist-bound}.
+Then, because the factor-revealing program is scale-invariant (except for the normalization constraint), it follows that $\{r_{jk} / \dsum \mid j \leq k, j \in \Dgood, k \in \Dgood \cup \{n + 1\}\}$, $\{d(j, i^\star) / \dsum \mid j \in \Dgood\}$, $\hat f / \dsum$ satisfy all the constraints of the factor-revealing program in Definition~\ref{def:frp}.
+
+Let $q(i) = \min \Set{i' \mid i' > i, i' \in \Dgood \cup \{n+1\}}$.
+Then the upper bound $\rho$ on the value of the factor revealing program implies that
+\[\sum_{j \in \Dgood} \Paren{\sum_{\substack{i \in \Dgood\\i \geq j}} \beta\Paren{\frac{r_{j,i}}{\dsum}, \frac{r_{j,q(i)}}{\dsum}} + \frac{r_{j,n+1}}{\dsum} } \leq \frac{\hat{f}}{\dsum} + \rho\,,\]
+so multiplying by $\dsum$, 
+\[\sum_{j \in \Dgood} \Paren{\sum_{\substack{i \in \Dgood\\i \geq j}} \beta\Paren{r_{j,i}, r_{j,q(i)}} + r_{j,n+1}} \leq \hat{f} + \rho \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+Finally, because $r_{j,i} \geq r_{j,i+1}$ for all valid $j,i$, by the superadditivity of $\beta$ the above also implies that
+\[\sum_{j \in \Dgood} \Paren{\sum_{i=j}^n \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} \leq \hat{f} + \rho \cdot \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+\end{proof}
+
+We are ready to prove the main theorem of this section.
+
+\begin{proof}[Proof of Theorem~\ref{theorem:alg-lmp}]
+    Consider an optimal solution of cost $\mathrm{OPT}$ to the UFL problem instance with facility cost $f = \hat{f}/\rho$, and let $k^\star$ denote the number of facilities opened in this solution.
+    Let $\{i_1^\star, \ldots, i_{k^\star}^\star\}$ be the facilities opened by the optimal solution, and let $\{D_1^\star, \ldots, D_{k^\star}^\star\}$ be such that $D_\ell^\star$ is the set of clients connected to facility $i_\ell^\star$ in the optimal solution.
+    
+    Let $C_{\mathrm{SOL}}$ and $F_{\mathrm{SOL}}$ be the connection cost and opening cost (with respect to $f$) of our algorithm, and let $C_{\mathrm{OPT}}$ and $F_{\mathrm{OPT}}$ be defined analogously for $\mathrm{OPT}$.
+    By Lemma~\ref{lemma:alg-cost}, which bounds the cost with respect to $\hat{f}$, and using that $f = \frac{\hat{f}}{\rho}$, we know that 
+    \[C_{\mathrm{SOL}} + \rho \cdot F_{\mathrm{SOL}} \leq \sum_{j=1}^n \Paren{\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} + \delta \cdot \sum_{j=1}^n d(j,S^\star)\,.\]
+    Note that $\sum_{j=1}^n d(j, S^\star) = C_{\mathrm{SOL}}$, so we can rewrite
+    \[(1-\delta) \cdot C_{\mathrm{SOL}} + \rho \cdot F_{\mathrm{SOL}} \leq \sum_{j=1}^n \Paren{\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}}\,.\]
+
+    Fix now some $\ell \in \{1, \ldots, k^\star\}$ and set $i^\star = i^\star_\ell$ and $D^\star = D^\star_{\ell}$.
+    Define the subset of $D^\star$
+    \[\Dgood = \Set{j \in D^\star \Bigg| \alpha_j^\star \geq \rho \cdot d(j, i^\star)}\,.\]
+    For the clients in $\Dgood$, we have by Lemma~\ref{lem:dgood-cost} that
+    \[\sum_{j \in \Dgood} \Paren{\sum_{i=j}^n \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} \leq \hat{f} + \rho \cdot \sum_{j \in \Dgood} d(j, i^\star)\,.\]
+    Furthermore, for the clients $j \in D^\star \setminus \Dgood$, because $r_{j,j} = \alpha_j^\star$, $r_{j,n+1} = \beta(r_{j,n+1}, 0)$, and $r_{j,i} \geq r_{j,i+1}$ for all valid $j,i$, we have by the superadditivity of $\beta$ that
+    \[\sum_{j \in D^\star \setminus \Dgood} \Paren{\sum_{i=j}^n \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} \leq \sum_{j \in D^\star \setminus \Dgood} \alpha^\star_j \leq \rho \cdot \sum_{j \in D^\star \setminus \Dgood} d(j, i^\star)\,.\]
+    Overall, then,
+    \[\sum_{j \in D^\star} \Paren{\sum_{i=j}^n \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} \leq \hat{f} + \rho \cdot \sum_{j \in D^\star} d(j, i^\star)\,.\]
+    
+    Note that $D_1^\star, \ldots, D^\star_{k^\star}$ partition $[n]$. Then, summing the above over all $(i_{\ell}^\star, D^\star_{\ell})$,
+    \begin{align*}
+    \sum_{j=1}^n \Paren{\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}}
+    &\leq k^\star \cdot \hat{f} + \rho \cdot C_{\mathrm{OPT}}\\
+    &= \rho \cdot F_{\mathrm{OPT}} + \rho \cdot C_{\mathrm{OPT}}
+    = \rho \cdot \mathrm{OPT}\,.
+    \end{align*}
+    Hence, 
+    \[(1-\delta) \cdot C_{\mathrm{SOL}} + \rho \cdot F_{\mathrm{SOL}} \leq \rho \cdot \mathrm{OPT}\,,\]
+    so 
+    \[C_{\mathrm{SOL}} \leq \frac{\rho}{1-\delta} \Paren{\mathrm{OPT} - F_{\mathrm{SOL}}} \leq (1+2\delta) \rho \Paren{\mathrm{OPT} - F_{\mathrm{SOL}}}\,.\]
+    Then the conclusion follows because $F_{\mathrm{SOL}} = |S^\star| \cdot f$.
+\end{proof}
+
+\subsection{$k$-Median Algorithm Opening $k + O(\log n)$ Centers}
+\label{subsec:k-median}
+
+By the techniques developed in~\cite{MR4928455-Cohen25}, we can expand the ideas in this section to obtain a polynomial-time approximation algorithm for $k$-median that opens at most $k + O(\log n)$ centers.
+As in their paper, this requires us to develop a robust version of the log-adaptive algorithm, and to slightly adapt their merging procedure to our setting.
+We state below our main result for $k$-median.
+
+\begin{theorem}
+\label{thm:k-median}
+Let $\gamma \geq 1$ and let $\beta(\alpha,d) = [\alpha - \gamma \cdot d]^+$. Let $\rho \geq 1.01 \gamma$ be an upper bound on the optimal value of the factor-revealing program in Definition~\ref{def:frp} over all $n \geq 1$.
+For any $\delta > 0$ small enough, there exists a polynomial-time approximation algorithm for the $k$-median problem that outputs a solution with at most $k + O(\log n / \delta^2)$ centers and cost at most $(1+\delta)\rho \cdot \sopt$.
+\end{theorem}
+
+As these steps are very similar to the steps in~\cite{MR4928455-Cohen25}, we defer the description and analysis of the algorithm in Theorem~\ref{thm:k-median} to Section~\ref{sec:merging}.

@@ -1,0 +1,69 @@
+\section{Introduction}
+\label{sec:introduction}
+
+The metric $k$-median problem is the following classical clustering problem: Given a set $\clients$ of $n$ clients, a set $\facilities$ of facilities, metric distances $\dist(\cdot, \cdot)$ on $\clients \cup \facilities$, and an integer parameter $k\ge 1$, the goal is to choose a set $S\subseteq \facilities$ of $k$ open facilities minimizing
+\[
+    \clcost(S):=\sum_{j\in \clients} d(j,S)= \sum_{j\in \clients} \min_{i\in S} \dist(i,j)\,,
+\]
+where we use $d(j,S)$ as a shorthand for $\min_{i\in S} \dist(i,j)$. We further denote by $\opt$ the cost of an optimal solution. 
+%We denote by $\opt_k$ the cost of an optimal solution to this problem, and simply $\opt$ when $k$ is clear from the context. We also use $\opt_k$ to denote an optimal solution itself, and simply $\opt$ when $k$ is clear from the context.
+
+Metric $k$-median is well-known to be hard to approximate within a factor better than $1+2/e$~\cite{GuK99,JMS02,JainMMSV03}, and achieving matching algorithmic guarantees has been the subject of intense study over the last two decades. Most work has focused on two algorithmic paradigms. On the one hand, the basic local-search algorithm of Arya, Garg, Khandekar, Meyerson, Munagala, and Pandit (swap $O(1)$ centers while improving the solution) gives a $(3+\eps)$-approximation, and for a long time this was the best known polynomial-time guarantee \cite{AryaGKMMP04}. On the other hand, the influential primal-dual/Lagrangian framework initiated by Jain and Vazirani~\cite{JaV01} and sharpened by Jain, Mahdian, Markakis, Saberi and Vazirani~\cite{JMS02,JainMMSV03} reduces $k$-median to the task of devising Lagrangian-multiplier-preserving (LMP) approximation algorithms for uncapacitated facility location. Despite the power of convex relaxations for many discrete optimization problems, leveraging them to obtain a better $k$-median approximation proved unexpectedly difficult.
+
+The difficulty is that the classical LMP-based approach loses in two separate places.
+One first considers facility location with a uniform opening cost $f$, where a solution $S\subseteq \facilities$ pays $\clcost(S)+f|S|$.
+Since a higher opening cost $f$ leads to fewer open facilities and a lower cost leads to more, one can binary search on $f$ to find two consecutive solutions, one opening fewer than $k$ facilities and one opening more, whose convex combination opens exactly $k$ facilities in a fractional sense.
+If the facility location algorithm used is an $\alpha_{\mathrm{LMP}}$-LMP approximation, this already gives a solution of cost at most $\alpha_{\mathrm{LMP}}\cdot\opt$ that opens $k$ centers \emph{in expectation}.
+A second step, bi-point rounding, is then needed to obtain a feasible $k$-median solution with at most $k$ open centers, and this incurs an additional multiplicative factor of $2$, as shown by~\cite{JaV01}.
+The overall approximation factor is therefore $2\alpha_{\mathrm{LMP}}$. In this language, the original Jain, Vazirani framework yields a factor $6$ algorithm, while the Greedy algorithm of~\cite{JMS02,JainMMSV03} improves the LMP stage to $2$ and hence gives a factor $4$ algorithm \cite{JaV01,JMS02,JainMMSV03}; neither was able to beat the simpler $(3+\eps)$ local-search guarantee.
+
+For a long time this bottleneck was hard to circumvent. The Greedy algorithm gives a $2$-LMP approximation, hence a factor-$2$ solution that opens $k$ centers in expectation \cite{JMS02,JainMMSV03}, but converting this into an exact-$k$ solution without losing another factor of $2$ was a significant obstacle.
+This was first overcome by Li and Svensson~\cite{LiS16}, who improved the bi-point rounding step by allowing the algorithm to open $k+O(1)$ centers. They also showed that any $\alpha$-approximation opening $k+c$ centers can be transformed into an $(\alpha+\eps)$-approximation opening exactly $k$ centers in time $n^{O(c/\eps)}$. This sparked a sequence of refinements of bi-point rounding algorithms opening $k+ O(1)$ centers~\cite{ByrkaPRST17,GowdaPST23}; combined with the small but important improvement to a $(2-\eta)$-LMP, where $\eta = 2.25 \cdot 10^{-7}$ by Cohen-Addad, Grandoni, Lee, and Schwiegelshohn \cite{Cohen-AddadLS23}, this line eventually led to a $2.613$-approximation \cite{Cohen-AddadLS23,GowdaPST23}.
+
+All of these works still suffered from the two multiplicative losses: the LMP approximation guarantee and the bi-point rounding factor. In particular, a large gap remained between the $2$-LMP approximation of Greedy, which already implies a $2$-approximation that opens $k$ centers in expectation, and the best overall guarantee of $2.613$.
+
+A different approach to the rounding loss was used by Ahmadian, Norouzi-Fard, Svensson, and Ward~\cite{AhmadianNSW20} and further developed by Cohen-Addad, Esfandiari, Mirrokni, and Narayanan~\cite{Cohen-AddadEMN22} and Grandoni, Ostrovsky, Rabani, Schulman and Venkat~\cite{GrandoniORSV22}, who improved guarantees for $k$-means and Euclidean $k$-median by showing how to run the simpler primal-dual algorithm~\cite{JaV01} in a ``smooth'' way so as to respect the hard cardinality constraint without paying the bi-point rounding loss.
+By employing a similar approach on a high-level, Cohen-Addad, Grandoni, Lee, Schwiegelshohn, and Svensson~\cite{MR4928455-Cohen25} recently achieved a significant improved $(2+\eps)$-approximation for metric $k$-median (for every $\eps >0$). A key difficulty in their work is that making the Greedy algorithm smooth is substantially more involved than for the algorithm in~\cite{JaV01}: the Greedy algorithm maintains a more complex global state during its execution, and the execution is highly adaptive. Their result has two ingredients. First, they give a ``smooth'' (so called log-adaptive) implementation of the Greedy algorithm that opens at most $k+O(\log n/\eps^2)$ centers while keeping the approximation ratio at $(2+\eps)$; via Li and Svensson, this already implies a quasi-polynomial-time $(2+\eps)$-approximation opening exactly $k$ centers. Second, they complement this with a polynomial-time $(2+\eps)$-approximation for so-called $(\zeta/\log n)$-stable instances, for every $\eps,\zeta>0$, which is exactly the ingredient needed to turn the quasi-polynomial algorithm into a polynomial-time one. Thus, by now the gap between what we know how to achieve with $k$ centers in expectation and with at most $k$ centers is essentially closed at factor~$2$.
+
+
+
+
+The natural next frontier is to improve the LMP guarantee itself, the $1+2/e$ hardness threshold still leaves substantial room below~$2$. A first step in this direction was already mentioned above: Cohen-Addad, Grandoni, Lee, and Schwiegelshohn~\cite{Cohen-AddadLS23} showed that the classical LMP-$2$ barrier can indeed be broken by combining the Greedy algorithm with a carefully tailored local-search post-processing on structured instances. However, their improvement is a tiny constant, and it is unclear whether such instance-specific refinements can lead to a substantially better LMP guarantee.
+
+\subsection{Our Contribution}
+
+In this paper we take a different route. Rather than augmenting the Greedy algorithm with local-search post-processing, we revisit the algorithm itself and ask how much power is hidden in the bidding rule. In our unified notation, the classical choice is the linear bid $\beta(\alpha,d)=[\alpha-d]^+$. We generalize this to broader bidding functions $\beta(\alpha,d)$ and study how the choice of $\beta$ changes the factor-revealing program. Intuitively, our bids allow clients to discount distant facilities more aggressively, which already breaks the tight examples behind the classical factor-$2$ analysis. This added flexibility comes, however, at a price: the classical Greedy analysis is governed by a single factor-revealing LP, whereas general bids lead to genuinely non-linear programs, and even piecewise-linear bids lead to a family of LPs rather than one LP.
+
+This viewpoint appears surprisingly powerful even for very simple families of bids. For the one-parameter family $\beta(\alpha,d)=[\alpha-\gamma d]^+$, solving the associated non-linear factor-revealing program suggests an approximation ratio around $1.92$. For the maximum of two linear bids, our experiments suggest a ratio around $1.89$. These bounds are presently experimental, since the associated factor-revealing programs are substantially more difficult than in the classical Greedy analysis. Our formal analysis proves a slightly weaker but rigorous guarantee: we show that Algorithm~\ref{alg:dual_generalized} with bidding function $\beta(\alpha,d)=[\alpha-1.224\,d]^+$ is a $1.95$-LMP approximation algorithm.
+
+\begin{theorem}[See Theorem~\ref{thm:1.95-lmp} for full version]
+\label{thm:1.95-lmp-informal}
+There exists a polynomial-time $1.95$-LMP approximation algorithm for uncapacitated facility location.
+\end{theorem}
+
+We view this result as evidence that there is substantial room beyond the classical linear bid. At the same time, we do not know whether this methodology can reach the hardness threshold $1+2/e$. Already for richer families, such as the maximum of three or more linear pieces, evaluating the relevant factor-revealing programs becomes computationally demanding.
+
+Our second contribution is to make these generalized bids \emph{smooth} (more specifically, low in terms of adaptivity). We adapt and generalize the recent log-adaptive framework of \cite{MR4928455-Cohen25} to our broader class of bidding functions. A key conceptual point is that we do \emph{not} redo the (in our case, complex) approximation analysis of the log-adaptive algorithm from scratch. Instead, we prove a black-box transfer statement: if the factor-revealing mathematical program with a bidding function $\beta = \pos{a - \gamma d}$ has value at most $\rho$, then the corresponding smooth version opens at most $k+O(\log n/\eps^2)$ centers while losing only an additive $\eps$ in the approximation guarantee. In other words, the smooth analysis inherits the bound from the original factor-revealing program almost for free. Combined with Theorem~\ref{thm:1.95-lmp-informal}, this yields, via Li and Svensson~\cite{LiS16}, a quasi-polynomial-time $(1.95+\eps)$-approximation algorithm for metric $k$-median that opens exactly $k$ centers:
+
+\begin{theorem}[See Theorem~\ref{thm:k-median} for full version]
+\label{thm:k-median-informal}
+For any $\epsilon > 0$, there exists a polynomial-time algorithm for $k$-median that outputs a solution with at most $k + O(\log n / \eps^2)$ centers and cost at most $(1.95+\eps) \cdot \sopt$.
+\end{theorem}
+
+\begin{corollary}
+\label{thm:k-median-exact-informal}
+For any $\epsilon > 0$, there exists a quasi-polynomial-time algorithm for $k$-median that outputs a solution with $k$ centers and cost at most $(1.95+\eps) \cdot  \sopt$.
+\end{corollary}
+\begin{proof}
+This is implied by Theorem~\ref{thm:k-median-informal} combined with Li and Svensson~\cite{LiS16}.
+\end{proof}
+
+Together, our results demonstrate that generalized bidding functions are a powerful and largely unexplored direction for improving $k$-median approximations. Two natural directions arise from this work. First, one can seek to tighten the analysis and explore broader families of bidding functions, such as the maximum of several linear pieces, or even non-piecewise-linear bids, with the goal of pushing the LMP guarantee closer to $1+2/e$. Second, one can ask whether a $(1+2/e+\eps)$-approximation can be achieved in polynomial time for $(\zeta/\log n)$-stable instances. Such a result would, via the the same arguments as in~\cite{MR4928455-Cohen25}, upgrade our quasi-polynomial-time guarantee to a polynomial-time one.
+
+\input{related_work}
+
+\subsection{Outline}
+
+The remainder of the paper is organized as follows. We start with some additional definitions in Section~\ref{sec:prelim}. We then, in Section~\ref{sec:greedy_algorithm_general_bids}, present the Greedy algorithm with general bidding functions and use simple examples to illustrate why modified bids can avoid the classical factor-$2$ lower-bound constructions. In Section~\ref{sec:approx_guarantee}, we formulate the corresponding factor-revealing mathematical program (for general bidding functions), report computational evidence for one-piece and two-piece bids, and state and give an outline of the proof of our provable $1.95$-LMP guarantee for the bid $\beta(\alpha,d)=[\alpha-1.224\,d]^+$.
+
+In Section~\ref{sec:logad} we show how to transfer any upper bound on the factor-revealing program to a log-adaptive version of the algorithm, and we state the resulting polynomial-time $k$-median guarantee that opens at most $k+O(\log n)$ centers (which then follows from adapting the recipe of~\cite{MR4928455-Cohen25}). Finally, in Section~\ref{sec:195-dual-fitting} we give the full, more technically involved, dual-fitting proof of the $1.95$ bound. 

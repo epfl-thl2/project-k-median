@@ -1,0 +1,207 @@
+\section{The Factor-Revealing Program Bounds the LMP-Approximation Ratio}
+\label{sec:proof-lmp-approx-ratio-greedy}
+In this section we will prove Theorem \ref{theorem:facility-location} which states that our algorithm is indeed a $\rho$-LMP approximation for facility location if $\rho$ is an upper bound on the optimal value of the factor-revealing program
+
+\theoremfacilitylocation*
+
+For a client $j \in D$, we denote by $\alpha_j^\star$ its final $\alpha_j$ value in Algorithm \ref{alg:dual_generalized}.
+For the purposes of the analysis, we order the clients from $1$ to $n=|D|$ in increasing order of $\alpha$-values, $\alpha^\star_1 \le \alpha^\star_2 \le \dots \le \alpha^\star_n$. If $\alpha^\star_k = \alpha^\star_j$ for two clients $j \neq k \in D$ then break ties according to the order of events in which the clients became inactive. Note that with this order if $j \le k$ then $j$ becomes inactive strictly before $k$ or in the same event as $k$.
+We denote by $S^{(k)}$ the set of open facilities just before the event in which client $k$ becomes inactive.
+Moreover, $S^{(n+1)} = S^\star$ is the set of open facilities at the end of the algorithm. We say a client $j$ becomes inactive in an Event 1 or Event 2 if $j$ is removed from the set of active clients $A$ during this event.
+For $1 \le j \leq k \le n$, we set 
+\[
+    r_{jk} = 
+    \begin{cases}
+        \alpha^\star_j & \text{$j$ and $k$ become inactive in the same event}, \\
+        d(j, S^{(k)}) & \text{otherwise}.
+    \end{cases}
+\]
+We also set $r_{j,n+1} = d(j, S^\star)$. 
+
+\begin{observation}
+\label{obs:r-mono}
+We have $r_{jk} \geq r_{jk+1}$ for all $1 \leq j \leq k \leq n$.
+\end{observation}
+\begin{proof}
+    We have trivially that $\alpha_j^\star \leq \alpha_j^\star$ and $(1-\delta) d(j, S^{(k)}) \geq (1-\delta) d(j, S^{(k')})$ for $k < k'$ as $S^{(k)}$ is monotone.
+    Moreover, $\alpha_j^\star \geq d(j, S^{(k)})$ once $j$ is inactive with respect to $S^{(k)}$ so the claim follows.
+\end{proof}
+First we will lower bound the cost of Algorithm \ref{alg:dual_generalized} by the $r$ variables defined above. 
+\begin{lemma}
+\label{lemma:alg-cost-ufl}
+    The cost (with respect to opening cost $\hat{f}$) of a solution output by Algorithm \ref{alg:dual_generalized} is at most
+    \[\sum_{j=1}^n \Paren{\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}}\,.\]
+\end{lemma}
+\begin{proof}    
+For a client $k$, it's connection cost is $r_{j,n+1} = d(k,S^\star)$. Further, we need to bound the contribution of $k$ to the opening of each facility in $S^\star$. When opening a facility $i \in F$ we have 
+\[
+    \sum_{j \in A} \beta(\alpha_j, d(i,j)) + \sum_{j \in D \setminus A} \beta(d(j,S),d(i,j)) = f.
+\]
+Let $\emptyset = S_0 \subsetneq S_1 \subsetneq \ldots \subsetneq S_m = S^\star$ with $m = |S^\star|$ be the sets of opened facilities during the execution of the algorithm. 
+We are interested in the contribution of client $k$ to the opening of the facility $i \in S_{l+1} \setminus S_l$. 
+Let $j$ be the client such that $S_l = S^{(j)}$ and $S_{l+1} = S^{(j+1)}$.
+Client $k$ contributes $\beta(\alpha_k, d(i,j))$ if $k \in A$. If this contribution is positive then $\alpha_k \ge d(i,j)$ and $k$ becomes inactive. In particular, $r_{k,j+1} = d(j,S^{(k+1)}) = d(j,S_{l+1}) = d(j,i)$ and $r_{kj} = \alpha^\star_j$ since $k$ and $j$ become inactive in the same event. Thus, $k$ contributes $\beta(\alpha^\star_k, d(i,j)) = \beta(r_{kj}, r_{k,j+1})$. 
+\newline Now, if $k \in D \setminus A$ is inactive then $k$ contributes $\beta(d(k,S_l),d(i,k))$. If this bid is positive, then $d(k,S_l) > d(i,k)$ and $d(k,S_{l+1}) = d(i,k)$. We have that $\beta(d(k,S_l),d(i,k)) = \beta(r_{kj},r_{k,j+1})$. We can conclude that the contribution of client $k$ to the facility opening cost is at most
+\[
+    \sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1})\,.
+\]
+Summing the connection cost and contribution to the facility cost for each client proves the lemma.
+\end{proof}
+
+\begin{lemma}
+\label{lem:star-cost}
+    Let $\rho \geq 1$ be an upper bound on the optimal value of the factor-revealing program in Definition~\ref{def:frp}. 
+    For some facility $i^\star \in F$, consider any subset of clients $D^\prime \subseteq D$
+    Then
+    \[
+    \sum_{j \in D^\prime} \Paren{\sum_{i=1}^n \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} \leq \hat{f} + \rho \cdot \sum_{j \in D^\prime} d(j, i^\star)\,.
+    \]
+\end{lemma}
+\begin{proof}
+First, we will prove that the variables $(r,d,\hat f)$ supported on $D^\prime$ are feasible for the factor-revealing program \ref{def:frp} without the normalization constraint \ref{eq:fr-norm}. Here, we re-index the variables in $D^\prime$ to $1, \dots, |D^\prime|$ and $n+1$ to $|D^\prime|+1$. It is important that we keep the original order of the variables. For $k \in D^\prime$, we set $d_k = d(i^\star,k)$. 
+\begin{claim}
+    The variables $(r,d,\hat f)$ satisfy constraints \eqref{eq:fr-r-mono} to \eqref{eq:fr-nonneg}.
+\end{claim}
+\paragraph{Monotonicity \eqref{eq:fr-r-mono}} Holds by Observation \ref{obs:r-mono}.
+\paragraph{Triangle constraint \eqref{eq:fr-triangle}} 
+We have to show that for $k < j$ we have $r_{kk} \le r_{jk} + d_i + d_j$
+By definition $r_{kk} = \alpha^\star_k$. If $k$ and $j$ become inactive in the same event, then $r_{jk} = \alpha^\star_j = \alpha^\star_k = r_{kk}$. Otherwise, $r_{jk} = d(j, S^{(k)}) = d(j,i)$ for some facility $i \in S^{(k)}$. Since the facility $i$ is open while $k$ is still active,
+\[
+    r_{kk} = \alpha^\star_k \le d(i,k) \le d(k,i^\star) + d(j,i^\star) + d(j,i) = r_{jk} + d_j + d_k.
+\]
+\paragraph{Metric inequalities of $r$ \eqref{eq:fr-r-metric}}
+We have to show that for $j \neq k < l$ we have $r_{jl} \le r_{kl} + d_j + d_k$. First assume that $j$ becomes inactive strictly before $l$, $r_{jl} = d(j, S^{(l)}) = d(j,i_1)$ for some facility $i_1 \in S^{(l)}$. Similar, if $k$ becomes inactive strictly before $l$, $r_{kl} = d(k, S^{(l)}) = d(k,i_2)$ for some facility $i_2 \in S^{(l)}$. Then,
+\[
+    r_{jl} = d(j,i_1) \le d(j,i_2) \le d(j,i^\star) + d(k, i^\star) + d(k,i_2) = r_{kl} + d_j + d_k.
+\]
+Now, if $k$ becomes inactive in the same event as $l$ then $r_{kl} = \alpha^\star_k$. However, note that $r_{jl} \le r_{jj} = \alpha^\star_j \le \alpha^\star_{k}$ since $k$ becomes inactive strictly after $j$.
+\newline Next, assume that $j$ becomes inactive in the same event as $l$, $r_{jl} = r_{jj} = \alpha^\star_j$. Similar, if $k$ becomes inactive in the same event then,
+\[
+    r_{jl} = \alpha^\star_j = \alpha^\star_k = r_{kl}.
+\]
+In the case where $k$ becomes inactive strictly before $j$ we have $r_{kl} = d(k, S^{(l)}) = d(k,S^{j}) = r_{kj}$ because $j$ and $l$ become inactive in the same event. Now, the inequality follows from the Triangle constraint \eqref{eq:fr-triangle}. 
+\paragraph{Facility constraint \eqref{eq:fr-facility}} We have to show that for all $k \in D^\prime$ we have
+\[
+    \sum_{\substack{j < k \\ j \in D^\prime}} \beta(r_{jk},d_j)
+  \;+\;
+  \sum_{\substack{j \ge k \\ j \in D^\prime}} \beta(r_{kk},d_j)
+  \;\le\; f.
+\]
+To this end consider the event in which $k$ becomes inactive. Just before this event, we have that 
+\[
+    \text{bid}(j,i^\star) = \beta(\alpha^\star_k ,d(i^\star,j)) = \beta(r_{kk},d(i^\star,j))
+\] 
+for all active clients $j \in A$. Moreover, 
+\[
+    \text{bid}(j,i^\star) = \beta(d(j,S^{(k)}),d(i^\star,j)) = \beta(r_{jk},d(i^\star,j))
+\]
+ for all inactive clients $j \in D \setminus A$. Note that if $j$ and $k$ become inactive in the same event then $r_{kk} = r_{jk} = \alpha^\star_k = \alpha^\star_j$. If $i^\star \in S^{(k)}$ is opened at that time then none of the bids are positive as $\alpha^\star_k \le d(k,S^{(k)}) \le d(k,i^\star)$ in that case. If $i^\star$ is not yet open then the inequality is satisfied since the sum of all bids $\sum_{j \in D} \text{bid}(j,i^\star)$ towards an unopened facility $i^\star$ can never exceed $f$. 
+\newline
+\newline
+ Next, we will normalize the variables as to satisfy \eqref{eq:fr-norm}. To this end let $\dsum = \sum_{j \in D^\prime} d(j, i^\star) \ge 1$. Since all constraints \eqref{eq:fr-r-mono} to \eqref{eq:fr-nonneg} are scale invariant we have that $(r/\dsum, d/\dsum, f/\dsum)$ is now feasible for the factor-revealing program \ref{def:frp}. In order to index according to the original set of clients $D$ define $q(i) = \min \Set{i' \mid i' > i, i' \in D^\prime \cup \{n+1\}}$. Using the $\rho$ is an upper bound on the value of the program we have,
+\[
+    \frac{\sum_{j \in D^\prime} \Paren{\sum_{\substack{i \in D^\prime\\i \geq j}} \beta\Paren{r_{j,i}, r_{j,q(i)}} + r_{j,n+1}} - \hat{f}}{\dsum} \le \rho.
+\]
+Finally, because $r_{j,i} \geq r_{j,i+1}$ for all valid $j,i$, by the superadditivity of $\beta$ the above also implies that
+\[\sum_{j \in D^\prime} \Paren{\sum_{i=j}^n \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} \leq \hat{f} + \rho \cdot \sum_{j \in D^\prime} d(j, i^\star)\,.\]
+\end{proof}
+We are ready to prove Theorem \ref{theorem:facility-location}.
+\begin{proof}[Proof of Theorem~\ref{theorem:facility-location}]
+ Consider an optimal solution of cost $\mathrm{OPT}$ to the original problem with facility cost $f = \frac{\hat{f}}{\rho}$, and let $k^\star$ denote the number of facilities opened in this solution.
+    Let $\{i_1^\star, \ldots, i_{k^\star}^\star\}$ be the facilities opened by the optimal solution, and let $\{D_1^\star, \ldots, D_{k^\star}^\star\}$ be such that $D_\ell^\star$ is the set of clients connected to facility $i_\ell^\star$ in the optimal solution.
+    Let $C_{\mathrm{SOL}}$ and $F_{\mathrm{SOL}}$ be the connection cost and opening cost (with respect to $f$) of our algorithm, and let $C_{\mathrm{OPT}}$ and $F_{\mathrm{OPT}}$ be defined analogously for $\mathrm{OPT}$.
+    By Lemma~\ref{lemma:alg-cost-ufl}, which bounds the cost with respect to $\hat{f}$, and using that $f = \frac{\hat{f}}{\rho}$, we know that 
+    \[
+        C_{\mathrm{SOL}} + \rho \cdot F_{\mathrm{SOL}} \leq \sum_{j=1}^n \Paren{\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}}\,.
+    \]
+    For $\ell \in \{1, \ldots, k^\star\}$ consider $(i^\star_\ell, D_\ell)$. By Lemma~\ref{lem:star-cost} we have that
+    \[\sum_{j \in D_\ell} \Paren{\sum_{i=j}^n \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}} \leq \hat{f} + \rho \cdot \sum_{j \in D_\ell} d(j, i^\star_\ell)\,.\]
+    Note that $D_1^\star, \ldots, D^\star_{k^\star}$ partition $D$. Then, summing the above over all $(i_{\ell}^\star, D^\star_{\ell})$,
+    \begin{align*}
+    C_{\mathrm{SOL}} + \rho \cdot F_{\mathrm{SOL}} & \le \sum_{j=1}^n \Paren{\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1}) + r_{j,n+1}}\\
+    &\leq k^\star \cdot \hat{f} + \rho \cdot C_{\mathrm{OPT}}\\
+    &= \rho \cdot F_{\mathrm{OPT}} + \rho \cdot C_{\mathrm{OPT}}
+    = \rho \cdot \mathrm{OPT}\,.
+    \end{align*}
+    The theorem follows because $F_{\mathrm{SOL}} = |S^\star| \cdot f$.
+\end{proof}
+
+
+
+\begin{comment}    
+\begin{lemma}\label{lemma:arbitrary-generalized-factor-revealing-problem}
+    Let $z_N$ be the solution to the factor revealing mathematical program \ref{def:frp} a bidding function $\beta(\alpha, d)$ that satisfies the properties described in \toni{reference properties}:
+    Then, $\rho = \sup_n z_n$ is an upperbound on the Facility Location LMP-approximation ratio of Algorithm~\ref{alg:dual_generalized}.
+\end{lemma}
+\begin{proof}
+    \lukas{TODO: add normalization}
+    We first prove an upper bound on the connectivity-cost approximation ratio. Namely, we show that for every instance and every comparison solution $S'$, the solution $S^\star$ produced by Algorithm~\ref{alg:dual_generalized} satisfies
+    \begin{equation*}
+        F_{S^\star}+C_{S^\star} \leq F_{S'}+\rho\cdot C_{S'}.
+    \end{equation*}
+    This implies the LMP guarantee by the standard scaling argument: run the same algorithm on the instance in which every facility cost is multiplied by $\rho$. Applying the above inequality to an optimal solution of the scaled instance gives $\rho F_{S^\star}+C_{S^\star} \leq \rho(F_{OPT}+C_{OPT})=\rho OPT$,
+    and therefore $C_{S^\star} \leq \rho(OPT-F_{S^\star})$, which is exactly the definition of an LMP $\rho$-approximation.
+
+    To upper bound the connectivity-cost ratio, we describe how to reduce the analysis to a single star of the comparison solution. Let us denote the cost of any solution $S'$ as the sum of star costs:
+    \begin{equation*}
+        \text{cost}(S') = \sum_{\forall i\in S'} \left(f_i + \sum_{\forall j\in C_i} d(i,j) \right),
+    \end{equation*}
+    where $C_i$ is the set of clients connected to facility $i$ in $S'$. If the algorithm's cost can be written as a sum of client costs, $\text{cost}(S^\star)=\sum_{j} \text{cost}(j)$, and if for every star $(f_i,C_i)$ of $S'$ we have $\sum_{j\in C_i}\text{cost}(j)\le f_i+\rho\sum_{j\in C_i} d(i,j)$, then summing these inequalities over all stars yields
+    \begin{equation*}
+        \text{cost}(S^\star)=\sum_{i\in S'}\sum_{j\in C_i}\text{cost}(j)
+        \le \sum_{i\in S'}\left(f_i+\rho\sum_{j\in C_i} d(i,j)\right)
+        =F_{S'}+\rho C_{S'}.
+    \end{equation*}
+    Hence it is enough to upper bound the total cost charged by the algorithm to the clients of an arbitrary star of the comparison solution.
+
+    Fix an instance and a star with center facility $f$ and clients $1,\ldots,n$, ordered so that their first connection times in the execution of Algorithm~\ref{alg:dual_generalized} satisfy $\alpha_1 \leq \alpha_2 \leq \dots \leq \alpha_N$. For each client $j$, let $d_j$ be its distance to $f$. For every $i \ge j$, let $r_{j,i}$ be the distance from client $j$ to the facility it is connected to immediately before time $\alpha_i$, with the convention that $r_{j,j}=\alpha_j$ and that $r_{j,n+1}$ is the final connection distance of $j$ at the end of the algorithm.
+
+    The proof is analogous to the one in \toni{JMS}; the only extra point is that, for a general bidding function, the total amount paid by a client is no longer exactly its connection time. Instead, we upper bound it by the following expression.
+    \lukas{We have to be more careful here to be formally correct.}
+    \begin{claim}
+        For every client $j$, the total cost paid by $j$ during the execution of Algorithm~\ref{alg:dual_generalized} is upper bounded by
+        \begin{equation*}
+            \text{cost}(j) \leq \sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1})  + r_{j,n+1}.
+        \end{equation*}
+    \end{claim}
+
+    \begin{proof}[Proof of the claim]
+    Let $\delta_1 \ge \delta_2 \ge \dots \ge \delta_m$ be the actual sequence of distances from client $j$ to the facilities it connects to after time $\alpha_j$, ordered chronologically. By definition of the algorithm, the total amount paid by $j$ is
+    \begin{equation*}
+        \beta(\alpha_j,\delta_1)+\sum_{\ell=1}^{m-1}\beta(\delta_\ell,\delta_{\ell+1})+\delta_m.
+    \end{equation*}
+    The sequence $r_{j,j+1}, r_{j,j+2}, \ldots, r_{j,n+1}$ is obtained from $\delta_1,\ldots,\delta_m$ by deleting the intermediate reconnections that happen between two consecutive times $\alpha_i$ and $\alpha_{i+1}$, and possibly repeating some values. Repeated values contribute zero because monotonic payment gives $\beta(x,x)+x\le x$, hence $\beta(x,x)\le 0$, and by non-negativity this implies $\beta(x,x)=0$. Deleting an intermediate value cannot decrease the above expression: if $x_1 \ge x_2 \ge x_3$, then by superadditivity,
+    \begin{equation*}
+        \beta(x_1,x_2)+\beta(x_2,x_3)\le \beta(x_1,x_3).
+    \end{equation*}
+    Repeating this deletion step until only the sampled values remain proves the claim.
+    \end{proof}
+
+    Using the claim, the total cost charged by the algorithm to the clients of the star is at most
+    \begin{equation*}
+        \sum_{j=1}^{n} \left(\sum_{i=j}^{n} \beta(r_{j,i}, r_{j,i+1})  + r_{j,n+1} \right).
+    \end{equation*}
+    Therefore, if this quantity is at most $f+\rho\sum_{j=1}^n d_j$, then the algorithm satisfies the desired star inequality for that value of $\rho$.
+
+    The variables defined above satisfy the constraints of the mathematical program apart from the normalization constraint \ref{eq:fr-norm}:
+    \begin{itemize}
+        \item $r_{i,i}=\alpha_i \le \alpha_{i+1}=r_{i+1,i+1}$, since the clients are ordered by their first connection times.
+        \item $r_{j,i}\ge r_{j,i+1}$ for every $j\le i\le n$, because a client can only switch to facilities that are no farther than its current one.
+        \item For every $1\le j,k\le i\le n+1$, the metric inequality gives
+        \begin{equation*}
+            r_{j,i}\le r_{k,i}+d_k+d_j,
+        \end{equation*}
+        because the facility serving client $k$ at time $\alpha_i$ can be reached from client $j$ through the center facility $f$ of the star.
+        \item Right before time $\alpha_i$, the total bid to the facility $f$ is at most its opening cost. If $f$ is not open yet, then the clients $1,\ldots,i-1$ are already connected, so their bids are $\beta(r_{j,i},d_j)$, while the clients $i,\ldots,n$ are still active, so their bids are $\beta(\alpha_i,d_j)=\beta(r_{i,i},d_j)$. Hence
+        \begin{equation*}
+            \sum_{j=1}^{i-1} \beta(r_{j,i}, d_j) + \sum_{j=i}^{n} \beta(r_{i,i},d_j) \le f.
+        \end{equation*}
+        If $f$ is already open at time $\alpha_i$, then no client bids to it: every active client has budget at most its distance to $f$. Thus the same inequality is trivially satisfied in this case as well.
+    \end{itemize}
+
+    Thus every execution of Algorithm~\ref{alg:dual_generalized}, together with every star of a comparison solution, gives a feasible point of the program whose objective value upper bounds the corresponding local connectivity-cost ratio. The program is a relaxation, since it only keeps the constraints coming from these $n$ clients and the sampled times $\alpha_1,\ldots,\alpha_N$, and therefore its optimum $z_N$ is an upper bound on the worst ratio for stars of size $n$.
+
+    Taking the supremum over $n$ yields an upper bound $\rho=\sup_n z_n$ on the connectivity-cost approximation ratio of Algorithm~\ref{alg:dual_generalized}, and by the first paragraph this also upper bounds the LMP ratio of the algorithm.
+
+\end{proof}
+\end{comment}

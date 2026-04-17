@@ -1,0 +1,89 @@
+\section{Preliminaries}
+\label{sec:prelim}
+We are given a metric $d(\cdot,\cdot)$ on the union of a set of clients $\clients$ and a set of facilities $\facilities$. For a set of facilities (also referred to as centers) $S \subseteq \facilities$ and a client $j \in \clients$, we write
+\[
+    \dist(j,S) := \min_{i \in S} \dist(i,j)\,,
+\]
+with the convention $\dist(j,\emptyset)=+\infty$. For a facility $i \in \facilities$ and radius $r \ge 0$, we let
+\[
+    \Ball{i}{r} := \{j \in \clients : \dist(i,j) \le r\}
+\]
+be the ball around $i$ of radius $r$.
+We also use the shorthand $[x]^+ := \max\{x,0\}$ for $x \in \mathbb{R}$.
+
+\paragraph{Facility location and $k$-median.}
+In the \emph{metric uncapacitated facility location} problem (UFL) with uniform facility opening cost $f \ge 0$, the goal is to choose a set $S \subseteq \facilities$ minimizing
+\[
+    \cost_f(S) := \sum_{j \in \clients} \dist(j,S) + f\cdot |S|\,.
+\]
+We denote by $\OPT_f$ the optimum value of this facility-location instance.
+
+In the \emph{metric $k$-median} problem, we are given in addition an integer $k \ge 1$, and the goal is to choose a set $S \subseteq \facilities$ of at most $k$ facilities minimizing the connection cost
+\[
+    \clcost(S) := \sum_{j \in \clients} \dist(j,S)\,.
+\]
+We denote by $\OPT_k$ the optimum value of the $k$-median instance. Whenever the value of $k$ is clear from context, we simply write $\OPT$.
+
+The standard Lagrangian viewpoint relates the two problems by regarding the cardinality constraint $|S| \le k$ as a penalty term $f \cdot |S|$. A facility-location algorithm therefore yields a family of solutions parameterized by the opening cost $f$, and one tries to recover a near-optimal $k$-median solution from this family.
+
+\begin{definition}[LMP approximation ratio]
+    \label{def:lmp}
+    A facility-location algorithm $\mathcal{A}$ is a \emph{$\rho$-Lagrangian-multiplier-preserving approximation} (or \emph{$\rho$-LMP approximation}) if for every instance with uniform opening cost $f$, the algorithm outputs a set $S \subseteq \facilities$ satisfying
+    \[
+        \sum_{j \in \clients} \dist(j,S) \le \rho\bigl(\OPT_f - f\cdot |S|\bigr)\,.
+    \]
+\end{definition}
+\paragraph{}
+Intuitively, a $\rho$-LMP guarantee says that after fully paying the facility opening costs the algorithm is still a $\rho$-approximation in the connectivity cost. 
+%Equivalently, executing a $\rho$-approximation algorithm with scaled facility costs $\rho \cdot f$ gives a $\rho$-approximation compared to the optimal solution with facility costs $f$,
+%\[
+%    \sum_{j \in \clients} \dist(j,S) + \rho \cdot f \cdot |S| \le \rho \cdot \OPT_f.
+%\]
+
+\begin{comment}
+\paragraph{General bids.}
+Our algorithms are analyzed through bidding functions. A \emph{bid} is a function
+\[
+    \beta : \mathbb{R}_{\ge 0} \times \mathbb{R}_{\ge 0} \to \mathbb{R}_{\ge 0},
+\]
+where $\beta(\alpha,d)$ should be thought of as the contribution of a client with current budget $\alpha$ toward a facility at distance $d$. We focus in particular on the discounted linear family
+\[
+    \beta_{\gamma}(\alpha,d) = [\alpha-\gamma d]^+ \qquad (\gamma \ge 1),
+\]
+which discounts distant facilities more aggressively. Whenever $\gamma$ is fixed throughout a section, we often suppress the subscript and simply write
+\[
+    \beta(\alpha,d) = [\alpha-\gamma d]^+.
+\]
+For later use, note that $\beta$ is monotone nondecreasing in its first argument and monotone nonincreasing in its second argument.
+
+
+\paragraph{Asymptotic parameters and normalization.}
+Our log-adaptive analysis uses two small absolute constants $\delta,\eps > 0$ satisfying
+\[
+    1/\gamma \gg \delta \gg \eps > 0,
+\]
+where ``$\gg$'' means that each quantity is chosen sufficiently small as a function of the preceding one. We will always make this dependence explicit in the statements where it matters.
+\end{comment}
+\vspace{1em}
+By a standard reduction as in Lemma 2.1 in \cite{MR4928455-Cohen25}, we may assume that all distances are polynomially bounded and bounded away from zero; concretely, we assume
+\begin{equation}
+\label{eq:dist-bound}
+    1 \le \dist(i,j) \le \poly(|\clients|)
+    \qquad \forall i \in \facilities,\ j \in \clients\,.
+\end{equation}
+We also denote $\Maxdist = \max_{i \in \facilities, j \in \clients} d(i,j)$.
+%This ensures that the number of multiplicative scaling phases in the algorithm is polynomially bounded. We also use an auxiliary parameter $\eta>0$ that is chosen exponentially small in the input size whenever needed to break ties.
+
+
+% \paragraph{Notation.}
+% Let $D$ be clients, $F$ facilities, and $\dist(\cdot,\cdot)$ a metric on $D\cup F$.
+% For $S\subseteq F$, $\dist(j,S):=\min_{i\in S}\dist(i,j)$, and $\dist(j, \emptyset) = + \infty$.
+% For $x\in\mathbb{R}$, $\pos{x}=\max\{x,0\}$.
+% For $i\in F$ and $r\ge 0$, $\Ball{i}{r}:=\{j\in D:\dist(i,j)\le r\}$.
+
+% For $x,y \geq 0$, let $\beta(x, y) = \max(0, x - \gamma \cdot y)$ for $\gamma \geq 1$.
+% We remark that this function is superadditive: for $x \geq y \geq z$, we have $\beta(x, y) + \beta(y, z) \leq \beta(x, z)$.
+% In the algorithm below, we will choose $\epsilon$ as an absolute constant and $\epsilon \ll 1/\gamma$.
+% \rares{We require $1/\gamma \gg \delta \gg \eps > 0$ with $\delta, \eps$ small enough.}\toni{shouldn't this be in logadaptive directly? If it's here, change $\beta$ for $\beta_{\gamma}$ to not confuse general functions in our greedy with general bids.}
+% \rares{We also assume $1 \leq \dist(j,i) \leq \Maxdist \leq \poly(n)$ for all $j \in D$, $i \in F$.}
+% \rares{We also assume $\eta = 2^{-|D| \cdot |F|}$ (exponentially small in the relevant parameters).}

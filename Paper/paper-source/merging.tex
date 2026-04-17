@@ -1,0 +1,445 @@
+\section{$k$-Median Algorithm Opening $k + O(\log n)$ Centers}
+\label{sec:merging}
+
+In this section we expand on the ideas in Section~\ref{sec:logad}, based on the techniques developed in~\cite{MR4928455-Cohen25}, in order to obtain an algorithm for $k$-median that opens at most $k + O(\log n)$ centers.
+As in their paper, this requires us to develop a robust version of the Log-Adaptive Algorithm, and to slightly adapt their merging procedure to our setting.
+We remark that the definitions and notation in this section follow closely those in~\cite{MR4928455-Cohen25}.
+
+First, we generalize the notions of $1$-openability and $2$-openability in Definitions~\ref{def:openable-mod-1} and~\ref{def:openable-mod-2} to approximate notions that we call $(1,\eta)$-openability and $(2,\eta)$-openability.
+Note that these definitions of openable only depend on $\theta$ and $S$.
+We will think of $\eta$ throughout the analysis as $2^{-n \cdot |F|}$.
+
+\begin{definition}[$(1, \eta)$-openable facility]
+\label{def:openable-mod-eta-1}
+Consider a time $\theta$ and a set $S$ of open facilities.
+Let $I = \{j \in D \mid \theta \geq (1-\delta) d(j, S)\}$ and $A = D \setminus I$.
+A facility $i\in F\setminus S$ is $(1,\eta)$-\emph{openable} w.r.t.\ $(S,\theta)$ if
+satisfying:
+\[
+\sum_{j\in A}\beta(\theta, (1-\delta)\dist(i,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta)\dist(i,j))
+\;\ge\; \hat f - n \eta.
+\]
+\end{definition}
+
+\begin{definition}[$(2, \eta)$-openable facility]
+\label{def:openable-mod-eta-2}
+Consider a time $\theta$ and a set $S$ of open facilities.
+Let $I = \{j \in D \mid \theta \geq (1-\delta) d(j, S)\}$ and $A = D \setminus I$.
+A facility $i\in F\setminus S$ is $(2,\eta)$-\emph{openable} w.r.t.\ $(S,\theta)$ if there exist bids $(\tau_j)_{j\in A}$
+satisfying:
+\begin{enumerate}
+\item[\textbf{(i)}] (\textbf{Only nearby clients may increase}) 
+\[
+\tau_j=\theta \qquad \forall j\in A\setminus \Ball{i}{\epsilon\theta}.
+\]
+\item[\textbf{(ii)}] (\textbf{Nearby clients increase only slightly})
+\[
+\theta \le \tau_j \leq \min\Bigl\{(1-\delta)\dist(j,S),\, (1+\epsilon^2) \theta \Bigr\}
+\qquad \forall j\in A\cap \Ball{i}{\epsilon\theta}.
+\]
+\item[\textbf{(iii)}] (\textbf{Facility $i$ is paid for in the $(1-\delta/2)$-scaled metric})
+\[
+\sum_{j\in A}\beta(\tau_j, (1-\delta/2)\dist(i,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)\dist(j,S), (1-\delta/2)\dist(i,j))
+\;\ge\; \hat f - n \eta.
+\]
+\item[\textbf{(iv)}] (\textbf{No overbidding for regular facilities after updating to $\tau$})
+\[
+\forall i_0\in F:\qquad
+\sum_{j\in A}\beta(\tau_j,\dist(i_0,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)  \dist(j,S), \dist(i_0,j))
+\;\le\; \hat f.
+\]
+\item[\textbf{(v)}] (\textbf{Triangle inequality})
+\[
+\tau_j \le \tau_k + \dist(j,k)
+\qquad \forall j,k\in A.
+\]
+\end{enumerate}
+\end{definition}
+
+As in \cite{MR4928455-Cohen25}, we also allow the introduction of ``free facilities'' whose opening costs are not paid.
+Let $S_{\mathrm{free}} \subseteq S$ be the multiset of free facilities that have been opened.
+For each free copy $\tilde{i} \in S_{\mathrm{free}}$, we also define a parameter $u(\tilde{i})$ which represents the distance between the free facility $\tilde{i}$ and its original copy $i$.
+For any point $x$ in the metric space, the distance is given by $d(\tilde{i}, x) = d(i, x) + u(\tilde{i})$.
+Also let $S_{\mathrm{reg}} = S \setminus S_{\mathrm{free}}$ be the set of open regular facilities.
+
+For $\tau \in \{1, 2\}$, we define $(\nu,\eta)$-valid sequences.
+\begin{definition}[$(\nu, \eta)$-valid sequence]
+\label{def:valid-sequence-eta}
+Consider a time $\theta$ and let $S$ be a set of opened facilities. 
+A sequence $(h_1, \ldots, h_{\ell})$ of facilities is $(\nu,\eta)$-valid if the following conditions hold.
+\begin{itemize}
+    \item \textbf{(Validity)} Each $h_t$ is either free or $(\nu,\eta)$-openable w.r.t. the time $\theta$ and a super set $S' \supseteq S \cup \{h_1, \ldots, h_{t-1}\}$.
+    \item \textbf{(Maximality)} The sequence is maximal, i.e., there is no $(\nu,0)$-openable facility w.r.t. the time $\theta$ and $S \cup \{h_1, \ldots, h_{\ell}\}$.
+\end{itemize}
+\end{definition}
+
+We note that Algorithm~\ref{alg:log-adaptive-greedy} generates $(\nu,0)$-valid sequences:
+
+\begin{lemma}
+\label{lem:log-valid-1}
+Any sequence generated in Stage 1 of Algorithm~\ref{alg:log-adaptive-greedy} is $(1,0)$-valid.
+\end{lemma}
+\begin{proof}
+Both properties follow from the definition of the algorithm.
+For the first property, a facility $h_t$ is added only if it is $(1,0)$-openable w.r.t. the time $\theta$ and $S \cup \{h_1, \ldots, h_{t - 1}\}$.
+For the second property, the loop in Stage 1 continues as long as there exists a $(1,0)$-openable facility w.r.t. $\theta$ and the set of facilities opened so far.
+\end{proof}
+
+\begin{lemma}
+\label{lem:log-valid-2}
+Any sequence generated in Stage 2 of Algorithm~\ref{alg:log-adaptive-greedy} is $(2,0)$-valid.
+\end{lemma}
+\begin{proof}
+Both properties follow from the definition of the algorithm.
+For the first property, a facility $h_t$ is added only if it is $(2,0)$-openable w.r.t. the time $\theta$ and $S \cup \{h_1, \ldots, h_{t - 1}\}$.
+For the second property, the loop in Stage 2 continues as long as there exists a $(2,0)$-openable facility w.r.t. $\theta$ and the set of facilities opened so far.
+\end{proof}
+
+For simplicity of notation, let $\nu : \mathbb{N} \to \{1,2\}$ satisfy $\nu(x) = 1$ for odd integers and $\nu(x)=2$ for even integers.
+We define now an $\eta$-valid sequence of sequences, which consists of $(\nu,\eta)$-valid sequences and in addition the first sequence is required to be of type $1$ and the sequences are required to alternate between type $1$ and type $2$.
+
+\begin{definition}
+\label{def:valid-seq-of-seq}
+For a sequence of sequences $\mathcal{H} = (H_1, \ldots, H_L)$, we say it consists of $\eta$-valid sequences if $H_{t}$ is $(\nu(t), \eta)$-valid w.r.t. $\theta = (1+\epsilon^2)^{\lfloor (t-1)/2 \rfloor}$ and $S = \cup_{q \in [t - 1]} H_q$, for all $1 \leq t \leq L$.
+\end{definition}
+Furthermore, we say that $\mathcal{H}$ is a solution if $L$ is even and $A = \emptyset$ at the end, meaning that at time $\theta=(1+\epsilon^2)^{|\mathcal{H}| / 2}$, the set of inactive clients $I = \{j \in D \mid \theta \geq (1-\delta) d(j, S)\}$ is equal to the set of all clients.
+Otherwise, we say that $\mathcal{H}$ is a partial solution.
+
+We prove that the following approximation guarantee holds for solutions $\mathcal{H}$:
+
+\begin{theorem}
+\label{theorem:alg-lmp-robust}
+Let $\gamma \geq 1$ and let $\beta(\alpha,d) = [\alpha - \gamma \cdot d]^+$. Let $\rho \geq 1.01 \gamma$ be an upper bound on the optimal value of the factor-revealing program in Definition~\ref{def:frp} over all $n \geq 1$.
+Let $\delta > 0$ be small enough compared to $1/\gamma$ and let $\eps > 0$ be small enough compared to $1/\gamma$ and $\delta$,
+and let $\mathrm{OPT}$ be the optimal cost to the facility location problem with facility cost $f = \frac{\hat{f}}{\rho + 6 \delta}$ for $\hat f > n \eta$.
+If $\mathcal{H}$ is an $\eta$-valid solution with respect to these parameters, then the set $S^\star$ of facilities opened by $\mathcal{H}$ satisfies
+\[\sum_{j \in D} d(j, S^\star) \leq (1+8\delta) \rho \cdot (\mathrm{OPT} - |S^\star_{\mathrm{reg}}| \cdot f) + 2 |S^\star_{\mathrm{reg}}| \cdot n \eta\,.\]
+\end{theorem}
+
+We will prove Theorem~\ref{theorem:alg-lmp-robust} in Section~\ref{sec:logad-robust}.
+The proof of the theorem follows the same set of steps as that of Theorem~\ref{theorem:alg-lmp}, but becomes more technically intricate because of the more general definition of $(\nu,\eta)$-openable.
+An important technical challenge comes from the fact that a facility may be opened with respect to a \emph{superset} of the set of open facilities; this ends up making it more challenging to embed a solution into a feasible solution for the factor-revealing program, and requires us to use a more complicated assignment of values to the variables $r$ in the factor-revealing program.
+
+\subsection{Merging Procedure}
+
+Next, we will start with some definitions required in the merging procedure.
+
+We define now two procedures $\mathrm{CompleteSolution}_{\hat f,u}$ and $\mathrm{CompleteSequence}_{\hat f,u}$, that are extensively used in the merging algorithm.
+These procedures are defined analogously to the same procedures in~\cite{MR4928455-Cohen25}:
+
+\begin{itemize}
+    \item $\mathrm{CompleteSolution}_{\hat f,u}(\mathcal{H})$ takes a partial $\eta$-valid solution $\mathcal{H}$ as input and returns a solution by running Algorithm~\ref{alg:log-adaptive-greedy} using opening cost $\hat f$ and distance $u$ for free facilities already opened.
+    If $|\mathcal{H}|$ is odd, it starts at Stage 2 with $\theta = (1+\eps^2)^{\lfloor (|\mathcal{H}| - 1) / 2 \rfloor}$, and if $|\mathcal{H}|$ is even, it starts at Stage 1 with $\theta = (1+\eps^2)^{|\mathcal{H}| / 2}$.
+    Note that $\mathrm{CompleteSolution}$ can only terminate after a Stage 3 in Algorithm~\ref{alg:log-adaptive-greedy}, so the returned solution has even length.
+    \item $\mathrm{CompleteSequence}_{\hat f,u}(\mathcal{H}=(H_1, \ldots, H_{p-1}),H_p = (h_1, \ldots, h_\ell))$ where $\mathcal{H}$ is a partial $\eta$-valid solution and $H_p$ is a $(\nu(p), \eta)$-valid sequence, except that it may not be maximal.
+    If $p$ is odd, $\mathrm{CompleteSequence}$ runs Stage 1 in Algorithm~\ref{alg:log-adaptive-greedy} using opening cost $\hat f$ and distance $u$ for free facilities, and if $p$ is even it runs Stage 2 in Algorithm~\ref{alg:log-adaptive-greedy} using opening cost $\hat f$ and distance $u$ for free facilities, to return a maximal sequence that contains $H_p$ as a prefix.
+\end{itemize}
+
+The definitions of $\mathrm{CompleteSolution}$ and $\mathrm{CompleteSequence}$ imply that the solutions and the sequences generated by them are valid:
+
+\begin{observation}
+\label{obs:alg-valid}
+Any output of $\mathrm{CompleteSolution}_{\hat f,u}(\mathcal{H})$ on a valid input is an $\eta$-valid solution,
+and any output of $\mathrm{CompleteSequence}_{\hat f,u}(\mathcal{H}=(H_1, \ldots, H_{p-1}),H_p = (h_1, \ldots, h_\ell))$ on a valid input produces a $(\nu(p),\eta)$-valid partial sequence that contain $H_p$ as a prefix.
+\end{observation}
+
+We will also need a non-overbidding property to be satisfied at the beginning of each sequence in a solution generated by $\mathrm{CompleteSolution}$:
+
+\begin{lemma}
+\label{lem:seq-overbidding}
+Let $\mathcal{H} = (H_1, \ldots, H_{p})$ be an $\eta$-valid partial solution.
+Suppose that for $S' = \bigcup_{H \in \mathcal{H}} H$, $I' = \{j \in D \mid \theta \geq (1-\delta) d(j, S')\}$, and $A' = D \setminus I'$ it holds for all $i_0 \in F$ that
+    \[\sum_{j\in A'}\beta(\theta,\dist(i_0,j))
+\;+\;
+\sum_{j\in I'}\beta((1-\delta)  \dist(j,S'), \dist(i_0,j))
+\;\le\; \hat f.\]
+Then, for all $H_t$ with $t > p$ in the output of $\mathrm{CompleteSolution}(\mathcal{H})_{\hat f, u}$, for $S = S' \cup \{H_{p+1}, \ldots, H_{t}\}$, $I = \{j \in D \mid \theta \geq (1-\delta) d(j, S)\}$, and $A = D \setminus I$, we have for all $i_0 \in F$ that 
+    \[\sum_{j\in A}\beta(\theta,\dist(i_0,j))
+\;+\;
+\sum_{j\in I}\beta((1-\delta)  \dist(j,S), \dist(i_0,j))
+\;\le\; \hat f.\]
+\end{lemma}
+\begin{proof}
+The claim is captured by Lemma~\ref{lem:overbidding-robust}, which proves that the property holds even after the opening of each facility in each sequence.
+\end{proof}
+
+We now discuss the merging procedure itself.
+Informally, the merging procedure takes two $\eta$-valid solutions $\mathcal{H}$ and $\mathcal{H}'$ that open more and less than $k$ regular facilities, respectively, and merges them to obtain an $\eta$-valid solution that opens exactly $k$ regular facilities.
+This merging procedure is essentially identical to that in~\cite{MR4928455-Cohen25}, except that (1) it uses \emph{our} definitions of $\completesol$ and $\completesequence$ above and (2) it has a slightly different initialization.
+
+Let us describe our initialization.
+We perform bisection search on $\hat f$ in the interval $[1/n^2, 4\gamma n\Maxdist]$ and run $\completesol_{\hat f, u}(\emptyset)$ with empty $u$.
+Let us start by analyzing the endpoints of this interval:
+\begin{itemize}
+    \item $\hat f = 1 /n^2$: At $\hat f = 1/n^2$ every client $j \in D$ satisfies $d(j, S^\star) \leq \frac{1+\eps^2}{1-\delta} (\gamma d(j, F) + 1/n^2)$ because each client may open its closest facility by itself by the time $\theta \geq \gamma d(j, F) + 1/n^2$.
+    Then the resulting solution is a $\frac{\gamma+O(\eps^2)+O(1/n)}{1-\delta}$-approximation, which by our choice of parameters is also a $\rho$-approximation.
+    If this solution opens at most $k$ centers, we are done.
+    Else, it gives a solution that opens more than $k$ centers.
+    \item $\hat f = 4 \gamma n \Maxdist$: At $\hat f = 4 \gamma n \Maxdist$ the algorithm opens exactly one facility, because when first facility is opened then every other client becomes immediately inactive at that step.
+    If $k=1$, we are done.
+    Else, it gives a solution that opens less than $k$ centers.
+\end{itemize}
+Then we perform bisection search until we find two $\hat f > \hat f'$ such that $|\hat f - \hat f'| \leq \eta$ and the corresponding solutions $\mathcal{H}$ and $\mathcal{H}'$ open strictly more and strictly less than $k$ facilities, respectively.
+
+Then, as in~\cite{MR4928455-Cohen25}, the procedure maintains two solutions $\mathcal{H}$ and $\mathcal{H}'$ whose number of opened regular facilities sandwich $k$.
+It also ensures that $\mathcal{H}$ is $\eta$-valid w.r.t. some $\hat f, u$ and $\mathcal{H}'$ is $\eta$-valid w.r.t. some $\hat f', u'$ such that $\hat f, u$ and $\hat f', u'$ differ in at most one ``entry'', by at most $\eta$: either they are identical, or $\hat f \neq \hat f'$ and $|\hat f - \hat f'| \leq \eta$, or there exists a single free facility $\tilde{i}$ with $u(\tilde i) \neq u'(\tilde i)$  and $|u(\tilde i) - u'(\tilde i)| \leq \eta$.
+The procedure modifies $\mathcal{H}$ and $\mathcal{H}'$ in steps, such that after that $p$-th step of the procedure either it has found a solution that opens exactly $k$ facilities or it ensures that the first $p$ sequences of $\mathcal{H}$ and $\mathcal{H}'$ are identical.
+Also, each step of the procedure opens at most three new free facilities.
+
+For $\hat f \leq 4\gamma n \Maxdist$, at the latest when $\theta$ reaches $6 \gamma \Maxdist$ a facility will open and every client will become inactive, so $\theta$ is upper bounded by $(1+\eps^2) 6 \gamma \Maxdist$.
+Because $\theta$ starts at $1$ and increases exponentially in the number of sequences (specifically, it is multiplied by $(1+\eps^2)$ every two sequences), this implies that the number of sequences in any $\eta$-valid solution with $\hat f \leq 4 \gamma n \Maxdist \leq \poly(n)$ is $O(\log n / \eps^2)$.
+This implies that the procedure finds a solution within $O(\log n / \eps^2)$ steps, because otherwise it would reach the contradiction that $\mathcal{H}$ and $\mathcal{H}'$ are identical but open different numbers of regular facilities.
+
+\begin{proof}[Proof sketch of Theorem~\ref{thm:k-median}]
+The merging procedure generates an $\eta$-valid solution that opens exactly $k$ regular facilities and at most $O(\log n/ \eps^2)$ free facilities. 
+Then, by Theorem~\ref{theorem:alg-lmp-robust},
+\begin{align*}
+\sum_{j \in D} d(j, S^\star)
+&\leq (1+8\delta) \rho \cdot (\mathrm{OPT}_f - |S^\star_{\mathrm{reg}}| \cdot f) + 2 |\Sr^\star| \cdot n \eta\\
+&= (1+8\delta) \rho \cdot \left( \mathrm{OPT}_f - f \cdot k \right)  + 2 |\Sr^\star| \cdot n \eta\\
+&\leq \Paren{(1+8\delta)\rho + 2 |\Sr^\star| \cdot n \eta} \cdot \sopt\\
+&\leq (1+9\delta)\rho \cdot \sopt\,,
+\end{align*}
+where $\sopt$ is the cost of the optimal $k$-median solution.
+We used above that $\sopt \geq \mathrm{OPT}_f - f \cdot k$, that $\sopt \geq 1$ (because every distance is at least $1$), and also that $\eta = 2^{-n \cdot |F|}$.
+The statement of Theorem~\ref{thm:k-median} is captured by renaming $\delta \gets 9\delta$ and noticing that we only choose $\eps$ to be a constant factor smaller than $\delta$.
+
+Strictly speaking, $S^\star$ may not be a valid solution to the $k$-median problem because it also contains free facilities that are not members of $F$.
+However, each free facility $\tilde{i}$ is a copy of a regular facility $i \in F$, so we consider in fact the solution that for each free facility $\tilde{i} \in S^\star$ opens the regular facility $i$ that it is a copy of.
+This cannot increase the cost of the solution: for all $j \in D$, we have $d(j, i) = d(j, \tilde{i}) - u(\tilde{i}) \leq d(j, \tilde{i})$.
+Hence, this solution also has cost upper bounded by $(1+9\delta)\rho \cdot \sopt$.
+The number of regular facilities opened is still bounded by $k + O(\log n)$.
+\end{proof}
+
+\subsection{Merging Procedure Analysis}
+
+The analysis of the merging procedure depends on the following two lemmas that are essential to argue that, during the merging procedure, the sequences produced are maximal.
+An analogous result is implicit in~\cite{MR4928455-Cohen25}.
+
+\begin{lemma}
+\label{lem:pay-to-open-1}
+Suppose $\hat f > 0$.
+Let $H_p = (h_1, \ldots, h_\ell)$ be a $(1,\eta)$-valid sequence with respect to time $\theta$ and open facilities $S'$, except that it may not be maximal.
+For $I' = \{j \in D \mid \theta \geq (1-\delta) d(j, S')\}$, $A' = D \setminus I'$, suppose that for all $i_0 \in F$,
+    \[\sum_{j\in A'}\beta(\theta,\dist(i_0,j))
+\;+\;
+\sum_{j\in I'}\beta((1-\delta)  \dist(j,S'), \dist(i_0,j))
+\;\le\; \hat f.\]
+Let $S = S' \cup \{h_1, \ldots, h_{\ell}\}$, and let $I = \{j \in D \mid \theta \geq (1-\delta) d(j, S)\}$ and $A = D \setminus I$.
+Suppose furthermore that
+\[\sum_{j \in A} \beta(\theta, (1-\delta) d(i, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), (1-\delta)d(j, i)) \geq \hat{f}\]
+for some $i \in F$. Then there exists some $i^\star \in F \setminus S$ that is $(1,0)$-openable with respect to $\theta$ and $S$.
+\end{lemma}
+\begin{proof}
+We start by noting that $i \in S$ is impossible unless $f=0$, because then $\theta \leq (1-\delta) d(j,S) \leq (1-\delta)d(i,j)$ for all $j \in A$ and $d(j, S) \leq d(i,j)$ for all $j \in [n]$,  which implies that the left-hand side of the budget assumption is zero.
+
+Then we argue that $i$ itself is $(1, 0)$-openable.
+The first constraint follows from the given assumption.
+Also, the third constraint is trivial because $\alpha_j = \theta$ for all $j \in A$.
+
+For the second constraint, we start by observing that
+\[\sum_{j \in A'} \beta(\theta, d(i_0, j)) + \sum_{j \in I'}\beta((1-\delta)d(j,S'), d(i_0, j)) \leq \hat{f}\,,\]
+so because $d(j,S) \leq d(j, S')$ also 
+\[\sum_{j \in A'} \beta(\theta, d(i_0, j)) + \sum_{j \in I'}\beta((1-\delta)d(j,S), d(i_0, j)) \leq \hat{f}\,.\]
+Let us now consider the clients $j \in A' \cap I$.
+Because $j \in I$, we have $\theta \geq (1-\delta) d(j,S)$, so we also have $\beta(\theta, d(i_0, j)) \geq \beta((1-\delta)d(j,S), d(i_0, j))$. 
+Hence, overall, we also have
+\[\sum_{j \in A} \beta(\theta, d(i_0, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), d(i_0, j)) \leq \hat{f}\,.\]
+\end{proof}
+
+\begin{lemma}
+\label{lem:pay-to-open-2}
+Suppose $\hat f > 0$.
+Let $H_p = (h_1, \ldots, h_\ell)$ be a $(2,\eta)$-valid sequence with respect to time $\theta$ and open facilities $S'$, except that it may not be maximal.
+For $I' = \{j \in D \mid \theta \geq (1-\delta) d(j, S')\}$, $A' = D \setminus I'$, suppose that for all $i_0 \in F$,
+    \[\sum_{j\in A'}\beta(\theta,\dist(i_0,j))
+\;+\;
+\sum_{j\in I'}\beta((1-\delta)  \dist(j,S'), \dist(i_0,j))
+\;\le\; \hat f.\]
+Let $S = S' \cup \{h_1, \ldots, h_{\ell}\}$, and let $I = \{j \in D \mid \theta \geq (1-\delta) d(j, S)\}$ and $A = D \setminus I$.
+Suppose furthermore that there exist values $(\tau_j)_{j \in A}$ such that $\tau_j = \theta$ for $j \in A \setminus B(i, \epsilon \theta)$, $\theta \leq \tau_j \leq \min((1-\delta)d(j,S), (1+\epsilon^2)\theta)$ for $j \in A \cap B(i, \epsilon \theta)$, $\tau_j \leq \tau_k + d(j, k)$ for all $j, k \in A$, and
+\[\sum_{j \in A} \beta(\tau_j, (1-\delta/2) d(i, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), (1-\delta/2)d(j, i)) \geq \hat{f}\]
+for some $i \in F$. Then there exists some $i^\star \in F \setminus S$ that is $(2,0)$-openable with respect to $\theta$ and $S$.
+\end{lemma}
+\begin{proof}
+We start by noting that $i \in S$ is impossible unless $\hat f=0$, because then $\tau_j \leq  (1-\delta) d(i,j)$ for all $j \in A$ and $d(j, S) \leq d(j, i)$ for all $j \in [n]$, which implies that the left-hand side of the budget assumption is zero.
+
+Fix $(\tau_j)_{j \in A}$ such that $\tau_{\max} = \max_{j \in A} \tau_j$ is minimized and the assumptions are satisfied with respect to some $i \in F \setminus S$.
+We will prove that $i$ is $(2,0)$-openable.
+The first three constraints and the fifth constraint are satisfied by assumption.
+
+\textbf{Fourth constraint for $i_0 \in F \setminus S$.}
+For the fourth constraint, suppose for the sake of contradiction that there exists some $i_0 \in F \setminus S$ such that
+\[\sum_{j \in A} \beta(\tau_j, d(i_0, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), d(i_0, j)) > \hat{f}\,.\]
+
+\textbf{Existence of non-zero active bid.}
+Let us prove that there exists $j \in A$ such that $\tau_j > \theta$ and $\beta(\tau_{j}, d(i_0, {j})) > 0$.
+We have that
+\[\sum_{j \in A'} \beta(\theta, d(i_0, j)) + \sum_{j \in I'}\beta((1-\delta)d(j,S'), d(i_0, j)) \leq \hat{f}\,,\]
+so because $d(j, S) \leq d(j, S')$ also 
+\[\sum_{j \in A'} \beta(\theta, d(i_0, j)) + \sum_{j \in I'}\beta((1-\delta)d(j,S), d(i_0, j)) \leq \hat{f}\,.\]
+Let us now consider the clients $j \in A' \cap I$.
+Because $j \in I$, we have $\theta \geq (1-\delta) d(j,S)$, so we also have $\beta(\theta, d(i_0, j)) \geq \beta((1-\delta)d(j,S), d(i_0, j))$.
+Hence, overall, we also have that 
+\[\sum_{j \in A} \beta(\theta, d(i_0, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), d(i_0, j)) \leq \hat{f}\,.\]
+Then, for this inequality to be violated when switching from $\theta$ to $(\tau_j)_{j \in A}$, there must exist some $j \in A$ such that $\tau_{j} > \alpha_{j}$ and $\beta(\tau_{j}, d(i_0, {j})) > 0$.
+
+\textbf{Finalizing fourth constraint for $i_0 \in F \setminus S$.}
+For some $\zeta > 0$ small enough, consider a new set of values $\{\tau'_j\}_{j \in A}$ such that $\tau'_j = \tau_j - \zeta$ if $\tau_j > \theta$ and $\tau'_j = \tau_j$ otherwise.
+Then we still have $\tau'_j \geq \theta$ for all $j \in A$ and 
+\[\sum_{j \in A} \beta(\tau'_j, d(i_0, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), d(i_0, j)) > \hat{f}\,.\]
+Let us prove now that this leads to a contradiction.
+Let $\tau'_{\max} = \max_{j \in A} \tau'_j$. We have $\theta < \tau'_{\max} < \tau_{\max}$.
+Let $\alpha'_j = \min(\tau'_{\max}, (1-\delta)d(j,S))$, and note that $\alpha'_j \geq \tau'_{j}$ for all $j \in A$, because if $\alpha'_j = (1-\delta) d(j,S)$ we have $(1-\delta) d(j,S) \geq \tau_j \geq \tau'_j$.
+Then we also have
+\[\sum_{j \in A} \beta(\alpha'_j, d(i_0, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), d(i_0, j)) > \hat{f}\,.\]
+Let $\tilde{\tau}_j = \min(\alpha'_j, (1+\epsilon) \theta - d(i_0, j))$ for $j \in A \cap B(i_0, \epsilon \theta)$ and $\tilde{\tau}_j = \theta$ for $j \in A \setminus B(i_0, \epsilon \theta)$.
+We claim that 
+\begin{align*}
+&\sum_{j \in A} \beta(\tilde\tau_j, (1-\delta/2) d(i_0, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), (1-\delta/2)d(j, i_0))\\
+=& \sum_{j \in A \cap B(i_0, \eps\theta)}  \beta(\min(\alpha'_j, (1+\epsilon) \theta - d(i_0, j)), (1-\delta/2) d(i_0, j)) + \sum_{j \in A \setminus B(i_0, \eps\theta)}  \beta(\theta, (1-\delta/2) d(i_0, j))\\
+&\quad + \sum_{j \in I}\beta((1-\delta)d(j,S), (1-\delta/2)d(j, i_0))\\
+\geq& \sum_{j \in A \cap B(i_0, \eps\theta)}  \beta(\alpha'_j, d(i_0, j)) + \sum_{j \in A \setminus B(i_0, \eps\theta)}  \beta(\alpha'_j, d(i_0, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), d(j, i_0))\,. 
+\end{align*}
+For the inequality above, for the first sum, the claim is trivial if $\alpha_j'$ is the minimizer, so let us assume that $\alpha_j' \geq (1+\eps)\theta - d(i_0, j)$. Note that $\alpha_j' \leq (1+\eps^2)\theta$.
+Then, using that $d(i_0, j) \leq \epsilon \theta$ we have 
+\begin{align*}
+(1+\epsilon) \theta - d(i_0, j)-(\gamma (1-\delta/2)) d(i_0, j)
+&= (1+\epsilon) \theta - (1-\eps)d(i_0, j)-(\gamma (1-\delta/2) + \eps) d(i_0, j)\\
+&\geq (1+\eps^2) \theta - (\gamma (1-\delta/2) + \eps)d(i_0,j)\\
+&\geq (1+\eps^2)\theta - \gamma d(i_0, j)\\
+&\geq \alpha_j' - \gamma d(i_0, j)\,,
+\end{align*}
+where we used that $\gamma \geq \gamma (1-\delta/2) + \eps$ for $\delta \gg \eps$.
+
+For the second sum, using that $d(i_0, j) > \epsilon \theta$ we have 
+\[\theta - \gamma (1 - \delta/2) d(i_0, j) \geq (1+\eps^2) \theta - \gamma d(i_0, j) \geq \alpha_j' - \gamma d(i_0, j)\,,\]
+where we used that $\gamma \delta d(i_0, j) / 2 \geq \gamma \delta \eps \theta \geq \eps^2 \theta$ for $\delta \gg \eps$ and $\alpha_j' \leq (1+\eps^2) \theta$.
+The third sum follows trivially.
+Then
+\[\sum_{j \in A} \beta(\tilde\tau_j, (1-\delta/2) d(i_0, j)) + \sum_{j \in I}\beta((1-\delta)d(j,S), (1-\delta/2)d(j, i_0)) \geq \hat{f}\,.\]
+
+We prove now that the other assumptions of the current lemma are also satisfied for $i_0$ and $\{\tilde\tau\}_{j \in A}$, thus reaching a contradiction because $\max_{j \in A}\tilde\tau_j \leq \tau'_{\max} < \tau_{\max}$.
+We have by definition $\tilde\tau_j = \theta$ for $j \in A \setminus B(i_0, \eps \theta)$ and $\theta \leq \tilde\tau_j \leq \min((1-\delta)d(j,S),(1+\eps^2)\theta)$ for $j \in A \cap B(i_0, \eps \theta)$.
+
+It remains to check the triangle inequalities $\tilde\tau_j \leq \tilde\tau_k + d(j, k)$.
+The triangle inequalities between $j, k$ with $\tilde\tau_k \geq \tilde\tau_j$ are trivially satisfied, so we assume $\tilde\tau_j > \tilde\tau_k \geq \theta$.
+Then $\tilde\tau_j = \min(\alpha'_j, (1+\epsilon) \theta - d(i_0, j))$, where $d(i_0, j) \leq \eps \theta$.
+First, consider the case $d(i_0, k) > \eps \theta$, which implies $\tilde\tau_k = \theta$.
+Then
+\[\tilde\tau_j \leq (1+\eps)\theta - d(i_0, j) \leq (1+\eps)\theta - (d(i_0, k) - d(j, k)) \leq \theta + d(j, k) = \tilde\tau_k + d(j, k)\,.\]
+Second, consider the case $d(i_0, k) \leq \eps \theta$, which implies $\tilde\tau_k = \min(\alpha'_k, (1+\epsilon) \theta - d(i_0, k))$, where also recall that $\alpha'_k = \min(\tau'_{\max}, (1-\delta)d(k, S))$.
+If $\tilde\tau_k = \tau'_{\max}$, we are done.
+If $\tilde\tau_k = (1-\delta)d(k, S)$, we have 
+\[\tilde\tau_j \leq (1-\delta) d(j,S) \leq (1-\delta)(d(j,k)+d(k,S)) \leq \tilde\tau_k + d(j,k)\,.\]
+Finally, if $\tilde\tau_k = (1+\epsilon) \theta - d(i_0, k)$, we have
+\[\tilde\tau_j \leq (1+\epsilon) \theta - d(i_0, j) \leq (1+\epsilon) \theta - (d(i_0, k) - d(j, k)) = \tilde\tau_k + d(j,k)\,.\]
+Hence, we satisfy all assumptions of the current lemma and we reach a contradiction.
+
+\textbf{Fourth constraint for $i_0 \in S$.}
+Finally, the remaining possibility is that there exists some $i_0 \in S$ for which the fourth constraint is violated.
+However, in that case, we note that $\tau_j \leq (1-\delta) d(j, S) \leq d(i_0, j)$, so the left-hand side of the fourth constraint is zero, so it is impossible for the constraint to be violated.
+\end{proof}
+
+Given Lemmas~\ref{lem:pay-to-open-1} and~\ref{lem:pay-to-open-2}, the analysis of the merging procedure is nearly identical to that in~\cite{MR4928455-Cohen25}.
+To prove that the merging procedure maintains the maximality of the sequences produced they (implicitly) use the fact that a ``payable'' facility is an ``openable'' facility.
+This property holds in our case by Lemmas~\ref{lem:pay-to-open-1} and~\ref{lem:pay-to-open-2}.
+The only remaining claim whose proof we need to change is that of Claim $4$ in~\cite{MR4928455-Cohen25}, which proves that if a sequence $H'_t$ is $(\nu, 0)$-valid with respect to some $\hat f', u'$, then it is also $(\nu, \eta)$-valid with respect to $\hat f, u$ that are $\eta$-close to $\hat f', u$.
+We prove below a version of this claim that applies to our case, by starting with a verbatim copy of their proof and adapting it to our setting.
+(This proof will also use Lemmas~\ref{lem:pay-to-open-1} and~\ref{lem:pay-to-open-2}.)
+The rest of the analysis is identical up to cosmetic changes.
+
+\begin{claim}[See Claim 4 in~\cite{MR4928455-Cohen25}]
+\label{claim:param-ident}
+    Let $H'_t$ be a $(\nu, 0)$-valid sequence with respect to some $\hat f', u'$.
+    Let $\hat f, u$ satisfy that either $\hat f, u$ and $\hat f', u'$ are identical, or $\hat f > \hat f'$ with $|\hat f - \hat f'| \leq \eta$, or there exists a single free facility $\tilde{i}$ with $u(\tilde i) < u'(\tilde i)$  and $|u(\tilde i) - u'(\tilde i)| \leq \eta$.
+    Then $H'_t$ is a $(\nu,\eta)$-valid sequence with respect to $\hat f, u$.
+    \label{claim:1ststep_etavalid}
+\end{claim}
+\begin{proof}
+Suppose first that $\hat f\neq \hat f'$ is the difference parameter.
+Because each facility in $H'_p$ was $(\nu(p),0)$-openable with respect to parameters $\hat f', u'$, then it is also $(\nu(p),\eta)$-openable with respect to parameters $\hat f, u$ because the only difference is that $\hat f$ is larger than $\hat f'$ by at most $\eta$.
+Furthermore, $H'_p$ is maximal with respect to $\hat f, u$ by the following argument based on Lemmas~\ref{lem:pay-to-open-1} and~\ref{lem:pay-to-open-2}: Since $H'_p$ was maximal with respect to $\hat f', u'$, it means the assumptions of Lemmas~\ref{lem:pay-to-open-1} (if $\nu(p)=1$) or~\ref{lem:pay-to-open-2} (if $\nu(p)=2$) are not satisfied with respect to $\hat f', u'$.
+We know that their first assumption is always satisfied by Lemma~\ref{lem:seq-overbidding}, so the second assumption must be the one not satisfied.
+However, their second assumptions become even stronger for $\hat f$ larger than $\hat f'$, so they are still not satisfied, which implies that there still does not exist any $(\nu(p),0)$-openable facility, because otherwise these assumptions would trivially be satisfied.
+
+Next, consider the case when $u(\tilde i) \neq u'(\tilde i)$ is the difference parameter.
+Then, by the same argument as above, we also have that each facility in $H'_p$ is $(\nu(p),\eta)$-openable with respect to parameters $\hat f, d$.
+To see this more formally, let $H'_p = \langle h_1, \dots, h_{\ell} \rangle$ and consider $h_t$ for some $t \in [\ell]$, which is $(\nu(p), 0)$-openable with respect to $\hat f', u', \theta = (1 + \eps^2)^{\lfloor \frac{p - 1}{2} \rfloor}$ and some superset $S \supseteq (\cup_{q \in [p-1]} H_q) \cup \{ h_1, \dots, h_{t-1} \}$.
+When we switch from $\hat f', u'$ to $\hat f, u$, because the only difference is $u(\tilde i) < u'(\tilde i)$, the set of active clients $A'$ for $\hat f', u'$ is a superset of the set of active clients $A$ for $\hat f, u$.
+Also, let $d'(\cdot, \cdot)$ and $d(\cdot, \cdot)$ be the distances with respect to $u'$ and $u$, respectively. 
+For any $h_t \in H_p$, we have that $h_t$ was $(\nu(p),0)$-openable with respect to the former setting with bids $(\tau'_j)_{j \in A'}$.
+Then let $(\tau_j)_{j \in A'}$ be the new bids defined as $\tau_j = \min(\tau'_j, (1-\delta)d(j, S))$ for $j \in A'$ (these bids are only used on $A$, but we define them on the superset $A'$ for the purposes of the analysis). 
+Let us verify that $h_t$ is $(\nu(p),\eta)$-openable with respect to $\hat f, u$ with the bids $(\tau_j)_{j \in A}$.
+We need to check the corresponding conditions in Definitions~\ref{def:openable-mod-eta-1} (if $\nu(p)=1$) and~\ref{def:openable-mod-eta-2} (if $\nu(p)=2$).
+We focus for simplicity on the case $\nu(p)=2$, which is the more intricate of the two.
+The case $\nu(p)=1$ follows by similar arguments.
+
+\begin{itemize}
+    \item $\tau_j = \theta$ for every $j \in A - B(h_t, \eps \theta)$: Since it was true for $A' \supseteq A$, it remains true. 
+    \item $\theta \leq \tau_j \leq \min\{(1-\delta)d(j,S),(1+\eps^2)\theta\}$ for every $j \in A \cap B(h_t, \eps \theta)$: Fix $j \in A \cap B(h_t, \eps \theta)$. 
+    Since $A \subseteq A'$, $\tau'_j \leq \min\{(1-\delta)d'(j,S),(1+\eps^2)\theta\}$. Since $\tau_j$ is defined as $\min(\tau'_j, (1-\delta)d(j,S))$, the condition is satisfied.
+    \item $
+    \sum_{j \in A} \beta(\tau_j, (1-\delta/2)d(h_t,j)) + \sum_{j \in I} \beta((1-\delta)d(j,S), (1-\delta/2)d(h_t,j)) \geq \hat f - n \eta$: Let us argue that the contribution of each client $j$ to the left-hand side changes by at most $\eta$ between $(A', d', \tau')$ and $(A, d, \tau)$.
+    We know that 
+    \[\sum_{j \in A'} \beta(\tau'_j, (1-\delta/2)d(h_t,j)) + \sum_{j \in I'} \beta((1-\delta)d'(j,S), (1-\delta/2)d(h_t,j)) \geq \hat f\,.\]
+    For $j \in A$, note that $\tau_j < \tau'_j$ implies $\tau_j = (1-\delta)d(j, S) \geq (1-\delta)(d'(j, S) - \eta) \geq \tau'_j - \eta$, so $\tau_j \geq \tau'_j - \eta$ in any case.
+    Then 
+    \[\sum_{j \in A'} \beta(\tau_j + \eta, (1-\delta/2)d(h_t,j)) + \sum_{j \in I'} \beta((1-\delta)d'(j,S), (1-\delta/2)d(h_t,j)) \geq \hat f\,.\]
+    For $j \in I'$, note that $d(j, S)$ and $d'(j, S)$ only differ by at most $\eta$.
+    So also 
+    \[\sum_{j \in A'} \beta(\tau_j + \eta, (1-\delta/2)d(h_t,j)) + \sum_{j \in I'} \beta((1-\delta)(d(j,S) + \eta), (1-\delta/2)d(h_t,j)) \geq \hat f\,.\]
+    Finally, for $j \in A' \cap I$, $(1-\delta)d(j, S) \geq \tau_j$, so $\beta(\tau_j + \eta, (1-\delta/2)d(h_t, j)) \leq \beta((1-\delta)d(j,S)+\eta, (1-\delta/2)d(h_t, j))$, so 
+    \[\sum_{j \in A} \beta(\tau_j + \eta, (1-\delta/2)d(h_t,j)) + \sum_{j \in I} \beta((1-\delta) d(j,S) + \eta, (1-\delta/2) d(h_t,j)) \geq \hat f\,,\]
+    from which it follows that 
+    \[\sum_{j \in A} \beta(\tau_j, (1-\delta/2)d(h_t,j)) +  \sum_{j \in I} \beta((1-\delta)d(j,S), (1-\delta/2)d(h_t,j)) \geq \hat f - n \eta\,.\]
+    \item For every regular facility $i_0$ and $k \in A$, $
+    \sum_{j \in A} \beta(\tau_j, d(i_0,j)) + \sum_{j \in I} \beta((1-\delta)d(j,S),d(i_0,j)) \leq \hat f$: We have
+    \[
+    \sum_{j \in A'} \beta(\tau'_j, d'(i_0,j)) + \sum_{j \in I'} \beta((1-\delta)d'(j,S), d'(i_0,j))
+    \leq \hat f.
+    \]
+    We have trivially that $d'(j, S) \geq d(j, S)$ and $\tau_j' \geq \tau_j$.
+    Because $i_0$ is a regular facility, we also have $d'(i_0, j) = d(i_0, j)$.
+    Also, for $j \in A' \cap I$, because $j \in I$ implies that $\tau_j' \geq \theta \geq (1-\delta)d(j, S)$, we have $\beta(\tau'_j, d(i_0, j)) \geq \beta((1-\delta) d(j,S), d(i_0, j))$, so we also have
+    \[
+    \sum_{j \in A} \beta(\tau_j, d(i_0,j)) + \sum_{j \in I} \beta((1-\delta)d(j,S), d(i_0,j))
+    \leq \hat f.
+    \]
+    \item $\tau_j \leq \tau_k + d(j, k)$ for every $j, k \in A$: For $j, k \in A'$, we had $\tau'_j \leq \tau'_k + d(j,k)$.
+    Recall that $\tau_j = \min(\tau_j', (1-\delta)d(j,S))$ for all $j \in A$.
+    Suppose $\tau_k < \tau'_k$, as otherwise the inequality holds trivially.
+    Then $\tau_k = (1-\delta) d(k, S)$, and also $\tau_j \leq (1-\delta) d(j, S)$, so
+    \[\tau_j \leq (1-\delta) (d(j, k) + d(k, S)) = \tau_k + (1-\delta) d(j, k) \leq \tau_k + d(j, k)\,.\]
+\end{itemize}
+Furthermore, $H'_p$ is maximal w.r.t. $\hat f, u$ by the following argument based on Lemmas~\ref{lem:pay-to-open-1} and~\ref{lem:pay-to-open-2}: Since $H'_p$ was maximal w.r.t. $\hat f', u'$, it means the assumptions of Lemmas~\ref{lem:pay-to-open-1} (if $\nu(p)=1$) or~\ref{lem:pay-to-open-2} (if $\nu(p)=2$) are not satisfied w.r.t. $\hat f', u'$.
+We know that their first assumption (about $\leq \hat{f}$) is always satisfied by Lemma~\ref{lem:seq-overbidding}, so the second assumption must be the one not satisfied.
+Let us argue that these second assumptions are still not satisfied w.r.t. $\hat f, u$:
+\begin{itemize}
+    \item If $\nu(p)=1$, for Lemma~\ref{lem:pay-to-open-1}, we know that for all regular facilities $i \in F \setminus S$
+    \[\sum_{j \in A'} \beta(\theta, (1-\delta)d(i,j)) + \sum_{j \in I'} \beta((1-\delta)d'(j, S), (1-\delta)d(j,i)) < \hat{f} - n \eta\,.\]
+    We have $d'(j, S) \geq d(j, S)$, and also for $j \in A' \cap I$ we have that $\theta \geq (1-\delta) d(j, S)$, so it easily follows that 
+    \[\sum_{j \in A} \beta(\theta, (1-\delta)d(i,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), (1-\delta)d(j,i)) < \hat{f} - n \eta\,.\]
+    \item If $\nu(p)=2$, for Lemma~\ref{lem:pay-to-open-2}, we know that for all regular facilities $i \in F \setminus S$ and all $\{\tilde{\tau}_j\}_{j \in A'}$ such that $\tilde{\tau}_j = \theta$ for $j \in A' \setminus B(i, \epsilon \theta)$, $\theta \leq \tilde{\tau}_j \leq \min((1-\delta)d'(j,S), (1+\epsilon^2)\theta)$ for $j \in A' \cap B(i, \epsilon \theta)$, $\tilde{\tau}_j \leq \tilde{\tau}_k + d(j, k)$ for all $j, k \in A'$, we have
+    \[\sum_{j \in A'} \beta(\tilde\tau_j, (1-\delta/2)d(i,j)) + \sum_{j \in I'} \beta((1-\delta)d'(j, S), (1-\delta/2)d(j,i)) < \hat{f} - n \eta\,.\]
+    We will proceed by contradiction. 
+    Suppose there exists a regular facility $i \in F \setminus S$ and some $\{\tilde{\tau}_j\}_{j \in A}$ such that $\tilde{\tau}_j = \theta$ for $j \in A \setminus B(i, \epsilon \theta)$, $\theta \leq \tilde{\tau}_j \leq \min((1-\delta)d(j,S), (1+\epsilon^2)\theta)$ for $j \in A \cap B(i, \epsilon \theta)$, and $\tilde{\tau}_j \leq \tilde{\tau}_k + d(j, k)$ for all $j, k \in A$, with
+    \[\sum_{j \in A} \beta(\tilde\tau_j, (1-\delta/2)d(i,j)) + \sum_{j \in I} \beta((1-\delta)d(j, S), (1-\delta/2)d(j,i)) \geq \hat{f} - n \eta\,.\]
+    Let us extend $\tilde\tau_j = \theta$ for all $j \in A' \setminus A$, which trivially satisfies $\tilde\tau_j \leq \min((1-\delta) d'(j, S), (1+\eps^2)\theta)$ for $j \in A' \cap B(i, \eps \theta)$.
+    Note also that $d(j, S) \leq d'(j, S)$.
+    Furthermore, for $j \in A' \setminus A$, we have $\theta \geq (1-\delta)d(j,S)$, so
+    \[\sum_{j \in A'} \beta(\tilde\tau_j, (1-\delta/2)d(i,j)) + \sum_{j \in I'} \beta((1-\delta)d'(j, S), (1-\delta/2)d(j,i)) \geq \hat{f} - n \eta\,.\]
+    To reach a contradiction, it remains to prove that $\tilde\tau_j \leq \tilde\tau_k + d(j,k)$ for all $j, k \in A'$.
+    We already know this for $j, k \in A$, and the claim is also trivial if $j \in A' \setminus A$ because $\tilde\tau_j = \theta \leq \tau_k$.
+    So let us consider the case $j \in A$ and $k \in A' \setminus A$.
+    Note that in this case $\tilde\tau_j \leq (1-\delta) d(j,S)$ and $\tilde\tau_k = \theta \geq (1-\delta) d(k, S)$.
+    Then $\tilde\tau_j \leq (1-\delta) (d(j,k)+d(k,S)) \leq \tilde\tau_k + d(j,k)$, so we reach a contradiction.
+\end{itemize}
+Therefore, Lemmas~\ref{lem:pay-to-open-1} and~\ref{lem:pay-to-open-2} are still not satisfied, which implies that there still does not exist any $(\nu(p),\eta)$-openable facility, because otherwise these assumptions would trivially be satisfied.
+\end{proof}

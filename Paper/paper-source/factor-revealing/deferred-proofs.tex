@@ -1,0 +1,794 @@
+\subsubsection{Credit calculation for \texorpdfstring{$i \geq f_j$}{i >=f\_j}}
+
+Let us restate the definition of credit, and then prove various lemmas about it.
+
+\defcreditij*
+
+\begin{lemma}
+    \label{lem:credit-A-after}
+    If client $j$ belongs integrally to group $A$, then for $i \geq f_j$
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = 1 - \sum_{i'=f_j+1}^i \delta_{i',j}\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    Because $j \in A$, we have $j < t_1$ by how the memberships are assigned in Equation~\ref{eq:membership-assignment}. Also, $\delta_{j,j'}=0$ for every $j' > j$, so every later $A/B/C$-part contributes $\hg_j$ to the initial term, while every later $D$-part contributes $\hg_j \cdot (1-\Mfrac \chi_{j'})$. Hence
+    \begin{equation*}
+        \sum_{j'=j+1}^n g_{j,j'} = \left(n-j-\Mfrac \cdot \sum_{j'=j+1}^n \mu_{j'}^D \cdot \chi_{j'}\right) \cdot \hg_j =  (n-j-\Mfrac \cdot z) \cdot \hg_j = 1 - [\MRttwo - R_{f_j}]^+\,.
+    \end{equation*}
+    where $z$ appears because $z=\sum_{j'=t_2+1}^{n}\chi_{j'} \mu_{j'}^D$ and for $j' \le t_2$ we have $\chi_{j'}=0$, thus having $\sum_{j'=j+1}^n \mu_{j'}^D \cdot \chi_{j'} = z$ since $j \leq t_1 \leq t_2$.
+    Moreover,
+    \begin{equation*}
+        \sum_{i'=j}^{i} g_{i',j} = \sum_{i'=j}^{i} (\hg_{i'}-\delta_{i',j}) = R_{j-1}-R_i-\sum_{i'=f_j+1}^{i} \delta_{i',j}\,,
+    \end{equation*}
+    \begin{equation*}
+        \sum_{i'=j}^{i} t_{i',j} = 0,
+        \qquad
+        \sum_{i'=j}^{i} s_{i',j} = \sum_{i'=j}^{i} (\hg_{i'}-\sigma_{i',j}) = R_{j-1}-R_i-[\MRttwo-R_{f_j}]^+\,,
+    \end{equation*}
+    because $\sigma_{i',j}=0$ for $i'>f_j$ and $\sum_{i'=j}^{f_j} \sigma_{i',j}=[\MRttwo-R_{f_j}]^+$.
+    Substituting into the definition of $\text{credit}_{i,j}$ gives the claim.
+\end{proof}
+
+\begin{lemma}
+\label{lem:credit-B-after}
+    If client $j$ belongs integrally to group $B$, then for $i \geq f_j$
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = 1 - \ind[i > f_j] \cdot \Mcoeffmone\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    For an integral $B$-client we have that $j>t_1$ from the membership assignment in Equation~\ref{eq:membership-assignment}. Hence, for every $j' > j$ we have $g_{j,j'} = \hg_j$ because they belong to $B$, $C$ or $D$ (since $j>t_1$ and $t_1$ is the boundary between $A$ and $B$); and thus
+    \begin{equation*}
+        \sum_{j'=j+1}^n g_{j,j'} = (n-j) \cdot \hg_j = R_j + \Mtone\,.
+    \end{equation*}
+    % where in the boundary case $j=t_1$ this is exactly the definition of $\hg_{t_1}^B$.
+    Also,
+    \begin{equation*}
+        \sum_{i'=j}^{i} g_{i',j} = R_{j-1}-R_i,
+        \qquad
+        \sum_{i'=j}^{i} t_{i',j} = [1-R_{j-1}-\Mtone]^+\,.
+    \end{equation*}
+    Since an integral $B$-client satisfies $R_{j-1} \le \MRtone$, the $t$-term is $\MRtone-R_{j-1}$.
+    Finally,
+    \begin{equation*}
+        \sum_{i'=j}^{i} s_{i',j} =
+        \begin{cases}
+            R_j-R_{f_j}, & i=f_j\,,\\
+            R_j-R_i+\Mcoeffmone, & i>f_j\,.
+        \end{cases}
+    \end{equation*}
+    Therefore, if $i=f_j$ then
+    \begin{equation*}
+        \text{credit}_{i,j} = (R_j+\Mtone) + (R_{j-1}-R_{f_j}) + (\MRtone-R_{j-1}) - (R_j-R_{f_j}) = 1\,,
+    \end{equation*}
+    and if $i>f_j$ then
+    \begin{equation*}
+        \text{credit}_{i,j} = (R_j+\Mtone) + (R_{j-1}-R_i) + (\MRtone-R_{j-1}) - (R_j-R_i+\Mcoeffmone) = 1-\Mcoeffmone\,.
+    \end{equation*}
+    This is exactly the stated formula.
+\end{proof}
+
+\begin{lemma}
+\label{lem:credit-C-after}
+    If client $j$ belongs integrally to group $C$, then for $i \geq f_j$
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = 1 - \ind[i > f_j] \cdot \Mcoeffmone\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    For a $C$-client we again have, through the same arguments as in the previous lemma, that for every $j' > j$ we have $g_{j,j'} = \hg_j$ because they belong to $C$ or $D$ (since $j>t_2\geq t_1$ and $t_2$ is the boundary between $B$ and $C$ and $t_1$ between $A$ and $B$); and thus
+    \begin{equation*}
+        \sum_{j'=j+1}^n g_{j,j'} = (n-j) \cdot \hg_j = R_j + \Mtone\,,
+        \qquad
+        \sum_{i'=j}^{i} g_{i',j} = R_{j-1}-R_i\,.
+    \end{equation*}
+    Moreover,
+    \begin{equation*}
+        \sum_{i'=j}^{i} t_{i',j} = 1-R_{j-1}-\Mtone = \MRtone-R_{j-1}\,,
+    \end{equation*}
+    and
+    \begin{equation*}
+        \sum_{i'=j}^{i} s_{i',j} =
+        \begin{cases}
+            R_j-R_{f_j}, & i=f_j\,,\\
+            R_j-R_i+\Mcoeffmone, & i>f_j\,.
+        \end{cases}
+    \end{equation*}
+    The same calculation as in the proof of Lemma \ref{lem:credit-B-after} gives $\text{credit}_{i,j}=1$ for $i=f_j$ and $\text{credit}_{i,j}=1-\Mcoeffmone$ for $i>f_j$.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:credit-D-after}
+    If client $j$ belongs integrally to group $D$, then for $i \geq f_j$
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = 1\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    If $j=t_3^\star=n$, then $i=f_j=n$, $g_{n,n}=\hg_n^\star$, and $t_{n,n}=1-\hg_n^\star$, so $\text{credit}_{n,n}=1$.
+    Assume now that $j \neq t_3^\star=n$.
+    Then $j \in D$ implies $\hg_j=0$, hence $\sum_{j'=j+1}^n g_{j,j'}=0$.
+    Also, if $j \le t_1$ then $\chi_j=0$, while if $j>t_1$ then the $D$-formula already gives $g_{i',j}=\hg_{i'}$ for all $i' \ge j$.
+    Thus, in all cases,
+    \begin{equation*}
+        \sum_{i'=j}^{i} g_{i',j} = R_{j-1}-R_i\,.
+    \end{equation*}
+    Moreover, $\sum_{i'=j}^{i} s_{i',j}=0$ and $\sum_{i'=j}^{i} t_{i',j}=1-R_{j-1}$.
+    Finally, $j \in D$ implies $f_j \ge t_3^\star$, so for $i \ge f_j$ we have $R_i=0$.
+    Therefore
+    \begin{equation*}
+        \text{credit}_{i,j} = 0 + (R_{j-1}-R_i) + (1-R_{j-1}) = 1\,.
+    \end{equation*}
+\end{proof}
+
+\begin{lemma}\label{lem:credit-fractional-after}
+    If client $j$ is fractionally assigned, then for every $i \geq f_j$ we have
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j}
+        = \mu_j^A \text{\emph{credit}}_{i,j}^A 
+        + \mu_j^B \text{\emph{credit}}_{i,j}^B 
+        + \mu_j^C \text{\emph{credit}}_{i,j}^C
+        + \mu_j^D \text{\emph{credit}}_{i,j}^D \ge 0\,,
+    \end{equation*}
+    where $\text{credit}_{i,j}^A$, $\text{credit}_{i,j}^B$, $\text{credit}_{i,j}^C$, and $\text{credit}_{i,j}^D$ are the contributions to the credit from groups $A$, $B$, $C$, and $D$ as defined in Lemmas \ref{lem:credit-A-after}, \ref{lem:credit-B-after}, \ref{lem:credit-C-after}, and \ref{lem:credit-D-after}, respectively.
+\end{lemma}
+\begin{proof}
+    The integral cases are exactly from Lemmas \ref{lem:credit-A-after} to \ref{lem:credit-D-after}. It remains to prove the formula for the fractional clients.
+
+    If $j<t_1$, then $\mu_j^B=\mu_j^C=0$ and $\mu_j^A+\mu_j^D=1$. Also,
+    \begin{equation*}
+        \sum_{j'=j+1}^{n} g_{j,j'}=(n-j-\Mfrac\, z)\hg_j=
+        \mu_j^A\bigl(1-[\MRttwo-R_{f_j}]^+\bigr)\,,
+    \end{equation*}
+    and by Equation~\ref{formula:fractional-assignments-convex-combination} the remaining term is the corresponding convex combination of the $A$- and $D$-contributions. Thus
+    \begin{equation*}
+        \text{credit}_{i,j}=
+        \mu_j^A\text{credit}_{i,j}^A+
+        \mu_j^D\text{credit}_{i,j}^D\,.
+    \end{equation*}
+
+    If $t_1<j\le t_2$, then $\mu_j^A=\mu_j^C=0$, $\mu_j^B+\mu_j^D=1$, and
+    \begin{equation*}
+        \sum_{j'=j+1}^{n} g_{j,j'}=(n-j)\hg_j=
+        \mu_j^B(R_j+\Mtone)\,,
+    \end{equation*}
+    so again
+    \begin{equation*}
+        \text{credit}_{i,j}=
+        \mu_j^B\text{credit}_{i,j}^B+
+        \mu_j^D\text{credit}_{i,j}^D\,.
+    \end{equation*}
+
+    If $t_2<j\le t_3^\star$, then $\mu_j^A=\mu_j^B=0$, $\mu_j^C+\mu_j^D=1$, and
+    \begin{equation*}
+        \sum_{j'=j+1}^{n} g_{j,j'}=(n-j)\hg_j=
+        \mu_j^C(R_j+\Mtone)\,,
+    \end{equation*}
+    which gives
+    \begin{equation*}
+        \text{credit}_{i,j}=
+        \mu_j^C\text{credit}_{i,j}^C+
+        \mu_j^D\text{credit}_{i,j}^D\,.
+    \end{equation*}
+
+    It remains to consider the boundary client $j=t_1$. Here $\mu_j^C=0$,
+    \begin{equation*}
+        \mu_j^A=(1-\alpha)(1-\mu_j^D)\,,
+        \qquad
+        \mu_j^B=\alpha(1-\mu_j^D)\,,
+        \qquad
+        \hg_j=\hg_j^A+\hg_j^B\,.
+    \end{equation*}
+    We have $i\ge f_j$, so
+    \begin{equation*}
+        \sum_{i'=j}^{i} g_{i',j}=R_{j-1}-R_i-\mu_j^A\sum_{i'=f_j+1}^{i}\delta_{i',j}\,,
+        \qquad
+        \sum_{i'=j}^{i} t_{i',j}=\mu_j^D(1-R_{j-1})\,,
+    \end{equation*}
+    where we used that $[1-R_{j-1}-\Mtone]^+=0$ at $j=t_1$.
+    Moreover,
+    \begin{equation*}
+        \sum_{i'=j}^{i} s_{i',j}
+        = \mu_j^A\left(R_{j-1}-R_i-[\MRttwo-R_{f_j}]^+\right)
+        + \mu_j^B\left(R_j-R_i+\ind[i>f_j]\cdot\Mcoeffmone\right)\,.
+    \end{equation*}
+    Using
+    \begin{equation*}
+        \sum_{j'=j+1}^{n} g_{j,j'}=(n-j-\Mfrac\, z)\hg_j^A+(n-j)\hg_j^B\,,
+    \end{equation*}
+    with
+    \begin{equation*}
+        (n-j-\Mfrac\, z)\hg_j^A=
+        \mu_j^A\bigl(1-[\MRttwo-R_{f_j}]^+\bigr)-\mu_j^B\hg_j^A,
+        \qquad
+        (n-j)\hg_j^B=
+        \mu_j^B(R_j+\Mtone)\,,
+    \end{equation*}
+    we obtain
+    \begin{align*}
+        \text{credit}_{i,j}
+        &= (n-j-\Mfrac\, z)\hg_j^A+(n-j)\hg_j^B + R_{j-1}-R_i - \mu_j^A\sum_{i'=f_j+1}^{i}\delta_{i',j} + \mu_j^D(1-R_{j-1}) \\
+        &\qquad - \mu_j^A\left(R_{j-1}-R_i-[\MRttwo-R_{f_j}]^+\right)
+        - \mu_j^B\left(R_j-R_i+\ind[i>f_j]\cdot\Mcoeffmone\right) \\
+        &= \mu_j^A\left(1-\sum_{i'=f_j+1}^{i}\delta_{i',j}\right)
+        + \mu_j^B(R_j+\Mtone+\hg_j^B)
+        + \mu_j^D(1-R_i)
+        - \mu_j^B\ind[i>f_j]\cdot\Mcoeffmone\,.
+    \end{align*}
+    Finally, $\hg_j^B=\MRtone - R_j$, so $R_j+\Mtone+\hg_j^B=1$. Also, if $\mu_j^D>0$, then $f_j\geq t_3^\star$, so $i\ge f_j$ implies $R_i=0$. Therefore
+    \begin{equation*}
+        \text{credit}_{i,j}
+        = \mu_j^A\left(1-\sum_{i'=f_j+1}^{i}\delta_{i',j}\right)
+        + \mu_j^B\left(1-\ind[i>f_j]\cdot\Mcoeffmone\right)
+        + \mu_j^D\cdot 1\,,
+    \end{equation*}
+    which then implies:
+    \begin{equation*}
+        \text{credit}_{i,j}
+        = \mu_j^A\text{credit}_{i,j}^A
+        + \mu_j^B\text{credit}_{i,j}^B
+        + \mu_j^D\text{credit}_{i,j}^D\,,
+    \end{equation*}
+    which is exactly the claimed convex combination given that $\mu_j^C=0$ for $j=t_1$.
+\end{proof}
+
+\subsubsection{Credit calculation for \texorpdfstring{$i < f_j$}{i < f\_j}}
+
+Using the same definition of credit, we now treat the case $i < f_j$.
+
+\defcreditij*
+
+\begin{lemma}
+    \label{lem:credit-A-before}
+    If client $j$ belongs integrally to group $A$, then for $j \leq i < f_j$
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = 1 - [\MRttwo - R_{f_j}]^+ + \sum_{i'=j}^i \sigma_{i',j} \ge 0\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    As in the proof of Lemma~\ref{lem:credit-A-after},
+    \begin{equation*}
+        \sum_{j'=j+1}^n g_{j,j'} = 1 - [\MRttwo - R_{f_j}]^+\,.
+    \end{equation*}
+    Since $i<f_j$, we also have $\delta_{i',j}=0$ and $t_{i',j}=0$ for all $j \le i' \le i$, hence
+    \begin{equation*}
+        \sum_{i'=j}^{i} g_{i',j} = R_{j-1}-R_i\,,
+        \qquad
+        \sum_{i'=j}^{i} t_{i',j}=0\,,
+        \qquad
+        \sum_{i'=j}^{i} s_{i',j} = R_{j-1}-R_i-\sum_{i'=j}^{i} \sigma_{i',j}\,.
+    \end{equation*}
+    Substituting gives
+    \begin{equation*}
+        \text{credit}_{i,j} = 1 - [\MRttwo - R_{f_j}]^+ + \sum_{i'=j}^{i} \sigma_{i',j}\,.
+    \end{equation*}
+    This is non-negative because $[\MRttwo-R_{f_j}]^+ \le \MRttwo < 1$ and $\sigma_{i',j} \ge 0$.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:credit-B-before}
+    If client $j$ belongs integrally to group $B$, then for $j \leq i < f_j$
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = \Mtone + \min\{R_{j-1},\MRtone\} \ge 0\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    For a client $j$ integrally in $B$, we have that $j>t_1$ from the membership assignment in Equation~\ref{eq:membership-assignment}. We have that $R_{j-1} \le \MRtone$ because $t_1$ is the last client for which $R_{j-1} > \MRtone$. Thus, showing that the credit is $\Mtone + R_{j-1}$ suffices to conclude the claim. As in the proof of Lemma~\ref{lem:credit-B-after},
+    \begin{equation*}
+        \sum_{j'=j+1}^n g_{j,j'} = R_j+\Mtone\,,
+        \qquad
+        \sum_{i'=j}^{i} g_{i',j} = R_{j-1}-R_i\,,
+        \qquad
+        \sum_{i'=j}^{i} t_{i',j}=0\,.
+    \end{equation*}
+    Because $i<f_j$, the extra $\Mcoeffmone$ has not been sent yet, so
+    \begin{equation*}
+        \sum_{i'=j}^{i} s_{i',j} = \sum_{i'=j+1}^{i} \hg_{i'} = R_j-R_i\,.
+    \end{equation*}
+    Therefore
+    \begin{equation*}
+        \text{credit}_{i,j} = (R_j+\Mtone) + (R_{j-1}-R_i) - (R_j-R_i) = \Mtone + R_{j-1} \ge 0\,.
+    \end{equation*}
+\end{proof}
+
+\begin{lemma}
+    \label{lem:credit-C-before}
+    If client $j$ belongs integrally to group $C$, then for $j \leq i < f_j$
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = \Mtone + R_{j-1} \ge 0\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    The calculation is identical to the one in the proof of Lemma~\ref{lem:credit-B-before}: we have
+    \begin{equation*}
+        \sum_{j'=j+1}^n g_{j,j'} = R_j+\Mtone\,,
+        \qquad
+        \sum_{i'=j}^{i} g_{i',j} = R_{j-1}-R_i\,,
+        \qquad
+        \sum_{i'=j}^{i} t_{i',j}=0\,,
+    \end{equation*}
+    and, since $i<f_j$,
+    \begin{equation*}
+        \sum_{i'=j}^{i} s_{i',j} = R_j-R_i\,.
+    \end{equation*}
+    Thus
+    \begin{equation*}
+        \text{credit}_{i,j} = (R_j+\Mtone) + (R_{j-1}-R_i) - (R_j-R_i) = \Mtone + R_{j-1} \ge 0\,.
+    \end{equation*}
+\end{proof}
+
+\begin{lemma}
+    \label{lem:credit-D-before}
+    If client $j$ belongs integrally to group $D$, then for $j \leq i < f_j$
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = R_{j-1}-R_i \ge 0\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    Because $j \in D$, we have $\hg_j=0$, hence $\sum_{j'=j+1}^n g_{j,j'}=0$.
+    Also, if $j \le t_1$ then $\chi_j=0$, while if $j>t_1$ then the $D$-formula gives $g_{i',j}=\hg_{i'}$ for all $i' \ge j$.
+    Therefore
+    \begin{equation*}
+        \sum_{i'=j}^{i} g_{i',j} = R_{j-1}-R_i\,.
+    \end{equation*}
+    Since $i<f_j$, we also have $\sum_{i'=j}^{i} t_{i',j}=0$, and for group $D$ we always have $\sum_{i'=j}^{i} s_{i',j}=0$.
+    Hence
+    \begin{equation*}
+        \text{credit}_{i,j} = R_{j-1}-R_i \ge 0\,.
+    \end{equation*}
+\end{proof}
+
+\begin{lemma}\label{lem:credit-fractional-before}
+    If client $j$ is fractionally assigned, then for every $j \leq i < f_j$ we have
+    \begin{equation*}
+        \text{\emph{credit}}_{i,j} = 
+        \mu_j^A\text{\emph{credit}}_{i,j}^A +
+        \mu_j^B\text{\emph{credit}}_{i,j}^B +
+        \mu_j^C\text{\emph{credit}}_{i,j}^C +
+        \mu_j^D\text{\emph{credit}}_{i,j}^D \ge 0\,,
+    \end{equation*}
+    where $\text{credit}_{i,j}^A$, $\text{credit}_{i,j}^B$, $\text{credit}_{i,j}^C$, and $\text{credit}_{i,j}^D$ are the contributions to the credit from groups $A$, $B$, $C$, and $D$ as defined in Lemmas \ref{lem:credit-A-before}, \ref{lem:credit-B-before}, \ref{lem:credit-C-before}, and \ref{lem:credit-D-before}, respectively.
+\end{lemma}
+\begin{proof}
+    The integral cases are exactly from Lemmas \ref{lem:credit-A-before} to \ref{lem:credit-D-before}. It remains to prove the formula for the fractional clients.
+
+    If $j<t_1$, then by Observation~\ref{obs:mu-sum} we have $\mu_j^B=\mu_j^C=0$ and $\mu_j^A+\mu_j^D=1$. Moreover,
+    \begin{equation*}
+        \sum_{j'=j+1}^{n} g_{j,j'}=(n-j-\Mfrac\, z)\hg_j=
+        \mu_j^A\bigl(1-[\MRttwo-R_{f_j}]^+\bigr)\,,
+    \end{equation*}
+    and, by Equation~\ref{formula:fractional-assignments-convex-combination}, the term
+    \begin{equation*}
+        \sum_{i'=j}^{i} \bigl(g_{i',j}+t_{i',j}-s_{i',j}\bigr)
+    \end{equation*}
+    is the same convex combination of the $A$- and $D$-contributions. Hence
+    \begin{equation*}
+        \text{credit}_{i,j}=
+        \mu_j^A\text{credit}_{i,j}^A+
+        \mu_j^D\text{credit}_{i,j}^D\,.
+    \end{equation*}
+
+    If $t_1<j\le t_2$, then $\mu_j^A=\mu_j^C=0$ and $\mu_j^B+\mu_j^D=1$. Also,
+    \begin{equation*}
+        \sum_{j'=j+1}^{n} g_{j,j'}=(n-j)\hg_j=
+        \mu_j^B(R_j+\Mtone)\,,
+    \end{equation*}
+    and again the remaining term is the corresponding convex combination of the $B$- and $D$-contributions. Thus
+    \begin{equation*}
+        \text{credit}_{i,j}=
+        \mu_j^B\text{credit}_{i,j}^B+
+        \mu_j^D\text{credit}_{i,j}^D\,.
+    \end{equation*}
+
+    If $t_2<j\le t_3^\star$, the proof is identical: now $\mu_j^A=\mu_j^B=0$, $\mu_j^C+\mu_j^D=1$, and
+    \begin{equation*}
+        \sum_{j'=j+1}^{n} g_{j,j'}=(n-j)\hg_j=
+        \mu_j^C(R_j+\Mtone)\,,
+    \end{equation*}
+    so
+    \begin{equation*}
+        \text{credit}_{i,j}=
+        \mu_j^C\text{credit}_{i,j}^C+
+        \mu_j^D\text{credit}_{i,j}^D\,.
+    \end{equation*}
+
+    It remains to consider the boundary client $j=t_1$. Here $\mu_j^C=0$,
+    \begin{equation*}
+        \mu_j^A=(1-\alpha)(1-\mu_j^D)\,,
+        \qquad
+        \mu_j^B=\alpha(1-\mu_j^D)\,,
+        \qquad
+        \hg_j=\hg_j^A+\hg_j^B\,.
+    \end{equation*}
+    Since $i<f_j$, we have $\delta_{i',j}=0$ and $t_{i',j}=0$ for $j\le i'\le i$. Therefore
+    \begin{equation*}
+        \sum_{i'=j}^{i} g_{i',j}=R_{j-1}-R_i\,,
+    \end{equation*}
+    while
+    \begin{equation*}
+        \sum_{i'=j}^{i} s_{i',j}
+        =\mu_j^A\left(R_{j-1}-R_i-\sum_{i'=j}^{i}\sigma_{i',j}\right)
+        +\mu_j^B(R_j-R_i)\,.
+    \end{equation*}
+    For the initial term we have
+    \begin{equation*}
+        \sum_{j'=j+1}^{n} g_{j,j'}=(n-j-\Mfrac\, z)\hg_j^A+(n-j)\hg_j^B\,.
+    \end{equation*}
+    Using
+    \begin{equation*}
+        (n-j-\Mfrac\, z)\hg_j^A=
+        \mu_j^A\bigl(1-[\MRttwo-R_{f_j}]^+\bigr)-\mu_j^B\hg_j^A
+    \end{equation*}
+    and
+    \begin{equation*}
+        (n-j)\hg_j^B=
+        \mu_j^B(R_j+\Mtone)\,,
+    \end{equation*}
+    we obtain
+    \begin{align*}
+        \text{credit}_{i,j}
+        &= (n-j-\Mfrac\, z)\hg_j^A+(n-j)\hg_j^B + (R_{j-1}-R_i) - \sum_{i'=j}^{i} s_{i',j} \\
+        &= \mu_j^A\bigl(1-[\MRttwo-R_{f_j}]^+\bigr) + \mu_j^B(R_j+\Mtone-\hg_j^A) \\
+        &\qquad + \mu_j^B(R_{j-1}-R_i) + \mu_j^D(R_{j-1}-R_i) - \mu_j^B(R_j-R_i) + \mu_j^A\sum_{i'=j}^{i}\sigma_{i',j} \\
+        &= \mu_j^A\left(1-[\MRttwo-R_{f_j}]^+ + \sum_{i'=j}^{i}\sigma_{i',j}\right)
+        + \mu_j^B(R_j+\Mtone+\hg_j^B)
+        + \mu_j^D(R_{j-1}-R_i)\,.
+    \end{align*}
+    Finally, $\hg_j^B=\MRtone - R_j$, so $R_j+\Mtone+\hg_j^B=1$. Hence
+    \begin{equation*}
+        \text{credit}_{i,j}
+        = \mu_j^A\left(1-[\MRttwo-R_{f_j}]^+ + \sum_{i'=j}^{i}\sigma_{i',j}\right)
+        + \mu_j^B\cdot 1
+        + \mu_j^D(R_{j-1}-R_i)\,,
+    \end{equation*}
+    which is exactly
+    \begin{equation*}
+        \text{credit}_{i,j}
+        = \mu_j^A\text{credit}_{i,j}^A
+        + \mu_j^B\text{credit}_{i,j}^B
+        + \mu_j^D\text{credit}_{i,j}^D\,,
+    \end{equation*}
+    since for $j=t_1$ we have $\text{credit}_{i,j}^B=\Mtone+\min\{R_{j-1},\MRtone\}=1$ as $R_{j-1}\geq \MRtone$.
+
+    The non-negativity follows immediately, since each of the integral expressions $\text{credit}_{i,j}^A$, $\text{credit}_{i,j}^B$, $\text{credit}_{i,j}^C$, and $\text{credit}_{i,j}^D$ is non-negative.
+\end{proof}
+
+\subsubsection{Production calculation}
+
+
+\begin{lemma}
+    \label{lem:gen-A}
+    If client $j$ belongs integrally to group $A$, then
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j} = 1 - \Mcoeffmone \cdot \left(1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo}\right)\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    We prove a stronger statement, that for every $j$ with $\mu_j^A > 0$ we have the previous statement but substituting $g_{i,j}^A$ for $g_{i,j}$, where $g_{i,j}^A$ is defined as in the $A$-assignment used in Equation~\ref{formula:fractional-assignments-convex-combination}. 
+    If $j \in A$, then
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j}^A = \sum_{i=1}^n (\hg_i-\delta_{i,j}) = 1 - \sum_{i=f_j+1}^{t_3^\star} \delta_{i,j}
+        = 1 - \Mcoeffmone \cdot \left(1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo}\right)
+    \end{equation*}
+    by Property~\ref{property:delta}.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:gen-B}
+    If client $j$ belongs integrally to group $B$, then
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j} = 1\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    We prove a stronger statement, that for every $j$ with $\mu_j^B > 0$ we have the previous statement but substituting $g_{i,j}^B$ for $g_{i,j}$, where $g_{i,j}^B$ is defined as in the $B$-assignment used in Equation~\ref{formula:fractional-assignments-convex-combination}.
+    If $j \in B$, then $g_{i,j}^B=\hg_i$ for every $i$, hence $\sum_{i=1}^n g_{i,j}^B=\sum_{i=1}^n \hg_i=1$.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:gen-C}
+    If client $j$ belongs integrally to group $C$, then
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j} = 1\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    We prove a stronger statement, that for every $j$ with $\mu_j^C > 0$ we have the previous statement but substituting $g_{i,j}^C$ for $g_{i,j}$, where $g_{i,j}^C$ is defined as in the $C$-assignment used in Equation~\ref{formula:fractional-assignments-convex-combination}.
+    If $j \in C$, then $g_{i,j}^C=\hg_i$ for every $i$, so $\sum_{i=1}^n g_{i,j}^C=\sum_{i=1}^n \hg_i=1$.
+\end{proof}
+
+\begin{lemma}\label{lem:gen-D}
+    If client $j$ belongs integrally to group $D$, then
+    \begin{equation*}
+       \sum_{i=1}^n g_{i,j} = 1 - \Mcoeffmone \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    We prove a stronger statement, that for every $j$ with $\mu_j^D > 0$ we have the previous statement but substituting $g_{i,j}^D$ for $g_{i,j}$, where $g_{i,j}^D$ is defined as in the $D$-assignment used in Equation~\ref{formula:fractional-assignments-convex-combination}.
+    For $j \in D$, by the $D$-assignment,
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j}^D = 1 - \chi_j \cdot \Mfrac \cdot \left(\sum_{i=1}^{t_1-1} \hg_i + \hg_{t_1}^A\right)\,.
+    \end{equation*}
+    Using
+    \begin{equation*}
+        \sum_{i=1}^{t_1-1} \hg_i + \hg_{t_1}^A = 1 - R_{t_1 - 1} + (\hg_{t_1} - \hg_{t_1}^B) = 1 - R_{t_1} - (\MRtone - R_{t_1}) = \Mtone\,.
+    \end{equation*}
+    we obtain
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j}^D = 1 - \chi_j \cdot \Mcoeffmone
+        = 1 - \Mcoeffmone \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+\,.
+    \end{equation*}
+\end{proof}
+
+\begin{lemma}\label{lem:gen-fractional}
+    If client $j$ belongs fractionally to groups $A,B,C,D$ with coefficients $\mu_j^A, \mu_j^B, \mu_j^C, \mu_j^D$, then
+    \begin{equation*}
+        \sum_{i=1}^n g_{i,j} = 1 - \Mcoeffmone \cdot \mu_j^A \cdot \left(1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo}\right) - \Mcoeffmone \cdot \mu_j^D \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    The proof is a direct calculation using the definition of $g_{i,j}$ as a convex combination of the $g_{i,j}^X$ for $X \in \{A,B,C,D\}$ using the previous lemmas' proofs which used no property of the membership being integral.
+    \begin{align*}
+        \sum_{i=1}^n g_{i,j}
+        &= \sum_{i=1}^n \sum_{X\in\{A,B,C,D\}} \mu_j^X g_{i,j}^X
+        = \sum_{X\in\{A,B,C,D\}} \mu_j^X \sum_{i=1}^n g_{i,j}^X \\
+        &= \mu_j^A \cdot \left(1 - \Mcoeffmone \cdot \left(1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo}\right)\right) + (\mu_j^B + \mu_j^C) \cdot 1 + \mu_j^D \cdot \left(1 - \Mcoeffmone \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+\right)\\
+        &= 1 - \Mcoeffmone \cdot \mu_j^A \cdot \left(1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo}\right) - \Mcoeffmone \cdot \mu_j^D \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+\,.
+    \end{align*}
+\end{proof}
+
+\subsubsection{Transfer calculation}
+
+
+\begin{lemma}
+    \label{lem:tran-A}
+    If client $j$ belongs integrally to group $A$, then
+    \begin{equation*}
+        \sum_{i=1}^n (s_{i,j} + t_{i,j}) = R_{j-1} - [\MRttwo - R_{f_j}]^+\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    We prove a stronger statement, that for every $j$ with $\mu_j^A > 0$ we have the previous statement but substituting $s_{i,j}^A$ and $t_{i,j}^A$ for $s_{i,j}$ and $t_{i,j}$, where $s_{i,j}^A$ and $t_{i,j}^A$ are defined as in the $A$-assignment used in Equation~\ref{formula:fractional-assignments-convex-combination}.
+    For group $A$ we have $\sum_{i=1}^n t_{i,j}^A=0$, and
+    \begin{equation*}
+        \sum_{i=1}^n s_{i,j}^A = \sum_{i=j}^n (\hg_i-\sigma_{i,j}) = R_{j-1} - \sum_{i=j}^{f_j} \sigma_{i,j}
+    = R_{j-1} - [\MRttwo - R_{f_j}]^+
+    \end{equation*}
+    by Property~\ref{property:sigma}.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:tran-B}
+    If client $j$ belongs integrally to group $B$, then
+    \begin{equation*}
+        \sum_{i=1}^n (s_{i,j} + t_{i,j}) \leq \Mttwo\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    We prove a stronger statement, that for every $j$ with $\mu_j^B > 0$ we have the previous statement but substituting $s_{i,j}^B$ and $t_{i,j}^B$ for $s_{i,j}$ and $t_{i,j}$, where $s_{i,j}^B$ and $t_{i,j}^B$ are defined as in the $B$-assignment used in Equation~\ref{formula:fractional-assignments-convex-combination}.
+    We have
+    \begin{equation*}
+        \sum_{i=1}^n s_{i,j}^B \leq \sum_{i=j+1}^n \hg_i + \Mcoeffmone = R_j + \Mcoeffmone\,,
+    \end{equation*}
+    where the inequality is only because the bookkeeping entry at $f_j+1$ may lie outside the LP index set when $f_j=n$.
+    Also,
+    \begin{equation*}
+        \sum_{i=1}^n t_{i,j}^B = [1-R_{j-1}-\Mtone]^+ \leq [1-R_{j}-\Mtone]^+ = \MRtone - R_j\,,
+    \end{equation*}
+    because $R_{j-1} \ge R_j$ and any $B$-client (whether integrally or partially) satisfies $R_{j} \le \MRtone$.
+    Therefore
+    \begin{equation*}
+        \sum_{i=1}^n (s_{i,j}^B+t_{i,j}^B) \le (R_j+\Mcoeffmone) + (\MRtone-R_j) = \Mttwo\,.
+    \end{equation*}
+    because $\Mcoeffmone + \MRtone = \Mttwo$.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:tran-C}
+    If client $j$ belongs integrally to group $C$, then
+    \begin{equation*}
+        \sum_{i=1}^n (s_{i,j} + t_{i,j}) \leq \Mttwo\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    We prove a stronger statement, that for every $j$ with $\mu_j^C > 0$ we have the previous statement but substituting $s_{i,j}^C$ and $t_{i,j}^C$ for $s_{i,j}$ and $t_{i,j}$, where $s_{i,j}^C$ and $t_{i,j}^C$ are defined as in the $C$-assignment used in Equation~\ref{formula:fractional-assignments-convex-combination}.
+    Then, exactly as above,
+    \begin{equation*}
+        \sum_{i=1}^n s_{i,j}^C \le R_j + \Mcoeffmone\,.
+    \end{equation*}
+    For group $C$ we also have
+    \begin{equation*}
+        \sum_{i=1}^n t_{i,j}^C = 1-R_{j-1}-\Mtone = \MRtone-R_{j-1} \le \MRtone-R_j\,.
+    \end{equation*}
+    Hence
+    \begin{equation*}
+        \sum_{i=1}^n (s_{i,j}^C+t_{i,j}^C) \le (R_j+\Mcoeffmone) + (\MRtone-R_j) = \Mttwo
+    \end{equation*}
+    because $\Mcoeffmone + \MRtone = \Mttwo$.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:tran-D}
+    If client $j$ belongs integrally to group $D$, then
+    \begin{equation*}
+        \sum_{i=1}^n (s_{i,j} + t_{i,j}) = 1 - R_{j-1}\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    We prove a stronger statement, that for every $j$ with $\mu_j^D > 0$ we have the previous statement but substituting $s_{i,j}^D$ and $t_{i,j}^D$ for $s_{i,j}$ and $t_{i,j}$, where $s_{i,j}^D$ and $t_{i,j}^D$ are defined as in the $D$-assignment used in Equation~\ref{formula:fractional-assignments-convex-combination}.
+    For group $D$ we always have $s_{i,j}^D=0$, and
+    \begin{equation*}
+        \sum_{i=1}^n t_{i,j}^D = t_{f_j,j}^D = 1-R_{j-1}\,.
+    \end{equation*}
+    The result follows.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:tran-fractional}
+    If client $j$ belongs fractionally to groups $A,B,C,D$ with coefficients $\mu_j^A, \mu_j^B, \mu_j^C, \mu_j^D$, then
+    \begin{equation*}
+        \sum_{i=1}^n (s_{i,j} + t_{i,j}) \leq \mu_j^A \cdot (R_{j-1} - [\MRttwo - R_{f_j}]^+) + (\mu_j^B + \mu_j^C) \cdot (\Mttwo) + \mu_j^D \cdot (1 - R_{j-1})\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    The proof is a direct calculation using the definition of $s_{i,j}$ and $t_{i,j}$ as convex combinations of the $s_{i,j}^X$ and $t_{i,j}^X$ for $X \in \{A,B,C,D\}$ and using the previous lemmas' proofs which which did not use integrality of the memberships.
+    \begin{align*}
+        \sum_{i=1}^n (s_{i,j} + t_{i,j})
+        &= \sum_{i=1}^n \sum_{X\in\{A,B,C,D\}} \mu_j^X (s_{i,j}^X + t_{i,j}^X)
+        = \sum_{X\in\{A,B,C,D\}} \mu_j^X \sum_{i=1}^n (s_{i,j}^X + t_{i,j}^X) \\
+        &\leq \mu_j^A \cdot (R_{j-1} - [\MRttwo - R_{f_j}]^+) + \mu_j^B \cdot (\Mttwo) + \mu_j^C \cdot (\Mttwo) + \mu_j^D \cdot (1 - R_{j-1})\,.
+    \end{align*}
+\end{proof}
+
+\subsubsection{Budget calculation}
+
+We use $\MRttwo = \Mcoeffmone + \Mcoeffmone^2$ and $\Mcoeff = \Mcoeffmone + 1$, hence $\MRttwo = \Mcoeffmone \cdot \Mcoeff$ and $\Mcoeff + 1 - \MRttwo = 2- \Mcoeffmone^2 = \Mrho$, as seen in Property~\ref{property:coefficients}.
+
+\begin{lemma}
+    \label{lem:budget-A}
+    If client $j$ belongs integrally to group $A$, then
+    \begin{equation*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j}) \leq \Mrho\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    By Lemmas \ref{lem:gen-A} and \ref{lem:tran-A},
+    \begin{align*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j})
+        &= \Mcoeff \cdot \left(1 - \Mcoeffmone \cdot \left(1 - \frac{[\MRttwo - R_{f_j}]^+}{\MRttwo}\right)\right) + R_{j-1} - [\MRttwo - R_{f_j}]^+ \\
+        &= \Mcoeff - \MRttwo + R_{j-1} \\
+        &\le \Mcoeff + 1 - \MRttwo = \Mrho\,,
+    \end{align*}
+    using $\Mcoeff \cdot \Mcoeffmone = \MRttwo$, $R_{j-1} \le 1$ and $\Mcoeff + 1 - \MRttwo = \Mrho$ which follow from the definitions of $\Mcoeff$ and $\MRttwo$ as reminded above.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:budget-B}
+    If client $j$ belongs integrally to group $B$, then
+    \begin{equation*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j}) \leq \Mrho\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    By Lemmas \ref{lem:gen-B} and \ref{lem:tran-B},
+    \begin{equation*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j}) \le \Mcoeff + \Mttwo = \Mrho\,,
+    \end{equation*}
+    using $\Mcoeff + \Mttwo = \Mrho$ which follows from the definitions of $\Mcoeff$ and $\MRttwo$ as reminded above.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:budget-C}
+    If client $j$ belongs integrally to group $C$, then
+    \begin{equation*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j}) \leq \Mrho\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    By Lemmas \ref{lem:gen-C} and \ref{lem:tran-C},
+    \begin{equation*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j}) \le \Mcoeff + \Mttwo = \Mrho\,,
+    \end{equation*}
+    using $\Mcoeff + \Mttwo = \Mrho$ which follows from the definitions of $\Mcoeff$ and $\MRttwo$ as reminded above.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:budget-D}
+    If client $j$ belongs integrally to group $D$, then
+    \begin{equation*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j}) \leq \Mrho\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    By Lemmas \ref{lem:gen-D} and \ref{lem:tran-D},
+    \begin{align*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j})
+        &= \Mcoeff \cdot \left(1 - \Mcoeffmone \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+\right) + 1 - R_{j-1} \\
+        &= \Mcoeffpone - R_{j-1} - \MRttwo \cdot \left[1 - \frac{R_{j-1}}{\MRttwo}\right]^+\,.
+    \end{align*}
+    If $R_{j-1} \ge \MRttwo$, this is at most $\Mcoeffpone-\MRttwo = \Mrho$.
+    Otherwise, the bracket is $1-R_{j-1}/\MRttwo$, and the value is exactly $\Mcoeffpone-\MRttwo = \Mrho$.
+    We have used $\Mcoeff \cdot \Mcoeffmone = \MRttwo$ and $\Mcoeffpone - \MRttwo = \Mrho$ which follow from the definitions of $\Mcoeff$ and $\MRttwo$ as reminded above.
+\end{proof}
+
+\begin{lemma}
+    \label{lem:budget-fractional}
+    If client $j$ belongs fractionally to groups $A,B,C,D$ with coefficients $\mu_j^A, \mu_j^B, \mu_j^C, \mu_j^D$, then
+    \begin{equation*}
+        \Mcoeff \cdot \sum_{i=1}^n g_{i,j} + \sum_{i=1}^n (s_{i,j} + t_{i,j}) \leq \Mrho\,.
+    \end{equation*}
+\end{lemma}
+\begin{proof}
+    The proof is a direct calculation using Lemmas \ref{lem:gen-fractional} and \ref{lem:tran-fractional}, and then repeating the same arguments as with the previous integral lemmas to conclude that the resulting expression is at most $\Mrho$.
+    \begin{align*}
+        \Mcoeff \sum_i g_{i,j} + \sum_i(s_{i,j}+t_{i,j})
+        &= \sum_X \mu_j^X \left(\Mcoeff \sum_i g_{i,j}^X + \sum_i(s_{i,j}^X+t_{i,j}^X)\right) \\
+        &\le \sum_X \mu_j^X (\Mrho)
+        = \Mrho\,.
+    \end{align*}
+    where the inequality is by the previous lemmas' analysis in the integral case, which did not use integrality of the memberships and has the same expressions as the value from $\Mcoeff \sum_i g_{i,j}^X + \sum_i(s_{i,j}^X+t_{i,j}^X)$ for $X \in \{A,B,C,D\}$; from where the inequality follows by linearity.
+\end{proof}
+
+\subsubsection{Other proofs}
+
+\begin{proof}[Proof of Lemma~\ref{lem:nonneg}]
+We restate the lemma here:
+\lemnonneg*
+For $\hg_i$, let us go phase by phase.
+In Phase 3 and Phase 2 the claim is trivial.
+Next, note that $z \leq n - t_2$.
+If $t_1 < n$, for the boundary assignment for $t_1$, we have that $\hg_{t_1}^A \geq 0$ because $n - t_1 \geq \Mfrac \cdot z$ and that $\hg_{t_1}^B \geq 0$ because $R_{t_1} < \MRtone$. 
+Finally, in Phase 1 the claim follows again because $n - i \geq \Mfrac \cdot z$ for $i < t_1$.
+
+For $g_{i,j}$, let us go group by group.
+For group A clients, we have $g_{i,j} = \hg_i - \delta_{i,j}$ where $\delta_{i,j} \leq \hg_i$ by definition, so $g_{i,j} \geq 0$. For group B and C clients, we have $g_{i,j} = \hg_i$ so it follows from the non-negativity of $\hg_i$ that $g_{i,j} \geq 0$. For group D clients, we have $g_{i,j} \geq \hg_i\cdot(1 - \chi_j \Mfrac)$, and since $\chi_j \leq 1$ and $\Mfrac \leq 1$ because $\Mcoeffmone \leq \Mtone$, we have $g_{i,j} \geq 0$.
+For non-integral clients, it follows from the convex combinations assignment of $g_{i,j}$.
+
+For $t_{i,j}$, observe that it is $0$ for all $i$ except for $i=f_j$. We now explore only the case $i=f_j$ as otherwise it is clear that it is nonnegative. For group A clients, we have that $t_{f_j,j}$ is $0$, thus being non-negative. For group B clients, we have that $t_{f_j,j}$ is $[1-R_{j-1}-\Mtone]^+$ which is non-negative by definition. For group C clients, we have that $t_{f_j,j}$ is $1 - (R_{j-1}+\Mtone)$, but since $R_{j-1} \leq \MRtone$ because $j > t_1$, we have that $t_{f_j,j} \geq 1 - (\MRtone + \Mtone) = 0$.
+Finally, for group D clients, we have that $t_{f_j,j} = 1-R_{j-1}$, and since $R_{j-1} \leq 1$, we have that $t_{f_j,j} \geq 0$.
+For non-integral clients, it follows from the convex combinations assignment of $t_{i,j}$.
+
+For $s_{i,j}$, for group A clients, we have $s_{i,j} = \hg_i - \sigma_{i,j}$ where $\sigma_{i,j} \leq \hg_i$ by definition, so $s_{i,j} \geq 0$. For group B and C clients, we have $s_{i,j} = \hg_i$ (with $+\Mcoeffmone$ for $i=f_j+1$ or $0$ for $i=j$) so it follows from the non-negativity of $\hg_i$ that $s_{i,j} \geq 0$. For group D clients, we have $s_{i,j} = 0$, so it is non-negative.
+For non-integral clients, we have that $s_{i,j}$ is a convex combination of non-negative values, so it is non-negative.
+\end{proof}
+
+\begin{proof}[Proof of Claim~\ref{claim:phase-2-ri-product}]
+    We restate the Claim here:
+    \claimphasetworiproduct*
+    The case $j = i$ is trivial. Consider next the case $j = i - 1$. Then
+    \begin{align*}
+    R_{i-1} + \Mtone
+    &= R_i + \Mtone + \hg_i\\
+    &= R_i + \Mtone + (1 - \mu_i^D) \cdot \frac{R_i + \Mtone}{n - i}\\
+    &= \Paren{R_i + \Mtone} \cdot \frac{n - (i - 1) - \mu_i^D}{n - i}\,,
+    \end{align*}
+    matching the claim. For general $t_1 \leq j \leq i \leq \min(t_3^\star, n-1)$ with $i - j \geq 2$, we prove the claim by induction on $i - j$, using as base case the case $j=i-1$ above. We have
+    \begin{align*}
+    R_{j} + \Mtone
+    &= \Paren{R_{i - 1} + \Mtone} \cdot \frac{n - j - \sum_{\ell = j + 1}^{i - 1} \mu_{\ell}^D \cdot \frac{R_j + \Mtone}{R_{\ell - 1} + \Mtone}}{n - (i - 1)}\,.
+    \end{align*}
+    By applying the result for the case $j = i-1$, we have
+    \begin{align*}
+    R_{j} + \Mtone
+    &= \Paren{R_{i} + \Mtone} \cdot \frac{n - (i - 1) - \mu_i^D}{n - i} \cdot \frac{n - j - \sum_{\ell = j + 1}^{i - 1} \mu_{\ell}^D \cdot \frac{R_j + \Mtone}{R_{\ell - 1} + \Mtone}}{n - (i - 1)}\\
+    &= \Paren{R_{i} + \Mtone} \cdot \Paren{1 - \frac{\mu_i^D}{n - (i - 1)}} \cdot \frac{n - j - \sum_{\ell = j + 1}^{i - 1} \mu_{\ell}^D \cdot \frac{R_j + \Mtone}{R_{\ell - 1} + \Mtone}}{n - i}\,,
+    \end{align*}
+    and it remains to prove that
+    \begin{equation*}\Paren{1 - \frac{\mu_i^D}{n - (i - 1)}} \Paren{n - j - \sum_{\ell = j + 1}^{i - 1} \mu_{\ell}^D \cdot \frac{R_j + \Mtone}{R_{\ell - 1} + \Mtone}} = n - j - \sum_{\ell = j + 1}^{i} \mu_{\ell}^D \cdot \frac{R_j + \Mtone}{R_{\ell - 1} + \Mtone}\,.\end{equation*}
+    Denote $\zeta = n - j - \sum_{\ell = j + 1}^{i-1} \mu_{\ell}^D \cdot \frac{R_j + \Mtone}{R_{\ell - 1} + \Mtone}$. Then we need to prove that
+    \begin{equation*}\Paren{1 - \frac{\mu_i^D}{n - (i - 1)}} \cdot \zeta = \zeta - \mu_i^D \cdot \frac{R_j + \Mtone}{R_{i - 1} + \Mtone}\,,\end{equation*}
+    equivalent to
+    \begin{equation*}\frac{\mu_i^D}{n - (i - 1)} \cdot \zeta = \mu_i^D \cdot \frac{R_j + \Mtone}{R_{i - 1} + \Mtone}\,.\end{equation*}
+    If $\mu_i^D = 0$ the claim is trivial. Otherwise we divide by $\mu_i^D$, so we need to prove that
+    \begin{equation*}\frac{ n - j - \sum_{\ell = j + 1}^{i-1} \mu_{\ell}^D \cdot \frac{R_j + \Mtone}{R_{\ell - 1} + \Mtone}}{n - (i - 1)} = \frac{R_{j}+\Mtone}{R_{i-1}+\Mtone}\,.\end{equation*}
+    But this is equivalent to the statement of the claim we are doing induction on for $j$ and $i-1$:
+    \begin{equation*}R_{j}+\Mtone = \Paren{R_{i-1}+\Mtone} \cdot \frac{n - j - \sum_{\ell=j+1}^{i-1} \mu_\ell^D \cdot \frac{R_j+\Mtone}{R_{\ell-1}+\Mtone}}{n - (i - 1)}\,.\end{equation*}
+    Hence, the claim is proved.
+\end{proof}
+
+\begin{proof}[Proof of Claim~\ref{claim:phase-2-ri-product-prime}]
+    We restate the claim here:
+    \claimphasetworiproductprime*
+    The proof is identical to the proof of Claim~\ref{claim:phase-2-ri-product}, using that $\hg'_{t_1} = (\mu_{t_1}^B + \mu_{t_1}^C) \cdot \frac{R_{t_1}+\Mtone}{n-t_1}$ and that $\hg_i = \hg'_i$ and $R_i = R'_i$ for $i > t_1$.
+\end{proof}
