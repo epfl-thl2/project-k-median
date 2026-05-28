@@ -243,7 +243,7 @@ Since the constraints of the inner program can be linearized just as in the orig
         & \forall \ 1 \le j, i \le n: 
         && \hat{g}_i \geq g_{i,j} && \text{($\gamma_{i,j}$ and $\beta_{i,j}$)}\\
         & \forall \ 1\le j \le i \le n: 
-        && \sum_{q=j+1}^n g_{j,q} + \sum_{p = j}^{i} \left(g_{p,j} + t_{p,j} - s_{p,j}\right) \geq b_{i,j} - \Mcoeffmone \sum_{p=j}^{i-1} b_{p,j}
+        && \sum_{q=j+1}^n g_{j,q} + \sum_{p = j}^{i} \left(g_{p,j} + t_{p,j} - s_{p,j}\right) \geq b_{i,j} - (\Mcoeff-1) \sum_{p=j}^{i-1} b_{p,j}
         && \text{($r_{j,i}$)}\\
         & \forall \ 1\leq i \leq n: 
         &&\sum_{p=1}^i \sum_{j=1}^p s_{p,j} - \sum_{p=1}^i \sum_{j=1}^p t_{p,j} \ge 0 && \text{($m_i$)}\\
