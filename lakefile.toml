@@ -16,3 +16,9 @@ rev = "v4.30.0-rc1"
 
 [[lean_lib]]
 name = "Formalization195"
+
+[[lean_lib]]
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"
