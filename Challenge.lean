@@ -1,16 +1,23 @@
-import Formalization195.Basic
+import Mathlib
 
 /-!
 Trusted statements for `leanprover/comparator`.
 
-This file deliberately imports only the basic indexing definitions, not the completed
-formalization.  The declarations below reproduce the part of the factor-revealing primal model
-that occurs in the types of the two results checked by `config.json`.
+This file deliberately imports only Mathlib, not any module from the completed formalization.
+The declarations below reproduce the part of the factor-revealing primal model that occurs in the
+types of the two results checked by `config.json`.
 -/
 
 namespace Formalization195
 
 noncomputable section
+
+/-- Finite client/time indices for the size-`n` factor-revealing programs. -/
+abbrev Idx (n : ℕ) := Fin n
+
+/-- Suffix `{i | j ≤ i}` used for lower-triangular ranges. -/
+def suffixRange (j : Idx n) : Finset (Idx n) :=
+  Finset.univ.filter fun i => j ≤ i
 
 abbrev TimeIdx (n : ℕ) := Fin (n + 1)
 

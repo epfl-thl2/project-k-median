@@ -4,13 +4,18 @@ See `Formalization195.originalPrimalUpperBound_153_div_125_exact` for an upper b
 
 ## Comparator
 
-The two results can be checked with [leanprover/comparator](https://github.com/leanprover/comparator). `Challenge.lean` is the trusted statement module, `Solution.lean` loads the completed formalization, and `config.json` selects the two fully qualified theorem names and their permitted axioms.
+The two results can be checked with [leanprover/comparator](https://github.com/leanprover/comparator). `Challenge.lean` is self-contained relative to this repository: it imports only Mathlib and reproduces every project-specific definition used by the theorem statements. `Solution.lean` loads the completed formalization, and `config.json` selects the two fully qualified theorem names and their permitted axioms.
 
-For this repository's checked-in, trusted solution, the Lean modules can be smoke-tested without installing Comparator:
+The trusted statement module can be elaborated independently of the formalization:
 
 ```sh
-lake build Challenge Solution
+lake build Challenge
 ```
+
+The two `declaration uses 'sorry'` warnings are expected: Comparator replaces these declarations
+with the corresponding proofs from the solution. This command checks that the specification
+elaborates; the actual proof and statement comparison still require Comparator. The checked-in
+solution bridge can be built separately with `lake build Solution`.
 
 To perform the actual comparison, install `comparator`, `landrun`, and a `lean4export` version compatible with this project's Lean toolchain. From an unprivileged user on Linux, run:
 
@@ -30,4 +35,8 @@ lake env /path/to/comparator/.lake/build/bin/comparator config.json
 
 This macOS substitute runs the build and exporter without Landrun's security isolation, so use it only with a trusted solution. It is useful for checking statement equality, permitted axioms, and kernel acceptance, but it is not a trust-preserving check of an adversarial submission.
 
-As required by Comparator's trust model, keep `Challenge.lean`, its transitive imports, and `lakefile.toml` trusted. When checking an untrusted replacement for `Solution.lean`, start from a fresh trusted checkout and run Comparator before compiling that solution by any other means.
+As required by Comparator's trust model, the trusted base includes `Challenge.lean`, `config.json`,
+`lean-toolchain`, `lakefile.toml`, `lake-manifest.json`, and the pinned Lean/Mathlib import closure
+(including any downloaded build artifacts). When checking an untrusted replacement for
+`Solution.lean`, start from a fresh trusted checkout and run Comparator before compiling that
+solution by any other means.
