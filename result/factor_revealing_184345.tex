@@ -1,0 +1,1223 @@
+% Standalone LaTeX source. Compile twice with pdflatex.
+% No external bibliography, figures, or input files are required.
+% The finite arithmetic certificate is checked by verify.cpp and certificate.txt.
+% All mathematical constants also appear in this source. The C++ verifier
+% and its machine-readable certificate are supplementary, not TeX inputs.
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amsthm,mathtools}
+\usepackage{newtxtext,newtxmath}
+\usepackage{microtype}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{needspace}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalize,nameinlink,noabbrev]{cleveref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\crefname{lemma}{Lemma}{Lemmas}
+\Crefname{lemma}{Lemma}{Lemmas}
+\crefname{proposition}{Proposition}{Propositions}
+\Crefname{proposition}{Proposition}{Propositions}
+
+\newcommand{\R}{\mathbb R}
+\newcommand{\FR}{\operatorname{FR}}
+\newcommand{\pos}[1]{\left[#1\right]^+}
+\newcommand{\ind}{\mathbf 1}
+\newcommand{\Qpath}{\mathcal Q}
+\newcommand{\Ppath}{\mathcal P}
+\newcommand{\radset}{\mathcal R}
+\newcommand{\paramset}{\mathcal A}
+\newcommand{\certfile}{\texttt{certificate.json}}
+\newcommand{\verifier}{\nolinkurl{verify.cpp}}
+\DeclareMathOperator{\dom}{dom}
+
+\setlength{\emergencystretch}{2em}
+\setlist[enumerate]{topsep=5pt,itemsep=4pt,parsep=0pt}
+\setlength{\parskip}{3pt}
+\allowdisplaybreaks[1]
+\hypersetup{
+  pdftitle={A 1.84345 Upper Bound for a Bidding Factor-Revealing Program},
+  pdfsubject={A uniform bound for a thirteen-component hinge mixture, certified by exact arithmetic},
+  pdfauthor={}
+}
+
+\title{A $1.84345$ Upper Bound for a\\
+Bidding Factor-Revealing Program}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-2.5em}
+
+\begin{abstract}
+We give an explicit bidding function for which the factor-revealing program
+restated in this note has value at most $36869/20000=1.84345$ in every
+finite dimension. The bidding function is a rational convex combination of
+thirteen discounted hinges. The proof allows arbitrary nonincreasing
+radius rows, zero reference distances, and unordered diagonal entries.
+A distribution on clock-to-radius thresholds averages valid facility
+constraints and reduces the bound to inequalities for individual radius
+paths. Convexity reduces these path inequalities to finitely many rational
+endpoint calculations; a separate argument treats the unbounded parameter
+ranges. The complete analytic reduction and all certificate constants are
+given here. The accompanying exact-arithmetic verifier checks $120$
+cumulative-mass inequalities and $112{,}802$ endpoint cases. An explicit
+feasible family gives a nearly matching lower bound of
+$1.843449818540222\ldots$ for the same bidding function.
+\end{abstract}
+
+\section{The program and the upper bound}\label{sec:program}
+
+For a real number $t$, write $[t]^+=\max\{t,0\}$. Let
+\begin{equation}\label{eq:bid}
+  \beta(x,y)=\frac1{10^8}\sum_{s=1}^{13}W_s[x-\gamma_s y]^+,
+  \qquad x,y\ge0,
+\end{equation}
+where the rational multipliers $\gamma_s$ and integer weights $W_s$ are
+specified in \cref{tab:bid}. They satisfy $\gamma_s\ge1$, $W_s>0$, and
+$\sum_sW_s=10^8$. Set
+\begin{equation}\label{eq:rho}
+  \rho=\frac{36869}{20000}=1.84345.
+\end{equation}
+All displayed finite decimals in this note denote exact rational numbers.
+
+\begin{table}[H]
+\centering
+\caption{The bidding function. Each coefficient of $[x-\gamma_s y]^+$ is
+$W_s/10^8$.}\label{tab:bid}
+\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{12pt}
+\begin{tabular}{rrr@{\qquad}rrr}
+\toprule
+$s$ & $\gamma_s$ & $W_s$ & $s$ & $\gamma_s$ & $W_s$\\
+\midrule
+1 & $137/125$ & $66{,}678{,}856$ & 8 & $9/5$ & $659{,}515$\\
+2 & $29/20$ & $616{,}823$ & 9 & $37/20$ & $2{,}091{,}320$\\
+3 & $3/2$ & $12{,}834{,}612$ & 10 & $19/10$ & $2{,}245{,}119$\\
+4 & $29/18$ & $4{,}845{,}692$ & 11 & $39/20$ & $2{,}936{,}362$\\
+5 & $33/20$ & $1{,}922{,}894$ & 12 & $2$ & $766{,}770$\\
+6 & $17/10$ & $70{,}695$ & 13 & $41/20$ & $2{,}724{,}139$\\
+7 & $7/4$ & $1{,}607{,}203$ &  &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newpage
+
+The following is the factor-revealing program of
+\cite[Definition~4.1]{source-program}, restated in full. Its definition is
+entirely in terms of real variables. The words \emph{client},
+\emph{reference distance}, and \emph{radius} will serve only to describe
+their roles in the proof; no underlying algorithm is needed.
+
+\begin{definition}[Factor-revealing program]\label[definition]{def:program}
+Fix an integer $n\ge 1$. The variables are a scalar $f$, reference distances
+$d_1,\ldots,d_n$, and radii
+\[
+  r_{j,i}\qquad(1\le j\le n,\ j\le i\le n+1).
+\]
+Let $\FR_n(\beta)$ be the supremum of the objective
+\begin{equation}\label{eq:objective}
+  \Phi_\beta(r,f)
+  =\sum_{j=1}^n\left(
+       \sum_{i=j}^n\beta(r_{j,i},r_{j,i+1})+r_{j,n+1}
+    \right)-f
+\end{equation}
+subject to
+\begin{subequations}\label{eq:constraints}
+\begin{align}
+  \sum_{j=1}^n d_j&=1,
+    &&\text{(normalization)},\label{eq:normalization}\\
+  r_{j,i+1}&\le r_{j,i},
+    &&1\le j\le i\le n,\label{eq:row}\\
+  r_{i,i}&\le r_{j,i}+d_i+d_j,
+    &&1\le j<i\le n,\label{eq:triangle}\\
+  r_{j,\ell}&\le r_{k,\ell}+d_j+d_k,
+    &&1\le j,k<\ell\le n+1,\quad j\ne k,\label{eq:metric}\\
+  \sum_{j<i}\beta(r_{j,i},d_j)
+       +\sum_{j=i}^n\beta(r_{i,i},d_j)&\le f,
+    &&1\le i\le n,\label{eq:facility}\\
+  d_j,\ f,\ r_{j,i}&\ge 0,
+    &&\text{for all indices in range}.\label{eq:nonnegative}
+\end{align}
+\end{subequations}
+\end{definition}
+
+Thus \eqref{eq:row} is row monotonicity, \eqref{eq:triangle} is the triangle
+constraint, \eqref{eq:metric} comprises the metric inequalities between
+previous rows, and \eqref{eq:facility} comprises the facility constraints.
+In particular, the definition imposes no ordering on the diagonal entries
+$r_{j,j}$ and permits $d_j=0$.
+
+\begin{theorem}[Uniform upper bound]\label[theorem]{thm:main}
+For every integer $n\ge 1$, every choice of variables satisfying
+\eqref{eq:row}--\eqref{eq:nonnegative} satisfies
+\begin{equation}\label{eq:homogeneous-bound}
+  \sum_{j=1}^n\left(
+       \sum_{i=j}^n\beta(r_{j,i},r_{j,i+1})+r_{j,n+1}
+    \right)
+  \le f+\frac{36869}{20000}\sum_{j=1}^n d_j.
+\end{equation}
+Consequently,
+\begin{equation}\label{eq:main-bound}
+  \sup_{n\ge 1}\FR_n(\beta)\le\frac{36869}{20000}=1.84345.
+\end{equation}
+\end{theorem}
+
+The homogeneous inequality \eqref{eq:homogeneous-bound} does not require
+\eqref{eq:normalization}. With normalization, it is exactly an upper bound on
+\eqref{eq:objective}. We prove it for the full feasible region, rather than
+for any restricted family of radius rows.
+
+\paragraph{Proof structure.}
+The analytic argument reduces the theorem to two properties of a rational
+probability distribution on $121$ thresholds: a cumulative-distribution condition and a finite
+family of path bounds. These reductions occupy
+\cref{sec:prelim,sec:sampling,sec:zero,sec:positive,sec:paths,sec:endpoints}.
+\Cref{sec:certificate} states the finite certificate and completes the proof;
+its data and verification procedure are given in \cref{app:verification}.
+The verifier uses exact directed rounding to check the finite inequalities; the preceding lemmas establish their implication
+for every dimension and every real feasible solution.
+
+\section{Preliminary reductions}\label{sec:prelim}
+
+\begin{lemma}[Properties of the bid]\label[lemma]{lem:properties}
+The function $\beta$ is nonnegative, continuous, positively homogeneous,
+nondecreasing in its first argument, nonincreasing in its second argument,
+and jointly convex. Moreover,
+\begin{equation}\label{eq:budget}
+  0\le\beta(x,y)\le[x-y]^+,\qquad
+  \beta(x,0)=x,\qquad \beta(x,x)=0.
+\end{equation}
+For $x\ge y\ge z\ge0$, it satisfies
+\begin{equation}\label{eq:superadditive}
+  \beta(x,y)+\beta(y,z)\le\beta(x,z).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Each hinge $b_\gamma(x,y)=[x-\gamma y]^+$, with $\gamma\ge1$, has the
+claimed continuity, homogeneity, monotonicity, and convexity properties.
+It also satisfies $0\le b_\gamma(x,y)\le[x-y]^+$ and
+$b_\gamma(x,0)=x$. Since \eqref{eq:bid} is a convex combination of such
+hinges, these statements imply \eqref{eq:budget} and the other listed
+properties of $\beta$.
+
+For completeness, each hinge also satisfies \eqref{eq:superadditive}.
+If $b_\gamma(x,y)$ and $b_\gamma(y,z)$ are both positive, then their sum is
+\[
+  x-\gamma y+y-\gamma z
+   =x-\gamma z-(\gamma-1)y
+   \le[x-\gamma z]^+.
+\]
+If at most one is positive, monotonicity gives the same bound. Taking the
+nonnegative combination in \eqref{eq:bid} proves
+\eqref{eq:superadditive}.
+\end{proof}
+
+In particular, the bid has all the admissibility properties of
+\cite[Definition~3.1]{source-program}. In the upper-bound argument below,
+the breakpoints of the reference-bid function $r\mapsto\beta(r,1)$ are
+exactly the thirteen values $\gamma_1,\ldots,\gamma_{13}$ in
+\cref{tab:bid}. Some of these exceed $\rho$; their inclusion in the scalar
+endpoint set will be important.
+
+\subsection{Eliminating terminal radii}
+
+For $x\ge s\ge0$, \eqref{eq:budget} gives
+\begin{equation}\label{eq:terminal-replace}
+  \beta(x,s)+s\le x=\beta(x,0).
+\end{equation}
+Replace every terminal radius $r_{j,n+1}$ by zero, leaving all other variables
+unchanged. This preserves row monotonicity, makes the terminal metric
+inequalities trivial, and changes no facility constraint. By
+\eqref{eq:terminal-replace}, it cannot decrease the objective. Hence it
+suffices to prove \cref{thm:main} under the assumption
+$r_{j,n+1}=0$ for all $j$.
+
+For the rest of the proof, write
+\begin{equation}\label{eq:aj-qj}
+  a_j=r_{j,j},\qquad
+  q_j=\sum_{i=j}^n\beta(r_{j,i},r_{j,i+1}),\qquad r_{j,n+1}=0.
+\end{equation}
+Telescoping the inequality $\beta(x,y)\le x-y$ along a row yields
+\begin{equation}\label{eq:q-a}
+  q_j\le a_j.
+\end{equation}
+
+\subsection{Central radii and a monotone clock}
+
+For $2\le i\le n$, define
+\begin{equation}\label{eq:center}
+  m_i=\min_{j<i}(r_{j,i}+d_j).
+\end{equation}
+Choose $m_1>0$ sufficiently large that $a_1\le m_1+d_1$ and, when $n\ge2$,
+$m_1\ge m_2$. Set $m_{n+1}=0$.
+
+\begin{lemma}[Central-radius inequalities]\label[lemma]{lem:center}
+The sequence $m_1,\ldots,m_{n+1}$ is nonincreasing and satisfies
+\begin{align}
+  r_{j,i}&\le m_i+d_j &&(1\le j\le i\le n),\label{eq:center-upper}\\
+  m_i&\le r_{j,i}+d_j &&(1\le j<i\le n+1).\label{eq:center-lower}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+For $2\le i\le n$, choose $p<i$ attaining the minimum in
+\eqref{eq:center}. When $j=i$, \eqref{eq:triangle} gives
+$r_{i,i}\le r_{p,i}+d_p+d_i=m_i+d_i$.
+When $j<i$ and $j\ne p$, \eqref{eq:metric} gives the same inequality for
+$r_{j,i}$. For $j=p$, it is immediate. The case $i=1$ follows from the choice
+of $m_1$.
+Inequality \eqref{eq:center-lower} follows directly from the minimum, or
+from $m_{n+1}=r_{j,n+1}=0$ at the terminal column.
+
+For $2\le i<n$, the same minimizer $p$ gives
+\[
+  m_{i+1}\le r_{p,i+1}+d_p\le r_{p,i}+d_p=m_i.
+\]
+The first and last steps follow from the choices of $m_1$ and $m_{n+1}$.
+\end{proof}
+
+Define the running maximum of the diagonal values by
+\begin{equation}\label{eq:clock}
+  T_0=0,\qquad T_i=\max_{p\le i}a_p\quad(1\le i\le n).
+\end{equation}
+The point of using $T_i$, rather than $a_i$, is that the former is
+nondecreasing even if the diagonal values are not ordered.
+
+\begin{lemma}[Facility constraints for the running maximum]\label[lemma]{lem:clock}
+For every $1\le i\le n$,
+\begin{equation}\label{eq:strengthened-facility}
+  \widetilde B_i
+   :=\sum_{j<i}\beta(r_{j,i},d_j)
+     +\sum_{j\ge i}\beta(T_i,d_j)
+   \le f.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Choose $h\le i$ such that $a_h=T_i$, and compare with the original facility
+constraint \eqref{eq:facility} at index $h$.
+For $j<h$, row monotonicity gives $r_{j,i}\le r_{j,h}$.
+For $h\le j<i$, it gives
+\[
+  r_{j,i}\le a_j\le T_i=a_h.
+\]
+For $j\ge i$, the first argument in
+\eqref{eq:strengthened-facility} is exactly $T_i=a_h$.
+Thus each summand is at most its counterpart in the facility constraint
+at $h$.
+\end{proof}
+
+We now introduce a \emph{virtual process}, which is simply a convenient
+way to order valid inequalities. Before event $i$, the central radius is
+$m_i$, the rows with $j<i$ are called inactive and have radii $r_{j,i}$, and
+the rows with $j\ge i$ are called active. A virtual clock $t$ increases from
+$T_{i-1}$ to $T_i$. Inactive rows bid $\beta(r_{j,i},d_j)$ to the reference
+facility, and active rows bid $\beta(t,d_j)$.
+At event $i$, row $i$ becomes inactive, each row $j\le i$ updates to
+$r_{j,i+1}$, and the central radius changes to $m_{i+1}$. The clock stays
+at $T_i$ during the event. We call event $j$ the starting event of
+row $j$ and $a_j$ its initial value.
+
+Every clock-growth state, including its final pre-event state, has total
+reference bid at most $f$, by \cref{lem:clock} and monotonicity of $\beta$.
+An event only decreases that total: previous inactive radii decrease, and
+the newly inactive row has radius at most $a_i\le T_i$.
+The process begins with clock zero and positive central radius. At its end,
+all radii and the central radius are zero.
+
+\section{Averaging facility constraints}\label{sec:sampling}
+
+Fix the thresholds
+\begin{equation}\label{eq:times}
+  u_\ell=1+\frac{\ell}{96},\qquad 0\le\ell\le120.
+\end{equation}
+All sums over threshold indices range over $\{0,\ldots,120\}$ unless
+indicated otherwise. Let $\mu_0,\ldots,\mu_{120}$ be nonnegative masses summing to one. Their
+exact values will be specified in \cref{app:verification}.
+
+In the virtual process, the ratio $t/m$ is nondecreasing: the numerator is
+nondecreasing and the denominator is nonincreasing. When $m=0$, define this
+ratio to be $+\infty$. For each $u_\ell$, sample the process at its first
+crossing of that threshold, according to the following convention.
+During clock growth, use the state at which $t/m=u_\ell$. If instead an event
+changes the ratio from below $u_\ell$ to at least $u_\ell$, use the state
+\emph{immediately before that event}. The initial ratio is zero and the final
+ratio is infinite, so every threshold has a sample. Several thresholds may
+use the same pre-event state.
+
+For row $j$, let $x_j(u_\ell)$ denote the first argument of its reference bid
+at this sample: the clock value while active, or the current radius while
+inactive. Define its \emph{reference credit} by
+\begin{equation}\label{eq:credit}
+  C_j=\sum_{\ell=0}^{120}\mu_\ell\beta(x_j(u_\ell),d_j).
+\end{equation}
+All sampled facility inequalities are valid. Averaging them gives
+\begin{equation}\label{eq:credit-budget}
+  \sum_{j=1}^n C_j
+   =\sum_{\ell=0}^{120}\mu_\ell
+       \sum_{j=1}^n\beta(x_j(u_\ell),d_j)
+   \le f.
+\end{equation}
+
+We will prove, for each row separately, that
+\begin{equation}\label{eq:row-goal}
+  q_j\le\rho d_j+C_j.
+\end{equation}
+Once \eqref{eq:row-goal} is established, summing it and using
+\eqref{eq:credit-budget} proves the homogeneous bound.
+Sampling \emph{before} a threshold-crossing event is essential: it retains
+the reference credit available before the radius decrease whose payment is
+included in $q_j$.
+
+\section{The zero-distance path inequality}\label{sec:zero}
+
+Define the strict cumulative distribution
+\begin{equation}\label{eq:cdf}
+  H(u)=\sum_{\ell:\,u_\ell<u}\mu_\ell,
+  \qquad H(+\infty)=1,
+\end{equation}
+and, for $u>1$, define
+\begin{equation}\label{eq:kappa}
+  \kappa(u)=\frac{\beta(u,1)}{u-1}
+   =\sum_{s=1}^{13}\frac{W_s}{10^8}
+       \left[1-\frac{\gamma_s-1}{u-1}\right]^+.
+\end{equation}
+Every summand is nondecreasing. Hence $\kappa$ is nondecreasing,
+and $0\le\kappa(u)\le1$.
+
+The first requirement on the masses is
+\begin{equation}\label{eq:cdf-checks}
+  \sum_{k<\ell}\mu_k\ge\kappa(u_\ell)
+  \qquad(1\le\ell\le120).
+\end{equation}
+These are finitely many rational inequalities. They imply
+\begin{equation}\label{eq:cdf-dominance}
+  H(u)\ge\kappa(u)\qquad(u>1).
+\end{equation}
+Indeed, if $u_{\ell-1}<u\le u_\ell$, then
+$H(u)=\sum_{k<\ell}\mu_k\ge\kappa(u_\ell)\ge\kappa(u)$.
+Above $u_{120}$, the bound follows from $H(u)=1$.
+
+The next lemma is an abstract statement about radius paths. We will use it
+both for zero reference distances and for the unbounded parameter ranges
+that arise later.
+
+\begin{lemma}[Normalized zero-distance paths]\label[lemma]{lem:zero-path}
+Assume \eqref{eq:cdf-checks}. Let
+$1=z_0\ge z_1\ge\cdots\ge z_p=0$ be any finite path. For each $\ell$, let
+\[
+  \tau_\ell=\min\{t\in\{0,\ldots,p-1\}:z_{t+1}<1/u_\ell\},
+  \qquad p_\ell(z)=z_{\tau_\ell}.
+\]
+Thus $p_\ell(z)$ is the radius just before the first strict drop below
+$1/u_\ell$. Then
+\begin{equation}\label{eq:zero-path-bound}
+  \Qpath(z):=\sum_{t=0}^{p-1}\beta(z_t,z_{t+1})
+   \le\Ppath(z):=\sum_{\ell=0}^{120}\mu_\ell p_\ell(z).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Every $\tau_\ell$ exists because the final radius is zero.
+Writing each pre-drop radius as the sum of its subsequent decrements gives
+\begin{align}
+  \Ppath(z)
+   &=\sum_{t=0}^{p-1}(z_t-z_{t+1})
+          \sum_{\ell:\,\tau_\ell\le t}\mu_\ell\notag\\
+   &=\sum_{t=0}^{p-1}(z_t-z_{t+1})H(1/z_{t+1}),
+       \label{eq:zero-decrements}
+\end{align}
+where $1/0=+\infty$. The second equality uses
+$\tau_\ell\le t$ if and only if $z_{t+1}<1/u_\ell$.
+For $0<y<x\le1$, homogeneity and \eqref{eq:cdf-dominance} imply
+\[
+  \frac{\beta(x,y)}{x-y}
+    =\kappa(x/y)
+    \le\kappa(1/y)
+    \le H(1/y).
+\]
+For $y=0$, the corresponding inequality is an equality because
+$\beta(x,0)=x$ and $H(+\infty)=1$. A zero decrement contributes zero to both
+sides. Applying these inequalities to \eqref{eq:zero-decrements} proves
+\eqref{eq:zero-path-bound}.
+\end{proof}
+
+\begin{lemma}[Rows with zero reference distance]\label[lemma]{lem:zero-client}
+Assume \eqref{eq:cdf-checks}. If $d_j=0$, then $q_j\le C_j$.
+\end{lemma}
+
+\begin{proof}
+If $a_j=0$, the claim follows from \eqref{eq:q-a}. Otherwise, divide row $j$
+by $a_j$ to obtain a path $z$ as in \cref{lem:zero-path}.
+After row $j$ becomes inactive, the clock is at least $a_j$, and
+\eqref{eq:center-lower} gives $m\le r$ for its current radius $r$.
+A drop of the normalized radius strictly below $1/u_\ell$ therefore forces
+$t/m>u_\ell$. The actual sample at $u_\ell$ occurs no later than that event.
+
+If the sample occurs while row $j$ is inactive, row monotonicity and the
+pre-event sampling convention give
+$x_j(u_\ell)\ge a_jp_\ell(z)$.
+If it occurs while the row is active, its clock is at least $a_j$.
+To see this for a crossing before its starting event, note that the central radius
+is at least $m_j\ge a_j$; for a center-drop crossing, the same is true of the
+post-event central radius. Thus the sampled clock is at least
+$u_\ell m_j\ge a_j$. At the starting event itself, the clock is
+$T_j\ge a_j$ as well.
+Consequently, $x_j(u_\ell)\ge a_jp_\ell(z)$ in every case.
+Using $\beta(x,0)=x$, homogeneity, and \cref{lem:zero-path}, we obtain
+\[
+  C_j\ge a_j\Ppath(z)\ge a_j\Qpath(z)=q_j.
+\]
+\end{proof}
+
+\section{Positive-distance rows}\label{sec:positive}
+
+Fix a row $j$ with $d_j>0$, and normalize its initial value and starting
+central radius by $d_j$:
+\begin{equation}\label{eq:normalized-a-m}
+  a=\frac{a_j}{d_j},\qquad M=\frac{m_j}{d_j}.
+\end{equation}
+We call $a$ the normalized activation parameter.
+When $a\le\rho$, \eqref{eq:q-a} already proves \eqref{eq:row-goal}.
+Hence assume $a>\rho$. By \eqref{eq:center-upper},
+\begin{equation}\label{eq:m-lower}
+  M\ge a-1>0.
+\end{equation}
+
+Let $h$ be the number of thresholds satisfying $u_\ell\le a/M$.
+We cannot have $h=121$: since $u_{120}=9/4$, that case would imply
+\[
+  \frac94\le\frac aM\le\frac a{a-1},
+  \quad\text{and therefore}\quad a\le\frac95<\rho.
+\]
+Thus $0\le h\le120$. Since $u_h>a/M$, the actual value of $M$ is at least
+\begin{equation}\label{eq:Mh}
+  M_h(a)=\max\left\{a-1,\frac a{u_h}\right\}.
+\end{equation}
+For $h\ge2$, the condition $u_{h-1}\le a/M$, together with
+\eqref{eq:m-lower}, also gives
+\begin{equation}\label{eq:h-upper}
+  a\le U_h:=\frac{u_{h-1}}{u_{h-1}-1}.
+\end{equation}
+For $h=0,1$, write $U_h=+\infty$.
+
+\subsection{Lower bounds on the sampled credit}
+
+For the first $h$ thresholds, define
+\begin{equation}\label{eq:active-credit}
+  A_h(a)=\sum_{\ell<h}\mu_\ell\beta(M_h(a)u_\ell,1).
+\end{equation}
+The threshold $u_\ell$ with $\ell<h$ has been reached by the state
+immediately before the starting event of row $j$, because
+$T_j/m_j\ge a/M\ge u_\ell$.
+The row is still active at its sample.
+Before row $j$ starts, the center is at least $m_j$. If an earlier center drop
+crosses the threshold, its post-event center is also at least $m_j$.
+In either type of crossing, the sampled clock is at least $u_\ell m_j$.
+Thus the normalized reference bid at this sample is at least
+$\beta(M_h(a)u_\ell,1)$.
+
+For the remaining thresholds, put
+\begin{equation}\label{eq:threshold-radii}
+  b_\ell(a)=\frac a{u_\ell}-1\qquad(0\le\ell\le120).
+\end{equation}
+Consider $\ell\ge h$ with $b_\ell(a)>0$, and let $x\longrightarrow y$ be the
+first normalized row drop with $y<b_\ell(a)$.
+Immediately after this event, the normalized central radius is at most
+$y+1<a/u_\ell$, by \eqref{eq:center-lower}, while the normalized clock is
+at least $a$. Hence the actual sample at $u_\ell$ occurs no later than this
+event.
+
+If that sample is taken while the row is inactive, its normalized radius is
+at least $x$. If it is taken while the row is active strictly before
+its starting event, its normalized clock is at least $u_\ell M>a$, since
+$u_\ell>a/M$. If it is taken at the starting event, its normalized clock
+is at least $a$ as well. In all cases the normalized reference bid is at
+least $\beta(x,1)$. For $b_\ell(a)\le0$, we use the lower bound zero.
+
+Define
+\begin{equation}\label{eq:spent}
+  S_h(r;a)=\sum_{\substack{\ell\ge h\\b_\ell(a)>r}}\mu_\ell
+  \qquad(r\ge0).
+\end{equation}
+This is the mass of remaining thresholds whose strict radius crossings have
+occurred by radius $r$. It is nonincreasing as a function of $r$.
+For a normalized row path
+\[
+  a=x_0\ge x_1\ge\cdots\ge x_p=0,
+\]
+the preceding bounds give
+\begin{equation}\label{eq:credit-lower}
+  \frac{C_j}{d_j}\ge A_h(a)+
+     \sum_{t=0}^{p-1}
+        \bigl(S_h(x_{t+1};a)-S_h(x_t;a)\bigr)\beta(x_t,1).
+\end{equation}
+Here $S_h(a;a)=0$, since $b_\ell(a)<a$ for every $\ell$.
+
+The strict comparison in \eqref{eq:spent} is important. A drop that lands
+exactly at $b_\ell(a)$ is allowed to defer that threshold's charge until a
+later drop. A later pre-drop radius is no larger, so this convention only
+decreases the reference-credit lower bound.
+
+\subsection{The scalar path inequality}
+
+For a finite nonincreasing path from $a$ to zero, define its excess by
+\begin{equation}\label{eq:excess}
+\begin{split}
+  E_h(a;x_0,\ldots,x_p)
+   ={}&\sum_{t=0}^{p-1}\Bigl[
+      \beta(x_t,x_{t+1})\\[-2pt]
+      &\hspace{3em}
+      -\bigl(S_h(x_{t+1};a)-S_h(x_t;a)\bigr)\beta(x_t,1)
+     \Bigr]-A_h(a).
+\end{split}
+\end{equation}
+By homogeneity and \eqref{eq:credit-lower},
+\begin{equation}\label{eq:row-excess-reduction}
+  \frac{q_j-C_j}{d_j}\le E_h(a;x_0,\ldots,x_p).
+\end{equation}
+It remains to show that \eqref{eq:excess} is at most $\rho$ for every such
+path and every $a\in[\rho,U_h]$. Including $a=\rho$ and any boundary values
+not realizable by the original definition of $h$ only enlarges the domain
+to be checked.
+
+\section{A finite dynamic program for all radius paths}\label{sec:paths}
+
+For fixed $a\ge\rho$, form the finite set
+\begin{equation}\label{eq:radius-set}
+  \radset(a)=
+    \left(\{0,a,\gamma_1,\ldots,\gamma_{13}\}
+       \cup\{b_\ell(a):0\le\ell\le120\}\right)\cap[0,a].
+\end{equation}
+List its distinct elements as
+$0=v_0<v_1<\cdots<v_K=a$.
+There are at most $136$ elements. Define
+\begin{align}
+  V_0(h,a)&=0,\notag\\
+  V_k(h,a)
+   &=\max_{0\le p<k}\Bigl\{
+       \beta(v_k,v_p)
+       -\bigl(S_h(v_p;a)-S_h(v_k;a)\bigr)\beta(v_k,1)
+       +V_p(h,a)
+     \Bigr\},\label{eq:dp}\\
+  D_h(a)&=V_K(h,a)-A_h(a).\label{eq:D}
+\end{align}
+The recurrence computes the largest excess of a decreasing path through the
+specified radii. The next lemma explains why it bounds paths with arbitrary
+real radii and arbitrary length.
+
+\begin{lemma}[Finite radius reduction]\label[lemma]{lem:radius-reduction}
+For every $h\in\{0,\ldots,120\}$, every $a\ge\rho$, and every finite
+nonincreasing path $a=x_0\ge\cdots\ge x_p=0$,
+\begin{equation}\label{eq:radius-reduction}
+  E_h(a;x_0,\ldots,x_p)\le D_h(a).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Fix a path length. Partition each variable radius using the endpoints in
+$\radset(a)$, allowing singleton cells at the endpoints. On the interior of
+each resulting product cell, every threshold indicator in $S_h$ is fixed,
+and each reference bid $\beta(x_t,1)$ is affine. The transition payments
+$\beta(x_t,x_{t+1})$ are jointly convex by \cref{lem:properties}.
+Consequently, on this cell the excess is a convex function of the radius
+variables, and it extends convexly to the cell's closure by keeping the
+threshold indicators fixed.
+
+Intersect that closure with the constraints
+$a=x_0\ge x_1\ge\cdots\ge x_p=0$.
+This is a compact polytope, and a convex function on it is bounded above by
+its largest vertex value. At any vertex, every radius equals an interval
+endpoint. Indeed, a maximal block of equal coordinates that touches none of
+its interval endpoints could be perturbed both upward and downward, by a
+sufficiently small amount, without violating any interval or order
+constraint. Such a point would not be a vertex. Thus every vertex radius
+belongs to $\radset(a)$.
+
+We next compare the convex extension's convention at a vertex with the
+strict convention in \eqref{eq:spent}. For each threshold separately, a
+limiting path may land exactly on its threshold radius. The strict
+convention can only postpone that threshold's charge to a later drop;
+it cannot move it earlier. Reference bids are nondecreasing in the radius,
+so postponement weakly decreases the amount subtracted. The excess under
+the strict convention is therefore at least its value under the convex
+extension. If the threshold radius is zero, discarding its charge has the
+same favorable effect.
+
+Finally, remove consecutive repeated radii. They contribute no transition
+payment because $\beta(x,x)=0$, and their strict $S_h$ values agree. The
+remaining path is a decreasing path through $\radset(a)$. The recurrence
+\eqref{eq:dp} considers every such path, and therefore bounds its excess.
+This argument applies to every original path length, proving the lemma.
+\end{proof}
+
+\begin{remark}[What the reduction does not assume]
+The set $\radset(a)$ is not a numerical grid imposed on the original
+program. Its endpoints are determined by the bid's breakpoints and the
+sampling thresholds. The convexity argument shows that these endpoints
+suffice for an upper bound, without restricting the number of radius
+changes in the original variables.
+\end{remark}
+
+\section{A finite set of activation parameters}\label{sec:endpoints}
+
+For each $h\in\{0,\ldots,120\}$, let
+\begin{equation}\label{eq:Ih}
+  I_h=[\rho,U_h],\qquad
+  U_h=\begin{cases}
+       +\infty,&h=0,1,\\[2pt]
+       \dfrac{u_{h-1}}{u_{h-1}-1},&2\le h\le120.
+      \end{cases}
+\end{equation}
+Empty intervals are discarded. Define $\paramset_h$ by retaining all distinct
+finite numbers in $I_h$ from the following list:
+\begin{equation}\label{eq:endpoints}
+\begin{gathered}
+  \rho,\qquad U_h\ \text{when finite},\qquad
+  \frac{u_h}{u_h-1}\ \text{when }u_h>1,\qquad
+  \gamma_s\quad(1\le s\le13),\\[3pt]
+  u_\ell,\qquad u_\ell(1+\gamma_s)
+     \qquad(0\le\ell\le120,\ 1\le s\le13),\\[3pt]
+  1+\frac{\gamma_s}{u_\ell},\qquad
+  \frac{\gamma_su_h}{u_\ell}
+     \qquad(0\le\ell<h,\ 1\le s\le13).
+\end{gathered}
+\end{equation}
+The first line includes the domain endpoints, the branch switch of
+$M_h(a)$, and the values where the initial radius $a$ crosses a
+reference-bid breakpoint. The second includes the values where a threshold
+radius $b_\ell(a)$ crosses zero or a reference-bid breakpoint. The third
+includes the active-reference-bid breakpoints on both branches of $M_h(a)$.
+All these values are rational. No breakpoint of a positive transition
+payment is needed: those payments will be treated by convexity.
+
+\begin{lemma}[Finite parameter reduction]\label[lemma]{lem:parameter-reduction}
+Assume \eqref{eq:cdf-checks}. For every nonempty $I_h$,
+\begin{equation}\label{eq:parameter-reduction}
+  D_h(a)\le\max_{a'\in\paramset_h}D_h(a')
+  \qquad(a\in I_h).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+We first treat bounded intervals between successive elements of
+$\paramset_h$, then the two possible unbounded intervals.
+
+\paragraph{Bounded intervals.}
+On an open interval containing none of the breakpoints in
+\eqref{eq:endpoints}, the order of the symbolic radius states
+\[
+  0,\quad a,\quad \gamma_1,\ldots,\gamma_{13},\quad
+  a/u_0-1,\ldots,a/u_{120}-1
+\]
+is fixed, as is the subset lying in $[0,a]$. Indeed, two distinct moving
+threshold radii never cross for $a>0$, and each is strictly below $a$.
+A fixed reference breakpoint enters $[0,a]$ only at $a=\gamma_s$;
+a threshold radius crosses zero at $a=u_\ell$ or a reference breakpoint
+at $a=u_\ell(1+\gamma_s)$. Each such value appears in
+\eqref{eq:endpoints}.
+
+Each symbolic state is affine in $a$. Every threshold mass $S_h$ at such a
+state is constant on the interval. Every inactive reference bid is affine
+there: its affine piece can change only at $a=\gamma_s$ for the initial
+radius, or at $a/u_\ell-1=\gamma_s$ for a threshold radius.
+Both types were included in \eqref{eq:endpoints}.
+The same holds for $A_h(a)$, since the branch of $M_h(a)$ is fixed and its
+reference bids can change piece only at
+\[
+  (a-1)u_\ell=\gamma_s
+  \quad\text{or}\quad a u_\ell/u_h=\gamma_s,
+  \qquad \ell<h.
+\]
+
+Fix a path through the ordered symbolic states. Its positive transition
+terms are convex functions of $a$, being nonnegative sums of positive
+parts of affine functions of $a$.
+All its subtracted terms are affine. Hence its excess is convex in $a$.
+There are finitely many such paths, so their maximum $D_h(a)$ is also
+convex on the open interval. It is therefore bounded by its one-sided
+endpoint values.
+
+At an endpoint, take the limit of any symbolic path. States may coincide,
+or a threshold radius may become zero. As in the proof of
+\cref{lem:radius-reduction}, the strict crossing convention weakly
+increases its excess relative to any one-sided limit, and repeated states
+can be removed. Thus the value of $D_h$ at the endpoint dominates the
+one-sided limit. This proves the assertion on every bounded interval.
+
+\paragraph{Unbounded intervals.}
+Only $h=0,1$ have an unbounded domain. Beyond the last finite breakpoint,
+the symbolic state order and all reference-bid pieces remain fixed.
+For a fixed symbolic path, write its radii as $x_0(a),\ldots,x_p(a)$ and
+its excess as $F(a)$. The function $F$ is convex on this ray.
+The normalized limits
+\[
+  z_t=\lim_{a\to\infty}\frac{x_t(a)}a
+\]
+exist and form a nonincreasing path from one to zero. Every limit belongs
+to
+\[
+  \{0,1\}\cup\{1/u_\ell:0\le\ell\le120\}.
+\]
+Homogeneity and continuity give
+\begin{equation}\label{eq:payment-limit}
+  \lim_{a\to\infty}\frac{\beta(x_t(a),x_{t+1}(a))}{a}
+     =\beta(z_t,z_{t+1}),\qquad
+  \lim_{a\to\infty}\frac{\beta(x_t(a),1)}{a}=z_t.
+\end{equation}
+
+Consider a remaining threshold $u_\ell$ and its first strict crossing in the
+limiting path $z$, as defined in \cref{lem:zero-path}.
+If $z_{t+1}<1/u_\ell$, then, for all sufficiently large $a$,
+\[
+  x_{t+1}(a)<a/u_\ell-1=b_\ell(a).
+\]
+Thus the finite path's charge for this threshold occurs no later than the
+limiting path's first strict crossing. Its normalized pre-drop radius is
+therefore at least $p_\ell(z)$ in the limit. In particular, equality with a
+threshold in the limiting path cannot invalidate this bound: strict
+crossing can only defer the limiting charge.
+
+For $h=0$, all masses are remaining thresholds, so
+\eqref{eq:payment-limit} implies
+\[
+  \limsup_{a\to\infty}\frac{F(a)}a
+     \le\Qpath(z)-\Ppath(z)\le0
+\]
+by \cref{lem:zero-path}.
+For $h=1$, the active contribution obeys
+\[
+  \lim_{a\to\infty}\frac{A_1(a)}a=\mu_0,
+\]
+since $M_1(a)=a-1$ for all sufficiently large $a$ and $u_0=1$.
+This is precisely the missing zero-distance credit
+$\mu_0p_0(z)$, because $p_0(z)=1$.
+The same nonpositive bound on the asymptotic slope follows.
+
+A convex function $F$ on a ray with
+$\limsup_{a\to\infty}F(a)/a\le0$ is nonincreasing.
+Otherwise it would have a positive secant slope, and convexity would force
+its asymptotic slope to be at least that positive number.
+Therefore each symbolic path excess is nonincreasing on the ray, and so
+is their finite maximum. The finite left endpoint dominates the one-sided
+limit by the bounded-interval argument. It consequently controls the
+entire ray, completing the proof.
+\end{proof}
+
+The preceding two lemmas reduce all finite radius paths and every real
+$a\in I_h$ to the values $D_h(a)$ at the finite set
+\begin{equation}\label{eq:cases}
+  \mathcal C=\{(h,a):0\le h\le120,\ a\in\paramset_h\}.
+\end{equation}
+No cutoff on large values of $a$ is used.
+
+\section{The finite certificate and completion of the proof}\label{sec:certificate}
+
+Write the sampling masses as
+\begin{equation}\label{eq:mu}
+  \mu_\ell=\frac{c_\ell}{10^9}\qquad(0\le\ell\le120),
+\end{equation}
+where the integers $c_\ell$ are given in \cref{tab:masses} in
+\cref{app:verification}. They are nonnegative and sum to $10^9$.
+These masses, the bid in \cref{tab:bid}, and the thresholds
+\eqref{eq:times} constitute the rational certificate.
+
+\begin{proposition}[Exact finite certificate]\label[proposition]{prop:certificate}
+For the masses \eqref{eq:mu}, all $120$ inequalities
+\eqref{eq:cdf-checks} hold. The set $\mathcal C$ in \eqref{eq:cases}
+has $112{,}802$ elements. At every $(h,a)\in\mathcal C$, the recurrence
+\eqref{eq:dp}--\eqref{eq:D} satisfies
+\begin{equation}\label{eq:certified-maximum}
+  D_h(a)\le
+  \frac{184344982165038312381942179}{10^{26}}
+  <\frac{36869}{20000}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}[Exact verification]
+Run \verifier\ with the supplied \texttt{certificate.txt}. The program
+first checks the nonnegativity and normalization of the bid weights and
+sampling masses, the ordering of the multipliers and thresholds, and
+$u_{120}/(u_{120}-1)<\rho$. It verifies all inequalities
+\eqref{eq:cdf-checks} by exact integer comparisons.
+
+For each $h$, it constructs $\paramset_h$ using precisely
+\eqref{eq:endpoints}, discards values outside $I_h$, and removes duplicate
+values within that set. For every resulting pair $(h,a)$, it constructs the
+exact rational radius set \eqref{eq:radius-set} and evaluates an
+outward-rounded integer version of \eqref{eq:dp}. As proved in
+\cref{app:verification}, this gives an upper bound on $D_h(a)$; all
+threshold comparisons use the exact radii, not their rounded values.
+The computation uses no floating-point arithmetic.
+
+There are $112{,}802$ endpoint cases. The largest certified upper bound is
+the fraction in \eqref{eq:certified-maximum}, attained in this computation
+at $h=84$, $a=869/405$, with selected path $869/405\longrightarrow0$.
+The strict margin is
+\begin{equation}\label{eq:margin}
+  \frac{36869}{20000}
+  -\frac{184344982165038312381942179}{10^{26}}
+  =\frac{17834961687618057821}{10^{26}}>0.
+\end{equation}
+The full verification output is recorded in \texttt{verification.txt}.
+The certificate data, integer recurrence, and reproduction commands are
+specified in \cref{app:verification}.
+\end{proof}
+
+\begin{remark}[Meaning of the certified maximum]
+The fraction in \eqref{eq:certified-maximum} is the largest
+\emph{outward-rounded endpoint bound}. It is not asserted to be the exact
+maximum of the unrounded dynamic programs or the optimum of the original
+factor-revealing program. The theorem uses the declared target $\rho$,
+which also determines the parameter domains $I_h$.
+\end{remark}
+
+\begin{proof}[Proof of \cref{thm:main}]
+Start with any variables satisfying
+\eqref{eq:row}--\eqref{eq:nonnegative}, without assuming normalization.
+Replace the terminal radii by zero as in
+\eqref{eq:terminal-replace}, and define $q_j$ and $C_j$ by
+\eqref{eq:aj-qj} and \eqref{eq:credit}.
+
+For a row with $d_j=0$, \cref{lem:zero-client} gives $q_j\le C_j$;
+its cumulative-distribution hypothesis is supplied by
+\cref{prop:certificate}.
+For a row with $d_j>0$ and $a_j/d_j\le\rho$, \eqref{eq:q-a} gives
+$q_j\le\rho d_j\le\rho d_j+C_j$.
+For every other row, the reduction in \cref{sec:positive} assigns a pair
+$(h,a)$ with $a\in I_h$ and gives \eqref{eq:row-excess-reduction}.
+By \cref{lem:radius-reduction,lem:parameter-reduction,prop:certificate},
+\[
+  \frac{q_j-C_j}{d_j}
+     \le D_h(a)
+     \le\max_{a'\in\paramset_h}D_h(a')
+     <\rho.
+\]
+Thus \eqref{eq:row-goal} holds for every row. Summing and applying
+\eqref{eq:credit-budget} gives
+\[
+  \sum_{j=1}^n q_j
+     \le\rho\sum_{j=1}^n d_j+\sum_{j=1}^n C_j
+     \le\rho\sum_{j=1}^n d_j+f.
+\]
+The original transition-plus-terminal-radius expression is at most
+$\sum_jq_j$, by the terminal-radius replacement. This proves
+\eqref{eq:homogeneous-bound}.
+Under \eqref{eq:normalization}, subtracting $f$ yields
+$\Phi_\beta(r,f)\le\rho$. Taking the supremum over feasible variables and
+then over $n$ proves \eqref{eq:main-bound}.
+\end{proof}
+
+\paragraph{Scope of the computational step.}
+The verifier checks a fixed finite certificate. It does not optimize the
+original program for small values of $n$, nor does it extrapolate from
+numerical experiments. \Cref{lem:radius-reduction} covers every finite
+radius path, and \cref{lem:parameter-reduction} covers the entire real
+parameter domain, including its unbounded rays. These analytic results
+are what make the finite computation sufficient for \cref{thm:main}.
+This is a computer-assisted proof, not a proof-assistant formalization of
+the analytic argument.
+
+\begin{thebibliography}{1}
+\bibitem{source-program}
+Rares-Darius Buhai, Vincent Cohen-Addad, Henry Fleischmann, Anupam Gupta,
+Antoni Jub\'es Monforte, Madhusudhan Reddy Pittu, Miltiadis Stouras,
+Ola Svensson, and Lukas Vogl.
+\newblock \emph{The Power of General Bids for $k$-Median}.
+\newblock Supplied manuscript, Definitions~3.1 and~4.1.
+\end{thebibliography}
+
+\clearpage
+\appendix
+\section{Certificate data and exact verification}\label{app:verification}
+
+All mathematical input to the computation is specified in this note:
+the bid \eqref{eq:bid} and \cref{tab:bid}, the thresholds
+\eqref{eq:times}, the masses in \cref{tab:masses}, the endpoint sets
+\eqref{eq:endpoints}, and the recurrence \eqref{eq:dp}.
+The files \texttt{certificate.txt} and \certfile\ contain the same
+constants in machine-readable form. The former is the input to the C++
+verifier, and the latter is used by the supplementary Python checks.
+
+\begin{table}[H]
+\centering
+\caption{The rational sampling distribution. At threshold
+$u_\ell=1+\ell/96$, the probability mass is $c_\ell/10^9$.
+All $121$ integers, including zero masses, are listed.}
+\label{tab:masses}
+\small
+\renewcommand{\arraystretch}{1.08}
+\setlength{\tabcolsep}{7pt}
+\begin{tabular}{rr@{\qquad}rr@{\qquad}rr@{\qquad}rr}
+\toprule
+$\ell$ & $c_\ell$ & $\ell$ & $c_\ell$ & $\ell$ & $c_\ell$ & $\ell$ & $c_\ell$\\
+\midrule
+0 & $24{,}087{,}553$ & 31 & $15{,}347{,}486$ & 62 & $5{,}430{,}994$ & 93 & $0$\\
+1 & $23{,}567{,}894$ & 32 & $19{,}903{,}937$ & 63 & $5{,}394{,}373$ & 94 & $15{,}425{,}764$\\
+2 & $23{,}315{,}363$ & 33 & $10{,}306{,}194$ & 64 & $5{,}276{,}652$ & 95 & $0$\\
+3 & $22{,}706{,}147$ & 34 & $14{,}496{,}475$ & 65 & $5{,}164{,}893$ & 96 & $0$\\
+4 & $22{,}224{,}377$ & 35 & $13{,}786{,}530$ & 66 & $5{,}037{,}775$ & 97 & $0$\\
+5 & $21{,}750{,}480$ & 36 & $13{,}032{,}292$ & 67 & $4{,}928{,}361$ & 98 & $0$\\
+6 & $21{,}230{,}145$ & 37 & $12{,}186{,}845$ & 68 & $4{,}811{,}734$ & 99 & $0$\\
+7 & $20{,}726{,}429$ & 38 & $11{,}086{,}606$ & 69 & $4{,}716{,}895$ & 100 & $0$\\
+8 & $20{,}611{,}532$ & 39 & $10{,}315{,}351$ & 70 & $4{,}616{,}748$ & 101 & $0$\\
+9 & $20{,}155{,}272$ & 40 & $10{,}140{,}726$ & 71 & $4{,}537{,}378$ & 102 & $3{,}302{,}130$\\
+10 & $19{,}733{,}910$ & 41 & $9{,}982{,}272$ & 72 & $4{,}442{,}037$ & 103 & $0$\\
+11 & $19{,}616{,}405$ & 42 & $9{,}828{,}489$ & 73 & $4{,}371{,}224$ & 104 & $0$\\
+12 & $19{,}195{,}203$ & 43 & $9{,}679{,}177$ & 74 & $4{,}289{,}205$ & 105 & $0$\\
+13 & $18{,}952{,}661$ & 44 & $9{,}534{,}145$ & 75 & $4{,}230{,}208$ & 106 & $0$\\
+14 & $20{,}108{,}443$ & 45 & $8{,}588{,}766$ & 76 & $4{,}158{,}464$ & 107 & $0$\\
+15 & $18{,}554{,}301$ & 46 & $5{,}363{,}641$ & 77 & $4{,}101{,}646$ & 108 & $0$\\
+16 & $16{,}736{,}136$ & 47 & $5{,}440{,}727$ & 78 & $4{,}036{,}047$ & 109 & $0$\\
+17 & $17{,}512{,}178$ & 48 & $5{,}508{,}246$ & 79 & $3{,}984{,}451$ & 110 & $0$\\
+18 & $17{,}533{,}687$ & 49 & $5{,}559{,}267$ & 80 & $3{,}920{,}032$ & 111 & $0$\\
+19 & $17{,}195{,}813$ & 50 & $5{,}592{,}099$ & 81 & $3{,}878{,}363$ & 112 & $0$\\
+20 & $17{,}124{,}860$ & 51 & $5{,}609{,}257$ & 82 & $3{,}822{,}612$ & 113 & $0$\\
+21 & $16{,}945{,}175$ & 52 & $5{,}614{,}263$ & 83 & $13{,}251{,}875$ & 114 & $0$\\
+22 & $16{,}637{,}025$ & 53 & $5{,}615{,}387$ & 84 & $0$ & 115 & $0$\\
+23 & $16{,}595{,}629$ & 54 & $5{,}615{,}841$ & 85 & $0$ & 116 & $0$\\
+24 & $16{,}390{,}990$ & 55 & $5{,}609{,}762$ & 86 & $8{,}798{,}431$ & 117 & $0$\\
+25 & $16{,}312{,}976$ & 56 & $5{,}603{,}100$ & 87 & $0$ & 118 & $0$\\
+26 & $16{,}176{,}735$ & 57 & $5{,}600{,}838$ & 88 & $0$ & 119 & $0$\\
+27 & $15{,}998{,}131$ & 58 & $5{,}591{,}664$ & 89 & $8{,}086{,}571$ & 120 & $0$\\
+28 & $15{,}833{,}420$ & 59 & $5{,}570{,}605$ & 90 & $0$ &  & \\
+29 & $15{,}633{,}516$ & 60 & $5{,}519{,}377$ & 91 & $0$ &  & \\
+30 & $15{,}399{,}233$ & 61 & $5{,}475{,}884$ & 92 & $4{,}318{,}269$ &  & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\Needspace{10\baselineskip}
+\subsection{The integer recurrence}
+
+Let
+\begin{equation}\label{eq:integer-constants}
+  B=10^8,\qquad D=10^9,\qquad R=10^9,\qquad G=4500,
+\end{equation}
+so that $\gamma_s=p_s/G$ with each $p_s$ an integer. For nonnegative
+integers $X,Y$, define
+\begin{equation}\label{eq:integer-bid}
+  N(X,Y)=\sum_{s=1}^{13}W_s\max\{GX-p_sY,0\}.
+\end{equation}
+Then
+\begin{equation}\label{eq:integer-bid-identity}
+  \beta(X/R,Y/R)=\frac{N(X,Y)}{BGR}.
+\end{equation}
+The implementation evaluates \eqref{eq:integer-bid} using prefix sums of
+$W_s$ and $W_sp_s$. Since the $p_s$ are increasing, the positive terms
+form a prefix; an exact integer comparison locates its endpoint.
+
+Fix an endpoint case $(h,a)$ and retain its exact rational states $v_k$.
+For every nonnegative rational $v$, put
+\[
+  v^- =\lfloor Rv\rfloor,\qquad v^+=\lceil Rv\rceil.
+\]
+Define the integer threshold masses
+\begin{equation}\label{eq:integer-masses}
+  s_k=\sum_{\substack{\ell\ge h\\b_\ell(a)>v_k}}c_\ell
+      =D S_h(v_k;a).
+\end{equation}
+In particular, $s_p-s_k\ge0$ whenever $p<k$.
+The integer recurrence is
+\begin{align}
+  \widehat V_0&=0,\notag\\
+  \widehat V_k
+    &=\max_{p<k}\left\{
+       D N(v_k^+,v_p^-)
+       -(s_p-s_k)N(v_k^-,R)
+       +\widehat V_p
+       \right\},\label{eq:integer-dp}\\
+  \widehat A_h(a)
+    &=\sum_{\ell<h}c_\ell
+       N\bigl(\lfloor R M_h(a)u_\ell\rfloor,R\bigr).
+       \label{eq:integer-active}
+\end{align}
+Its output, scaled back to the original units, is
+\begin{equation}\label{eq:rounded-D}
+  \widehat D_h(a)
+   =\frac{\widehat V_K-\widehat A_h(a)}{BGRD}.
+\end{equation}
+
+\begin{lemma}[Directed-rounding guarantee]\label[lemma]{lem:directed-rounding}
+For every endpoint case $(h,a)$,
+\begin{equation}\label{eq:integer-upper}
+  D_h(a)\le\widehat D_h(a).
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+Monotonicity in the two arguments gives
+\[
+  \beta(v_k,v_p)
+       \le\beta(v_k^+/R,v_p^-/R)
+       =\frac{N(v_k^+,v_p^-)}{BGR},
+\]
+whereas
+\[
+  \beta(v_k,1)\ge\frac{N(v_k^-,R)}{BGR}.
+\]
+Since the mass $s_p-s_k$ is nonnegative, these are upper bounds on the
+positive transition payment and lower bounds on the reference bid being
+subtracted. Induction on $k$ in \eqref{eq:dp} and
+\eqref{eq:integer-dp} yields $BGRD\,V_k\le\widehat V_k$.
+Similarly, \eqref{eq:integer-active} satisfies
+$\widehat A_h(a)\le BGRD\,A_h(a)$, since every active reference argument is
+rounded downward. Subtracting proves \eqref{eq:integer-upper}.
+
+The comparisons in \eqref{eq:integer-masses} use the exact rational
+values $b_\ell(a)$ and $v_k$. They are not affected by rounding, so the
+strict-crossing convention is preserved exactly.
+\end{proof}
+
+This calculation rounds in a specified direction using integers; it is
+not a floating-point approximation with an estimated error. The final
+comparison with $\rho$ is made after multiplication by the positive exact
+denominators.
+
+\subsection{Input files, commands, and verification record}
+
+The header of \texttt{certificate.txt} supplies the numerator and denominator
+of $\rho$, then $B,D,R$, then the numbers of hinges and thresholds.
+Its exact contents are
+\begin{verbatim}
+36869 20000
+100000000 1000000000 1000000000
+13 121
+\end{verbatim}
+Line breaks serve only as whitespace in the input.
+They are followed by $13$ lines containing the numerator and denominator
+of $\gamma_s$ and the integer $W_s$, then $121$ lines containing the
+numerator and denominator of $u_\ell$ and the integer $c_\ell$.
+Thus the text certificate can be reconstructed entirely from this note.
+The verifier computes $G$ as the least common multiple of the hinge
+denominators.
+
+Place \verifier\ and \texttt{certificate.txt} in the same directory,
+and use a C++17 compiler supporting \texttt{\_\_int128}, with the
+Boost.Multiprecision headers available:
+\begin{verbatim}
+g++ -O3 -std=c++17 verify.cpp -o verify
+./verify certificate.txt
+\end{verbatim}
+The successful output is
+\begin{verbatim}
+PASS: exact all-dimensions threshold certificate
+Target: 36869/20000
+Mixture components: 13
+Sampling thresholds: 121
+Exact CDF inequalities: 120
+Endpoint cases: 112802
+Largest outward-rounded upper bound:
+  184344982165038312381942179/100000000000000000000000000
+Margin:
+  17834961687618057821/100000000000000000000000000
+Worst checked case: h=84, a=869/405
+Worst checked path: 869/405 0
+\end{verbatim}
+Here the two longest lines have been broken for typesetting only.
+The function \texttt{endpoints} implements \eqref{eq:endpoints}, and
+\texttt{check\_case} implements \eqref{eq:integer-dp}--\eqref{eq:rounded-D}.
+
+The program uses reduced rational numbers for endpoints and radius states,
+signed $128$-bit integers for the recurrence, and arbitrary-precision
+integers for cumulative-mass and final target comparisons. It checks that
+rational components fit their storage types and uses an
+arbitrary-precision magnitude bound before evaluating each recurrence.
+A certificate outside the checked arithmetic range is rejected.
+
+Two supplementary scripts provide independent rational checks:
+\begin{verbatim}
+python cross_check.py
+python verify_lower_bound.py
+\end{verbatim}
+The first script reads \certfile, checks the cumulative-mass conditions
+using Python's \texttt{Fraction} arithmetic, and compares selected
+\emph{unrounded} dynamic programs with the C++ upper bounds. It also
+checks the one-outlier diagnostic discussed in
+\cref{app:lower}. These selected checks are supplementary; the C++
+verification, not the sample of Python cases, checks all $112{,}802$
+endpoints. The second script checks the exact lower-bound values.
+Their outputs are supplied in \texttt{independent\_checks.txt} and
+\texttt{lower\_bound\_checks.txt}.
+
+\section{A nearly matching feasible family}\label{app:lower}
+
+This appendix records a lower bound for the same optimization problem.
+It is not used in the upper-bound proof.
+
+\begin{proposition}[One-outlier lower bound]\label[proposition]{prop:lower}
+For the bid \eqref{eq:bid},
+\begin{equation}\label{eq:lower}
+  \sup_{n\ge1}\FR_n(\beta)
+     \ge\frac{8295524183431}{4500000000000}
+     =1.843449818540222\ldots.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+More generally, for any $z>0$ define
+\[
+  L_\beta(z)=z+\beta(z+1,z)-\beta(z,1).
+\]
+We construct feasible points whose objectives converge to $L_\beta(z)$.
+Let $M$ be a positive integer with $M\ge z$, and take $n=M+1$ clients.
+Set
+\[
+  d_1=1,\qquad d_2=\cdots=d_n=0,\qquad
+  T=z+1,\qquad a=T-\frac zM,\qquad
+  f=MT+\beta(z,1).
+\]
+Define the radii by
+\begin{align*}
+  r_{1,1}&=a,&
+  r_{1,i}&=z\quad(2\le i\le n),&
+  r_{1,n+1}&=0,\\
+  r_{j,i}&=T\quad(2\le j\le i\le n),&&
+  r_{j,n+1}&=0\quad(2\le j\le n).
+\end{align*}
+Normalization and nonnegativity hold. Since $M\ge z$, we have $a\ge z$,
+so every row is nonincreasing. A triangle constraint between the first row
+and a later diagonal is tight, because $T=z+1$; a triangle constraint
+between two zero-distance rows is also tight. The only nonzero difference
+between two earlier rows in a nonterminal column is $T-z=1$, exactly the
+sum of their reference distances. All terminal radii are zero. Thus all
+triangle and metric constraints hold.
+
+For every facility constraint at $i\ge2$, the left-hand side is
+$\beta(z,1)+MT=f$. At $i=1$, budget feasibility and $a\le T$ give
+\[
+  \beta(a,1)+Ma
+    \le z+M\left(T-\frac zM\right)
+    =MT\le f.
+\]
+Hence the point is feasible for the full program. Its objective is
+\[
+  z+\beta\left(z+1-\frac zM,z\right)-\beta(z,1).
+\]
+By continuity, this tends to $L_\beta(z)$ as $M\to\infty$.
+
+For the bid in \cref{tab:bid}, take $z=17/10$. Direct rational evaluation
+of \eqref{eq:bid} gives
+\[
+  L_\beta(17/10)
+    =\frac{8295524183431}{4500000000000},
+\]
+proving \eqref{eq:lower}. These evaluations are checked by
+\texttt{verify\_lower\_bound.py}.
+\end{proof}
+
+\end{document}

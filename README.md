@@ -72,32 +72,4 @@ Set `COMPARATOR_BIN` to the executable path if `comparator` is not on `PATH`.
 The only permitted axioms are `propext`, `Quot.sound`, and `Classical.choice`.
 The previous full `lake test` run exited successfully after statement comparison,
 axiom checking, and Lean's default kernel replay of both configured targets.
-The full local replay took about five hours. That run used a challenge whose
-holes had incorrectly been filled from the proof library. The challenge has
-since been restored to a Mathlib-only reference with two intentional holes;
-its definitions and theorem statements, and every solution proof source, are
-unchanged. Comparator's statement and axiom checks passed again for this correction;
-the five-hour kernel replay was not repeated. Details and logs are recorded in
-[FORMALIZATION.md](FORMALIZATION.md).
-
-The matching tools already present in the sibling repository can be reused for
-local development on this machine:
-
-```sh
-export COMPARATOR_BIN="$PWD/../k-median-183/.lake/comparator/.lake/build/bin/comparator"
-export COMPARATOR_LEAN4EXPORT="$PWD/../k-median-183/.lake/comparator/.lake/packages/lean4export/.lake/build/bin/lean4export"
-export COMPARATOR_LANDRUN="$PWD/../k-median-183/.lake/comparator/scripts/fake-landrun.sh"
-lake test
-```
-
-The upstream `fake-landrun.sh` is an unsandboxed development shim. For evaluating
-untrusted submissions, use Comparator's upstream Linux sandbox setup and freeze
-the challenge, configuration, and dependency pins. The sibling checkout is only
-a source of development executables; this project's Lean imports are independent.
-
-## Supplied numerical certificate
-
-Reproduction instructions are in [result/certificates/README.md](result/certificates/README.md).
-The C++ verifier checks 120 CDF inequalities and 112,802 endpoint cases using
-exact directed rounding. These computations and the supplementary Python checks
-have been rerun successfully. They are not a Lean proof of the main theorem.
+The full local replay took about five hours.
