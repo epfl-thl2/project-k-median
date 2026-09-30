@@ -1,1 +1,1 @@
-import KMedian184.Basic
+import KMedian184.Main

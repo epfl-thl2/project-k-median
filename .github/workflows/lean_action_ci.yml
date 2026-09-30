@@ -17,5 +17,24 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+      - name: Audit statement against manuscript
+        run: python3 scripts/audit_statement.py
+      - name: Cache checked build artifacts
+        uses: actions/cache@v5
+        with:
+          path: .lake
+          key: proof-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: proof-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
       - uses: leanprover/lean-action@v1
+        with:
+          # Build the large certificate collection with bounded concurrency below.
+          build: "false"
+          # The cache above saves after the bounded build, at the end of the job.
+          use-github-cache: "false"
+          # Comparator requires separately installed executables; see README.
+          test: "false"
+      - name: Build proof with bounded concurrency
+        run: python3 scripts/build_proof.py
+      - name: Audit complete standard Lean proof
+        run: python3 scripts/audit_proof.py
       - uses: leanprover-community/docgen-action@v1

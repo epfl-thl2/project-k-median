@@ -1,0 +1,69 @@
+import KMedian184.Certificates.Hybrid15RightEndpoint002
+import KMedian184.Certificates.Hybrid15RightEndpoint003
+import KMedian184.IntegerSupport
+import KMedian184.AdaptiveTransportInterval
+import KMedian184.FastPrefixes
+
+namespace KMedian184
+
+set_option maxRecDepth 100000
+set_option maxHeartbeats 0
+set_option Elab.async false
+
+private def Hybrid15Interval003Pieces : LookupTree ℕ :=
+  (.leaf 13)
+
+private theorem Hybrid15Interval003_pieces : supportPiecesValid 15 Hybrid15Interval003Pieces := by
+  decide +kernel
+
+private theorem Hybrid15Interval003_left : Hybrid15RightEndpoint002.grossValueQ 15 (664838043981 / 250000000000) =
+    (227458647253056258575292371 / 104062500000000000000000000) := by
+  rw [EndpointData.grossValueQ, scalarActiveQ_integer 15 (664838043981 / 250000000000)
+    664838043981 289062500000 (by decide) (by decide +kernel),
+    EndpointData.boundQ, ← EndpointData.fastActive_eq]
+  decide +kernel
+
+private theorem Hybrid15Interval003_right : Hybrid15RightEndpoint003.grossValueQ 15 (1409918214037 / 500000000000) =
+    (4675114611651548061170948717 / 2081250000000000000000000000) := by
+  rw [EndpointData.grossValueQ, scalarActiveQ_integer 15 (1409918214037 / 500000000000)
+    1409918214037 578125000000 (by decide) (by decide +kernel),
+    EndpointData.boundQ, ← EndpointData.fastActive_eq]
+  decide +kernel
+
+private theorem Hybrid15Interval003_slope : centerSupportSlope 15 15 Hybrid15Interval003Pieces false = (8163085369 / 27750000000) := by
+  change activeSupportSlope 15 Hybrid15Interval003Pieces / samplingThresholdQ 15 = _
+  rw [activeSupportSlope_integer 15 Hybrid15Interval003Pieces Hybrid15Interval003_pieces]
+  decide +kernel
+
+private theorem Hybrid15Interval003_offset : centerSupportOffset 15 Hybrid15Interval003Pieces false = (30837377141520089023 / 75000000000000000000) := by
+  change activeSupportOffset 15 Hybrid15Interval003Pieces = _
+  rw [activeSupportOffset_integer 15 Hybrid15Interval003Pieces Hybrid15Interval003_pieces]
+  decide +kernel
+
+private theorem Hybrid15Interval003_penalty : windowTransportPenaltyQ 15 56577610 (664838043981 / 250000000000) (1409918214037 / 500000000000) =
+    (6192599248295331508398239 / 400000000000000000000000000) := by
+  rw [windowTransportPenaltyQ, inactiveMassQ, ← samplingPrefixFast_eq]
+  decide +kernel
+
+private theorem Hybrid15Interval003_adaptive : AdaptiveBidGapCheck (664838043981 / 250000000000) ((1409918214037 / 500000000000) - (664838043981 / 250000000000)) 56577610 := by
+  decide +kernel
+
+theorem Hybrid15Interval003_interval (h : Fin 121)
+    (hL : 15 ≤ h.val) (hH : h.val ≤ 15) {a : ℝ}
+    (hl : (((664838043981 / 250000000000) : ℚ) : ℝ) ≤ a) (hr : a ≤ (((1409918214037 / 500000000000) : ℚ) : ℝ)) :
+    ScalarPathAt h a := by
+  have he : h = (15 : Fin 121) := by
+    apply Fin.ext
+    change h.val = 15
+    omega
+  subst h
+  apply sparse_adaptive_transport_support_interval Hybrid15RightEndpoint002 Hybrid15RightEndpoint003 15 (664838043981 / 250000000000) (1409918214037 / 500000000000) 56577610
+    Hybrid15RightEndpoint002_geometry Hybrid15RightEndpoint002_hull_arithmetic
+    Hybrid15RightEndpoint003_geometry Hybrid15RightEndpoint003_hull_arithmetic
+    (by norm_num) (by norm_num) Hybrid15Interval003_adaptive Hybrid15Interval003Pieces false ?_ ?_ hl hr
+  · rw [Hybrid15Interval003_left, Hybrid15Interval003_slope, Hybrid15Interval003_offset, Hybrid15Interval003_penalty]
+    norm_num
+  · rw [Hybrid15Interval003_right, Hybrid15Interval003_slope, Hybrid15Interval003_offset, Hybrid15Interval003_penalty]
+    norm_num
+
+end KMedian184

@@ -1,0 +1,454 @@
+import KMedian184.SparseParameterData
+import KMedian184.Certificates.Hybrid8RightEndpoint018
+import KMedian184.Certificates.Hybrid8RightEndpoint019
+import KMedian184.IntegerSupport
+import KMedian184.SparseParameterInterval
+
+namespace KMedian184
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+-- The paired grid is a large literal witness, subsequently checked in the kernel.
+noncomputable def Hybrid8Interval019Geometry : ParameterData := {
+  size := 127
+  leftValues := (.branch 64
+    (.branch 32
+      (.branch 16
+        (.branch 8
+          (.branch 4
+            (.branch 2
+              (.branch 1 (.leaf 0) (.leaf (59 / 216)))
+              (.branch 3 (.leaf (12 / 43)) (.leaf (61 / 214))))
+            (.branch 6
+              (.branch 5 (.leaf (62 / 213)) (.leaf (63 / 212)))
+              (.branch 7 (.leaf (64 / 211)) (.leaf (13 / 42)))))
+          (.branch 12
+            (.branch 10
+              (.branch 9 (.leaf (6 / 19)) (.leaf (67 / 208)))
+              (.branch 11 (.leaf (68 / 207)) (.leaf (69 / 206))))
+            (.branch 14
+              (.branch 13 (.leaf (14 / 41)) (.leaf (71 / 204)))
+              (.branch 15 (.leaf (72 / 203)) (.leaf (73 / 202))))))
+        (.branch 24
+          (.branch 20
+            (.branch 18
+              (.branch 17 (.leaf (74 / 201)) (.leaf (3 / 8)))
+              (.branch 19 (.leaf (76 / 199)) (.leaf (7 / 18))))
+            (.branch 22
+              (.branch 21 (.leaf (78 / 197)) (.leaf (79 / 196)))
+              (.branch 23 (.leaf (16 / 39)) (.leaf (81 / 194)))))
+          (.branch 28
+            (.branch 26
+              (.branch 25 (.leaf (82 / 193)) (.leaf (83 / 192)))
+              (.branch 27 (.leaf (84 / 191)) (.leaf (17 / 38))))
+            (.branch 30
+              (.branch 29 (.leaf (86 / 189)) (.leaf (87 / 188)))
+              (.branch 31 (.leaf (8 / 17)) (.leaf (89 / 186)))))))
+      (.branch 48
+        (.branch 40
+          (.branch 36
+            (.branch 34
+              (.branch 33 (.leaf (18 / 37)) (.leaf (91 / 184)))
+              (.branch 35 (.leaf (92 / 183)) (.leaf (93 / 182))))
+            (.branch 38
+              (.branch 37 (.leaf (94 / 181)) (.leaf (19 / 36)))
+              (.branch 39 (.leaf (96 / 179)) (.leaf (97 / 178)))))
+          (.branch 44
+            (.branch 42
+              (.branch 41 (.leaf (98 / 177)) (.leaf (9 / 16)))
+              (.branch 43 (.leaf (4 / 7)) (.leaf (101 / 174))))
+            (.branch 46
+              (.branch 45 (.leaf (102 / 173)) (.leaf (103 / 172)))
+              (.branch 47 (.leaf (104 / 171)) (.leaf (21 / 34))))))
+        (.branch 56
+          (.branch 52
+            (.branch 50
+              (.branch 49 (.leaf (106 / 169)) (.leaf (107 / 168)))
+              (.branch 51 (.leaf (108 / 167)) (.leaf (109 / 166))))
+            (.branch 54
+              (.branch 53 (.leaf (2 / 3)) (.leaf (111 / 164)))
+              (.branch 55 (.leaf (112 / 163)) (.leaf (113 / 162)))))
+          (.branch 60
+            (.branch 58
+              (.branch 57 (.leaf (114 / 161)) (.leaf (23 / 32)))
+              (.branch 59 (.leaf (116 / 159)) (.leaf (117 / 158))))
+            (.branch 62
+              (.branch 61 (.leaf (118 / 157)) (.leaf (119 / 156)))
+              (.branch 63 (.leaf (24 / 31)) (.leaf (11 / 14))))))))
+    (.branch 96
+      (.branch 80
+        (.branch 72
+          (.branch 68
+            (.branch 66
+              (.branch 65 (.leaf (122 / 153)) (.leaf (123 / 152)))
+              (.branch 67 (.leaf (124 / 151)) (.leaf (5 / 6))))
+            (.branch 70
+              (.branch 69 (.leaf (126 / 149)) (.leaf (127 / 148)))
+              (.branch 71 (.leaf (128 / 147)) (.leaf (129 / 146)))))
+          (.branch 76
+            (.branch 74
+              (.branch 73 (.leaf (26 / 29)) (.leaf (131 / 144)))
+              (.branch 75 (.leaf (12 / 13)) (.leaf (133 / 142))))
+            (.branch 78
+              (.branch 77 (.leaf (134 / 141)) (.leaf (27 / 28)))
+              (.branch 79 (.leaf (136 / 139)) (.leaf (137 / 138))))))
+        (.branch 88
+          (.branch 84
+            (.branch 82
+              (.branch 81 (.leaf (138 / 137)) (.leaf (139 / 136)))
+              (.branch 83 (.leaf (28 / 27)) (.leaf (141 / 134))))
+            (.branch 86
+              (.branch 85 (.leaf (142 / 133)) (.leaf (13 / 12)))
+              (.branch 87 (.leaf (137 / 125)) (.leaf (144 / 131)))))
+          (.branch 92
+            (.branch 90
+              (.branch 89 (.leaf (29 / 26)) (.leaf (146 / 129)))
+              (.branch 91 (.leaf (147 / 128)) (.leaf (148 / 127))))
+            (.branch 94
+              (.branch 93 (.leaf (149 / 126)) (.leaf (6 / 5)))
+              (.branch 95 (.leaf (151 / 124)) (.leaf (152 / 123)))))))
+      (.branch 112
+        (.branch 104
+          (.branch 100
+            (.branch 98
+              (.branch 97 (.leaf (153 / 122)) (.leaf (14 / 11)))
+              (.branch 99 (.leaf (31 / 24)) (.leaf (156 / 119))))
+            (.branch 102
+              (.branch 101 (.leaf (157 / 118)) (.leaf (158 / 117)))
+              (.branch 103 (.leaf (159 / 116)) (.leaf (32 / 23)))))
+          (.branch 108
+            (.branch 106
+              (.branch 105 (.leaf (161 / 114)) (.leaf (162 / 113)))
+              (.branch 107 (.leaf (29 / 20)) (.leaf (163 / 112))))
+            (.branch 110
+              (.branch 109 (.leaf (164 / 111)) (.leaf (3 / 2)))
+              (.branch 111 (.leaf (3 / 2)) (.leaf (166 / 109))))))
+        (.branch 120
+          (.branch 116
+            (.branch 114
+              (.branch 113 (.leaf (167 / 108)) (.leaf (168 / 107)))
+              (.branch 115 (.leaf (169 / 106)) (.leaf (29 / 18))))
+            (.branch 118
+              (.branch 117 (.leaf (34 / 21)) (.leaf (171 / 104)))
+              (.branch 119 (.leaf (33 / 20)) (.leaf (17 / 10)))))
+          (.branch 124
+            (.branch 122
+              (.branch 121 (.leaf (7 / 4)) (.leaf (9 / 5)))
+              (.branch 123 (.leaf (37 / 20)) (.leaf (19 / 10))))
+            (.branch 126
+              (.branch 125 (.leaf (39 / 20)) (.leaf 2))
+              (.branch 127 (.leaf (41 / 20)) (.leaf (275 / 96)))))))))
+  rightValues := (.branch 64
+    (.branch 32
+      (.branch 16
+        (.branch 8
+          (.branch 4
+            (.branch 2
+              (.branch 1 (.leaf 0) (.leaf (149 / 540)))
+              (.branch 3 (.leaf (303 / 1075)) (.leaf (154 / 535))))
+            (.branch 6
+              (.branch 5 (.leaf (313 / 1065)) (.leaf (3 / 10)))
+              (.branch 7 (.leaf (323 / 1055)) (.leaf (164 / 525)))))
+          (.branch 12
+            (.branch 10
+              (.branch 9 (.leaf (333 / 1045)) (.leaf (13 / 40)))
+              (.branch 11 (.leaf (343 / 1035)) (.leaf (174 / 515))))
+            (.branch 14
+              (.branch 13 (.leaf (353 / 1025)) (.leaf (179 / 510)))
+              (.branch 15 (.leaf (363 / 1015)) (.leaf (184 / 505))))))
+        (.branch 24
+          (.branch 20
+            (.branch 18
+              (.branch 17 (.leaf (373 / 1005)) (.leaf (189 / 500)))
+              (.branch 19 (.leaf (383 / 995)) (.leaf (194 / 495))))
+            (.branch 22
+              (.branch 21 (.leaf (393 / 985)) (.leaf (199 / 490)))
+              (.branch 23 (.leaf (31 / 75)) (.leaf (204 / 485)))))
+          (.branch 28
+            (.branch 26
+              (.branch 25 (.leaf (413 / 965)) (.leaf (209 / 480)))
+              (.branch 27 (.leaf (423 / 955)) (.leaf (214 / 475))))
+            (.branch 30
+              (.branch 29 (.leaf (433 / 945)) (.leaf (219 / 470)))
+              (.branch 31 (.leaf (443 / 935)) (.leaf (224 / 465)))))))
+      (.branch 48
+        (.branch 40
+          (.branch 36
+            (.branch 34
+              (.branch 33 (.leaf (453 / 925)) (.leaf (229 / 460)))
+              (.branch 35 (.leaf (463 / 915)) (.leaf (18 / 35))))
+            (.branch 38
+              (.branch 37 (.leaf (473 / 905)) (.leaf (239 / 450)))
+              (.branch 39 (.leaf (483 / 895)) (.leaf (244 / 445)))))
+          (.branch 44
+            (.branch 42
+              (.branch 41 (.leaf (493 / 885)) (.leaf (249 / 440)))
+              (.branch 43 (.leaf (503 / 875)) (.leaf (254 / 435))))
+            (.branch 46
+              (.branch 45 (.leaf (513 / 865)) (.leaf (259 / 430)))
+              (.branch 47 (.leaf (523 / 855)) (.leaf (264 / 425))))))
+        (.branch 56
+          (.branch 52
+            (.branch 50
+              (.branch 49 (.leaf (41 / 65)) (.leaf (269 / 420)))
+              (.branch 51 (.leaf (543 / 835)) (.leaf (274 / 415))))
+            (.branch 54
+              (.branch 53 (.leaf (553 / 825)) (.leaf (279 / 410)))
+              (.branch 55 (.leaf (563 / 815)) (.leaf (284 / 405)))))
+          (.branch 60
+            (.branch 58
+              (.branch 57 (.leaf (573 / 805)) (.leaf (289 / 400)))
+              (.branch 59 (.leaf (11 / 15)) (.leaf (294 / 395))))
+            (.branch 62
+              (.branch 61 (.leaf (593 / 785)) (.leaf (23 / 30)))
+              (.branch 63 (.leaf (603 / 775)) (.leaf (304 / 385))))))))
+    (.branch 96
+      (.branch 80
+        (.branch 72
+          (.branch 68
+            (.branch 66
+              (.branch 65 (.leaf (613 / 765)) (.leaf (309 / 380)))
+              (.branch 67 (.leaf (623 / 755)) (.leaf (314 / 375))))
+            (.branch 70
+              (.branch 69 (.leaf (633 / 745)) (.leaf (319 / 370)))
+              (.branch 71 (.leaf (643 / 735)) (.leaf (324 / 365)))))
+          (.branch 76
+            (.branch 74
+              (.branch 73 (.leaf (653 / 725)) (.leaf (329 / 360)))
+              (.branch 75 (.leaf (51 / 55)) (.leaf (334 / 355))))
+            (.branch 78
+              (.branch 77 (.leaf (673 / 705)) (.leaf (339 / 350)))
+              (.branch 79 (.leaf (683 / 695)) (.leaf (344 / 345))))))
+        (.branch 88
+          (.branch 84
+            (.branch 82
+              (.branch 81 (.leaf (693 / 685)) (.leaf (349 / 340)))
+              (.branch 83 (.leaf (703 / 675)) (.leaf (354 / 335))))
+            (.branch 86
+              (.branch 85 (.leaf (713 / 665)) (.leaf (359 / 330)))
+              (.branch 87 (.leaf (137 / 125)) (.leaf (723 / 655)))))
+          (.branch 92
+            (.branch 90
+              (.branch 89 (.leaf (28 / 25)) (.leaf (733 / 645)))
+              (.branch 91 (.leaf (369 / 320)) (.leaf (743 / 635))))
+            (.branch 94
+              (.branch 93 (.leaf (374 / 315)) (.leaf (753 / 625)))
+              (.branch 95 (.leaf (379 / 310)) (.leaf (763 / 615)))))))
+      (.branch 112
+        (.branch 104
+          (.branch 100
+            (.branch 98
+              (.branch 97 (.leaf (384 / 305)) (.leaf (773 / 605)))
+              (.branch 99 (.leaf (389 / 300)) (.leaf (783 / 595))))
+            (.branch 102
+              (.branch 101 (.leaf (394 / 295)) (.leaf (61 / 45)))
+              (.branch 103 (.leaf (399 / 290)) (.leaf (803 / 575)))))
+          (.branch 108
+            (.branch 106
+              (.branch 105 (.leaf (404 / 285)) (.leaf (813 / 565)))
+              (.branch 107 (.leaf (29 / 20)) (.leaf (409 / 280))))
+            (.branch 110
+              (.branch 109 (.leaf (823 / 555)) (.leaf (3 / 2)))
+              (.branch 111 (.leaf (414 / 275)) (.leaf (833 / 545))))))
+        (.branch 120
+          (.branch 116
+            (.branch 114
+              (.branch 113 (.leaf (419 / 270)) (.leaf (843 / 535)))
+              (.branch 115 (.leaf (8 / 5)) (.leaf (29 / 18))))
+            (.branch 118
+              (.branch 117 (.leaf (853 / 525)) (.leaf (33 / 20)))
+              (.branch 119 (.leaf (33 / 20)) (.leaf (17 / 10)))))
+          (.branch 124
+            (.branch 122
+              (.branch 121 (.leaf (7 / 4)) (.leaf (9 / 5)))
+              (.branch 123 (.leaf (37 / 20)) (.leaf (19 / 10))))
+            (.branch 126
+              (.branch 125 (.leaf (39 / 20)) (.leaf 2))
+              (.branch 127 (.leaf (41 / 20)) (.leaf (689 / 240)))))))))
+  referenceNodes := (.branch 6
+    (.branch 3
+      (.branch 1 (.leaf 86) (.branch 2 (.leaf 106) (.leaf 109)))
+      (.branch 4 (.leaf 115) (.branch 5 (.leaf 118) (.leaf 119))))
+    (.branch 9
+      (.branch 7 (.leaf 120) (.branch 8 (.leaf 121) (.leaf 122)))
+      (.branch 11 (.branch 10 (.leaf 123) (.leaf 124)) (.branch 12 (.leaf 125) (.leaf 126)))))
+  thresholdNodes := (.branch 60
+    (.branch 30
+      (.branch 15
+        (.branch 7
+          (.leaf 0)
+          (.branch 11
+            (.branch 9
+              (.branch 8 (.leaf 0) (.leaf 117))
+              (.branch 10 (.leaf 116) (.leaf 114)))
+            (.branch 13
+              (.branch 12 (.leaf 113) (.leaf 112))
+              (.branch 14 (.leaf 111) (.leaf 110)))))
+        (.branch 22
+          (.branch 18
+            (.branch 16 (.leaf 108) (.branch 17 (.leaf 107) (.leaf 105)))
+            (.branch 20
+              (.branch 19 (.leaf 104) (.leaf 103))
+              (.branch 21 (.leaf 102) (.leaf 101))))
+          (.branch 26
+            (.branch 24
+              (.branch 23 (.leaf 100) (.leaf 99))
+              (.branch 25 (.leaf 98) (.leaf 97)))
+            (.branch 28
+              (.branch 27 (.leaf 96) (.leaf 95))
+              (.branch 29 (.leaf 94) (.leaf 93))))))
+      (.branch 45
+        (.branch 37
+          (.branch 33
+            (.branch 31 (.leaf 92) (.branch 32 (.leaf 91) (.leaf 90)))
+            (.branch 35
+              (.branch 34 (.leaf 89) (.leaf 88))
+              (.branch 36 (.leaf 87) (.leaf 85))))
+          (.branch 41
+            (.branch 39
+              (.branch 38 (.leaf 84) (.leaf 83))
+              (.branch 40 (.leaf 82) (.leaf 81)))
+            (.branch 43
+              (.branch 42 (.leaf 80) (.leaf 79))
+              (.branch 44 (.leaf 78) (.leaf 77)))))
+        (.branch 52
+          (.branch 48
+            (.branch 46 (.leaf 76) (.branch 47 (.leaf 75) (.leaf 74)))
+            (.branch 50
+              (.branch 49 (.leaf 73) (.leaf 72))
+              (.branch 51 (.leaf 71) (.leaf 70))))
+          (.branch 56
+            (.branch 54
+              (.branch 53 (.leaf 69) (.leaf 68))
+              (.branch 55 (.leaf 67) (.leaf 66)))
+            (.branch 58
+              (.branch 57 (.leaf 65) (.leaf 64))
+              (.branch 59 (.leaf 63) (.leaf 62)))))))
+    (.branch 90
+      (.branch 75
+        (.branch 67
+          (.branch 63
+            (.branch 61 (.leaf 61) (.branch 62 (.leaf 60) (.leaf 59)))
+            (.branch 65
+              (.branch 64 (.leaf 58) (.leaf 57))
+              (.branch 66 (.leaf 56) (.leaf 55))))
+          (.branch 71
+            (.branch 69
+              (.branch 68 (.leaf 54) (.leaf 53))
+              (.branch 70 (.leaf 52) (.leaf 51)))
+            (.branch 73
+              (.branch 72 (.leaf 50) (.leaf 49))
+              (.branch 74 (.leaf 48) (.leaf 47)))))
+        (.branch 82
+          (.branch 78
+            (.branch 76 (.leaf 46) (.branch 77 (.leaf 45) (.leaf 44)))
+            (.branch 80
+              (.branch 79 (.leaf 43) (.leaf 42))
+              (.branch 81 (.leaf 41) (.leaf 40))))
+          (.branch 86
+            (.branch 84
+              (.branch 83 (.leaf 39) (.leaf 38))
+              (.branch 85 (.leaf 37) (.leaf 36)))
+            (.branch 88
+              (.branch 87 (.leaf 35) (.leaf 34))
+              (.branch 89 (.leaf 33) (.leaf 32))))))
+      (.branch 105
+        (.branch 97
+          (.branch 93
+            (.branch 91 (.leaf 31) (.branch 92 (.leaf 30) (.leaf 29)))
+            (.branch 95
+              (.branch 94 (.leaf 28) (.leaf 27))
+              (.branch 96 (.leaf 26) (.leaf 25))))
+          (.branch 101
+            (.branch 99
+              (.branch 98 (.leaf 24) (.leaf 23))
+              (.branch 100 (.leaf 22) (.leaf 21)))
+            (.branch 103
+              (.branch 102 (.leaf 20) (.leaf 19))
+              (.branch 104 (.leaf 18) (.leaf 17)))))
+        (.branch 113
+          (.branch 109
+            (.branch 107
+              (.branch 106 (.leaf 16) (.leaf 15))
+              (.branch 108 (.leaf 14) (.leaf 13)))
+            (.branch 111
+              (.branch 110 (.leaf 12) (.leaf 11))
+              (.branch 112 (.leaf 10) (.leaf 9))))
+          (.branch 117
+            (.branch 115 (.branch 114 (.leaf 8) (.leaf 7)) (.branch 116 (.leaf 6) (.leaf 5)))
+            (.branch 119 (.branch 118 (.leaf 4) (.leaf 3)) (.branch 120 (.leaf 2) (.leaf 1)))))))) }
+
+set_option maxRecDepth 100000 in
+set_option maxHeartbeats 0 in
+-- All finite rational geometry conditions are checked by kernel reduction.
+theorem Hybrid8Interval019Geometry_valid :
+    Hybrid8Interval019Geometry.SparseValid 8 (275 / 96) (689 / 240) := by
+  decide +kernel
+
+theorem Hybrid8Interval019Geometry_geometry :
+    Nonempty (SparseParameterGeometry 8 (275 / 96) (689 / 240)) := by
+  simpa only [Rat.cast_div, Rat.cast_ofNat, Rat.cast_one, Rat.cast_zero] using
+    Hybrid8Interval019Geometry.sparse_sound 8 (275 / 96) (689 / 240) Hybrid8Interval019Geometry_valid
+
+end KMedian184
+
+namespace KMedian184
+
+set_option maxRecDepth 100000
+set_option maxHeartbeats 0
+set_option Elab.async false
+
+private def Hybrid8Interval019Pieces : LookupTree ℕ :=
+  (.leaf 13)
+
+private theorem Hybrid8Interval019_pieces : supportPiecesValid 8 Hybrid8Interval019Pieces := by
+  decide +kernel
+
+private theorem Hybrid8Interval019_left : Hybrid8RightEndpoint018.grossValueQ 8 (275 / 96) =
+    (6150686686211782820555418523 / 2925000000000000000000000000) := by
+  rw [EndpointData.grossValueQ, scalarActiveQ_integer 8 (275 / 96)
+    275 104 (by decide) (by decide +kernel),
+    EndpointData.boundQ, ← EndpointData.fastActive_eq]
+  decide +kernel
+
+private theorem Hybrid8Interval019_right : Hybrid8RightEndpoint019.grossValueQ 8 (689 / 240) =
+    (473391660532823387377 / 225000000000000000000) := by
+  rw [EndpointData.grossValueQ, scalarActiveQ_integer 8 (689 / 240)
+    53 20 (by decide) (by decide +kernel),
+    EndpointData.boundQ, ← EndpointData.fastActive_eq]
+  decide +kernel
+
+private theorem Hybrid8Interval019_slope : centerSupportSlope 8 8 Hybrid8Interval019Pieces false = (1785083809 / 10400000000) := by
+  change activeSupportSlope 8 Hybrid8Interval019Pieces / samplingThresholdQ 8 = _
+  rw [activeSupportSlope_integer 8 Hybrid8Interval019Pieces Hybrid8Interval019_pieces]
+  decide +kernel
+
+private theorem Hybrid8Interval019_offset : centerSupportOffset 8 Hybrid8Interval019Pieces false = (26127209268026587799 / 112500000000000000000) := by
+  change activeSupportOffset 8 Hybrid8Interval019Pieces = _
+  rw [activeSupportOffset_integer 8 Hybrid8Interval019Pieces Hybrid8Interval019_pieces]
+  decide +kernel
+
+theorem Hybrid8Interval019_interval (h : Fin 121)
+    (hL : 8 ≤ h.val) (hH : h.val ≤ 8) {a : ℝ}
+    (hl : (((275 / 96) : ℚ) : ℝ) ≤ a) (hr : a ≤ (((689 / 240) : ℚ) : ℝ)) :
+    ScalarPathAt h a := by
+  have he : h = (8 : Fin 121) := by
+    apply Fin.ext
+    change h.val = 8
+    omega
+  subst h
+  have hg : Nonempty (SparseParameterGeometry 8
+      (((275 / 96) : ℚ) : ℝ) (((689 / 240) : ℚ) : ℝ)) := by
+    simpa only [Rat.cast_div, Rat.cast_ofNat, Rat.cast_one, Rat.cast_zero] using
+      Hybrid8Interval019Geometry_geometry
+  obtain ⟨g⟩ := hg
+  apply sparse_parameter_support_interval Hybrid8RightEndpoint018 Hybrid8RightEndpoint019 8 (275 / 96) (689 / 240) g
+    Hybrid8RightEndpoint018_geometry Hybrid8RightEndpoint018_hull_arithmetic
+    Hybrid8RightEndpoint019_geometry Hybrid8RightEndpoint019_hull_arithmetic
+    (by norm_num) Hybrid8Interval019Pieces false ?_ ?_ hl hr
+  · rw [Hybrid8Interval019_left, Hybrid8Interval019_slope, Hybrid8Interval019_offset]
+    norm_num
+  · rw [Hybrid8Interval019_right, Hybrid8Interval019_slope, Hybrid8Interval019_offset]
+    norm_num
+
+end KMedian184
