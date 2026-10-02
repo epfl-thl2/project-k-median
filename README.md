@@ -1,41 +1,65 @@
 # Bidding factor-revealing program: the 1.84345 bound
 
-A Lean / Mathlib formalization of Theorem 1.2 in
+A Lean / Mathlib proof of Theorem 1.2 in
 [factor_revealing_184345.tex](result/factor_revealing_184345.tex), configured for
 [leanprover/comparator](https://github.com/leanprover/comparator).
 
-**Status: the Lean solution is complete and has passed Comparator's kernel replay.**
-Both main theorems are complete. All 95 finite covers, the CDF checks, the
-high-index affine bound, both unbounded tails, and the analytic reductions
-have passed Lean. The source and axiom audit passes for all 6,428 Lean sources
-outside the reference challenge. Challenge contains exactly two intentional
-proof holes and imports only Mathlib. See
-[FORMALIZATION.md](FORMALIZATION.md).
+The certificate formalization uses about **14,800 lines of Lean**, down from
+more than **5.1 million**. A shared mathematical interface checks 3,090 intervals
+covering the 95 finite scalar domains. About 1.2 MB of numerical interval choices
+replaces the expanded endpoint and interpolation witnesses.
 
 ## Statements
 
-[Challenge.lean](Challenge.lean) independently defines the full feasible program
-in `KMedian184Spec` and states two theorems with intentional `sorry` bodies.
-It imports only Mathlib. [Solution.lean](Solution.lean) repeats the reference
-definitions and supplies complete proofs through a checked conversion to the
-library. The two Comparator targets are:
+[Challenge.lean](Challenge.lean) independently defines the feasible program and
+states two reference theorems with intentional `sorry` bodies. It imports only
+Mathlib. [Solution.lean](Solution.lean) repeats that specification and supplies
+complete proofs through a checked conversion to the library. Both entry points,
+all specification definitions, and the Comparator configuration are unchanged
+by the certificate refactor.
 
-- `KMedian184Spec.uniform_convex_bid_bound`: the homogeneous bound
-  `totalCharge ≤ f + (36869/20000) ∑ⱼ dⱼ`, in every finite dimension.
+- `KMedian184Spec.uniform_convex_bid_bound`: in every finite dimension,
+  `totalCharge ≤ f + (36869/20000) ∑ⱼ dⱼ`.
 - `KMedian184Spec.factor_revealing_bound`: the supremum of the normalized program,
-  over all dimensions `n ≥ 1`, is at most `36869/20000`.
+  over every dimension `n ≥ 1`, is at most `36869/20000`.
 
-The statement uses the manuscript's exact rational coefficients and includes all
-constraint families and terminal radii. It permits zero distances and unordered
-diagonals. Suprema are taken in `EReal`, so boundedness is a conclusion.
-Certificate data are proof ingredients, not additional theorem hypotheses.
+The statements allow zero distances and unordered diagonals and include terminal
+radii. Certificate validity is proved internally; it is not an extra hypothesis.
+The library exposes the same theorem names in the `KMedian184` namespace.
 
-[KMedian184/Basic.lean](KMedian184/Basic.lean) defines the library vocabulary in
-`KMedian184`; its definition bodies match both specification copies exactly.
-The library's public theorems retain the names `KMedian184.uniform_convex_bid_bound`
-and `KMedian184.factor_revealing_bound`. The library never imports either
-Comparator entry point. [Main.lean](KMedian184/Main.lean) assembles the complete
-scalar certificate into the homogeneous bound and its supremum consequence.
+## Abstract certificates
+
+[Certificate/Basic.lean](KMedian184/Certificate/Basic.lean) separates three facts:
+a checked endpoint bounds a gross potential, a checked support bounds active
+credit from below, and an interval proof bounds every real activation between
+two rational endpoints. Four reusable rules cover the budget, scaling,
+interpolation, and adaptive transport cases. Interval proofs compose by a
+single theorem; their composition produces a finite cover.
+
+[Certificate/Witness.lean](KMedian184/Certificate/Witness.lean) reconstructs all
+radius grids, directed rounding, tail masses, integer potentials, hull pivots,
+and paired interpolation grids from the index and activation. Its potential
+recurrence is a simple quadratic dynamic program, independent of the efficient
+hull algorithm used to check that recurrence.
+
+[Certificate/Load.lean](KMedian184/Certificate/Load.lean) reads the compact
+[certificate data](certificates), quotes reconstructed numbers as ordinary Lean
+definitions, and applies the shared theorems. All arithmetic and geometry side
+conditions use **`decide +kernel`**. The reader and reconstruction algorithms are
+untrusted proof search: they cannot establish facts without kernel checking.
+The data format accepts numbers and four named rules, never Lean proof text.
+There is no `native_decide`, custom axiom, or external verifier in the proof.
+
+[Certificate/IntegerGeometry.lean](KMedian184/Certificate/IntegerGeometry.lean)
+represents each radius or interpolation grid using natural-number numerators
+and one positive denominator. General soundness theorems derive the original
+rational geometry conditions from integer comparisons. Each endpoint checks all
+14 hull pieces in one kernel call, allowing intermediate reductions to be shared.
+These changes reduce the work performed during kernel replay as well as building.
+
+The existing analytic reductions, high-index bound, and two unbounded tails
+remain part of the proof. See [the certificate format](certificates/README.md)
+for details of the finite inputs and their trust boundary.
 
 ## Build and audit
 
@@ -43,33 +67,35 @@ Lean and Mathlib are pinned to `v4.34.0-rc2`.
 
 ```sh
 lake exe cache get
-python3 scripts/build_proof.py
+python3 scripts/build_proof.py --jobs 2
 python3 scripts/audit_statement.py
 python3 scripts/audit_proof.py
+python3 scripts/test_certificates.py
 ```
 
-The bounded build command is intended for fresh checkouts. It checks the analytic
-foundation in dependency order, then checks the certificate families in batches
-of at most eight, with memory monitoring and serial fallback. Subsequent
-`lake build` invocations can reuse those checked artifacts. All generated proof
-sources are included; rebuilding does not require certificate discovery.
+The bounded build invokes the pinned Lean directly with the installed package
+search paths. It checks dependencies in order and tracks both Lean source and
+external JSON contents in its build cache. Source compression does not remove
+numerical verification: fresh builds still check every endpoint and interval.
+The default is two concurrent checks; increase `--jobs` when memory permits.
+Use `--fresh` to recheck every local module. No original generated sources or
+certificate discovery are required.
+The Lake configuration also registers the certificate directory as an input
+dependency, so ordinary Lake builds invalidate their artifacts after JSON edits.
+The bounded script caches each cover separately to avoid unnecessary rechecks.
 
-The full build and both audits pass locally. The statement audit compares all
-three definition copies with the manuscript's bid table and certificate inputs
-and checks the target, imports, and Comparator configuration. The proof audit
-rejects proof holes, custom axioms, `native_decide`, and unsafe proof shortcuts
-throughout the solution. The only exception is the two reference holes in
-Challenge, which the statement audit checks separately. Lean's axiom reports
-check both library and Solution theorems against the three permitted axioms,
-and confirm the intentional holes in the separate Challenge environment.
-CI is configured to run the bounded build and both
-audits; no CI run has been performed for this local work.
+The statement audit checks the immutable original entry points and permitted
+axioms. The proof audit enforces the 20,000-line source limit, rejects proof
+shortcuts, and checks the axioms of all four library and Solution targets.
+Negative integration tests exercise corrupted potentials, gaps in coverage,
+malformed numerical input, and a wrong domain cap.
 
 ## Comparator
 
-`lake test` runs Comparator through [ComparatorTest.lean](ComparatorTest.lean).
-Set `COMPARATOR_BIN` to the executable path if `comparator` is not on `PATH`.
-The only permitted axioms are `propext`, `Quot.sound`, and `Classical.choice`.
-The previous full `lake test` run exited successfully after statement comparison,
-axiom checking, and Lean's default kernel replay of both configured targets.
-The full local replay took about five hours.
+`lake test` runs [ComparatorTest.lean](ComparatorTest.lean). Set `COMPARATOR_BIN`
+to the executable path if `comparator` is not on `PATH`. The only permitted
+axioms are `propext`, `Quot.sound`, and `Classical.choice`.
+
+The pre-refactor proof passed Comparator's full kernel replay. Rebuilding and
+axiom-checking the refactored proof are separate from rerunning that external
+Comparator executable; the commands above perform the former.

@@ -1,4 +1,4 @@
-import KMedian184.Certificates.Hybrid0Suffix
+import KMedian184.Certificate.Complete
 
 /-!
 # The 1.84345 bound

@@ -27,7 +27,7 @@ jobs:
           restore-keys: proof-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
       - uses: leanprover/lean-action@v1
         with:
-          # Build the large certificate collection with bounded concurrency below.
+          # Check reconstructed certificates with bounded concurrency below.
           build: "false"
           # The cache above saves after the bounded build, at the end of the job.
           use-github-cache: "false"
@@ -37,4 +37,5 @@ jobs:
         run: python3 scripts/build_proof.py
       - name: Audit complete standard Lean proof
         run: python3 scripts/audit_proof.py
-      - uses: leanprover-community/docgen-action@v1
+      - name: Reject corrupted certificates
+        run: python3 scripts/test_certificates.py
