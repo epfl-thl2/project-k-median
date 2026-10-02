@@ -4,19 +4,16 @@ A Lean / Mathlib proof of Theorem 1.2 in
 [factor_revealing_184345.tex](result/factor_revealing_184345.tex), configured for
 [leanprover/comparator](https://github.com/leanprover/comparator).
 
-The certificate formalization uses about **14,800 lines of Lean**, down from
-more than **5.1 million**. A shared mathematical interface checks 3,090 intervals
-covering the 95 finite scalar domains. About 1.2 MB of numerical interval choices
-replaces the expanded endpoint and interpolation witnesses.
+The formalization uses about **14,800 lines of Lean** and **1.2 MB of numerical
+certificate data**. Shared soundness theorems and kernel-checked numerical
+conditions certify 3,090 intervals covering 95 finite scalar domains.
 
 ## Statements
 
 [Challenge.lean](Challenge.lean) independently defines the feasible program and
 states two reference theorems with intentional `sorry` bodies. It imports only
 Mathlib. [Solution.lean](Solution.lean) repeats that specification and supplies
-complete proofs through a checked conversion to the library. Both entry points,
-all specification definitions, and the Comparator configuration are unchanged
-by the certificate refactor.
+complete proofs through a checked conversion to the library.
 
 - `KMedian184Spec.uniform_convex_bid_bound`: in every finite dimension,
   `totalCharge ≤ f + (36869/20000) ∑ⱼ dⱼ`.
@@ -52,18 +49,19 @@ There is no `native_decide`, custom axiom, or external verifier in the proof.
 
 [Certificate/IntegerGeometry.lean](KMedian184/Certificate/IntegerGeometry.lean)
 represents each radius or interpolation grid using natural-number numerators
-and one positive denominator. General soundness theorems derive the original
+and one positive denominator. General soundness theorems derive the required
 rational geometry conditions from integer comparisons. Each endpoint checks all
 14 hull pieces in one kernel call, allowing intermediate reductions to be shared.
-These changes reduce the work performed during kernel replay as well as building.
 
-The existing analytic reductions, high-index bound, and two unbounded tails
-remain part of the proof. See [the certificate format](certificates/README.md)
-for details of the finite inputs and their trust boundary.
+Analytic reductions, a high-index bound, and bounds on two unbounded tails
+complete the proof. See [the certificate format](certificates/README.md) for
+details of the finite inputs and their trust boundary.
 
 ## Build and audit
 
-Lean and Mathlib are pinned to `v4.34.0-rc2`.
+Install Lean through Elan and make `lean` and `lake` available on `PATH`.
+Python 3 is required for the build and audit scripts. Lean and Mathlib are pinned
+to `v4.34.0-rc2`; run the following commands from the repository root:
 
 ```sh
 lake exe cache get
@@ -75,27 +73,40 @@ python3 scripts/test_certificates.py
 
 The bounded build invokes the pinned Lean directly with the installed package
 search paths. It checks dependencies in order and tracks both Lean source and
-external JSON contents in its build cache. Source compression does not remove
-numerical verification: fresh builds still check every endpoint and interval.
+external JSON contents in its build cache. A fresh build checks every endpoint
+and interval using the supplied JSON files and Lean sources.
 The default is two concurrent checks; increase `--jobs` when memory permits.
-Use `--fresh` to recheck every local module. No original generated sources or
-certificate discovery are required.
+For one worker with one Lean thread, use `--jobs 1 --lean-threads 1`.
+Use `--fresh` to recheck every local module.
+
 The Lake configuration also registers the certificate directory as an input
 dependency, so ordinary Lake builds invalidate their artifacts after JSON edits.
 The bounded script caches each cover separately to avoid unnecessary rechecks.
 
-The statement audit checks the immutable original entry points and permitted
-axioms. The proof audit enforces the 20,000-line source limit, rejects proof
-shortcuts, and checks the axioms of all four library and Solution targets.
+The statement audit checks the recorded hashes of the specification, entry
+points, and Comparator configuration, as well as the permitted axioms. The proof
+audit enforces the 20,000-line source limit, rejects proof shortcuts, and checks
+the axioms of all four library and Solution targets.
 Negative integration tests exercise corrupted potentials, gaps in coverage,
 malformed numerical input, and a wrong domain cap.
 
 ## Comparator
 
-`lake test` runs [ComparatorTest.lean](ComparatorTest.lean). Set `COMPARATOR_BIN`
-to the executable path if `comparator` is not on `PATH`. The only permitted
-axioms are `propext`, `Quot.sound`, and `Classical.choice`.
+Comparator compares the theorem statements in `Challenge` and `Solution`, checks
+their axiom dependencies, and replays the exported solution in Lean's kernel.
+[config.json](config.json) selects the two theorems and permits only `propext`,
+`Quot.sound`, and `Classical.choice`.
 
-The pre-refactor proof passed Comparator's full kernel replay. Rebuilding and
-axiom-checking the refactored proof are separate from rerunning that external
-Comparator executable; the commands above perform the former.
+Install Comparator and its exporter for the pinned Lean version, following the
+[Comparator setup instructions](https://github.com/leanprover/comparator).
+With the tools on `PATH`, run:
+
+```sh
+lake test
+```
+
+This runs [ComparatorTest.lean](ComparatorTest.lean). Set `COMPARATOR_BIN` to
+the executable path if `comparator` is not on `PATH`.
+
+The proof has passed Comparator's statement comparison, axiom checks, and full
+Lean kernel replay.

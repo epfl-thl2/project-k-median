@@ -14,11 +14,11 @@ The reader reconstructs a radius grid from the bid hinge points and inactive
 sampling thresholds. It computes directed rounding at denominator 10^9, then
 integer potentials by maximizing every incoming edge. It also reconstructs hull
 pivot witnesses. Lean checks the geometry, rounded metadata, every hull row,
-and the proposed gross potential using the existing proved sound checkers.
+and the proposed gross potential using checkers with Lean soundness proofs.
 
 The loader clears denominators in each radius grid and each paired interpolation
 grid. It quotes only natural-number coordinate numerators and one common
-denominator; its integer geometry checks imply the original rational geometry
+denominator; its integer geometry checks imply the required rational geometry
 by general Lean theorems. Denominator positivity, grid ordering, breakpoint
 coverage, directed rounding, and the activation identities are all checked.
 All 14 affine hull pieces are checked together per endpoint, so the kernel can
@@ -45,14 +45,8 @@ A final checked equality connects that cap to the scalar domain required by the
 analytic reduction. Index mismatches, incorrect numbers, missing coverage, or
 invalid geometry cannot establish the final cover theorem.
 
-The supplied choices are the same ones used by the original complete proof at
-commit `87c2642`. To reproduce this JSON from the historical inputs, extract its
-`KMedian184/Certificates/Adaptive*.json` files and run:
-
-```sh
-python3 scripts/export_certificates.py --source /path/to/original/Certificates
-```
-
-That conversion reads no original Lean proof files. A normal build uses only
-the compact JSON and the current Lean source. The original 3,036 expanded
-endpoint witnesses are unnecessary, even when rebuilding from scratch.
+The supplied JSON files are the complete numerical inputs for a fresh build.
+The reader reconstructs witnesses for all 3,036 endpoints, and the shared Lean
+checkers verify them before the interval rules establish the finite covers.
+See the [build and audit instructions](../README.md#build-and-audit) to check
+the certificates and the assembled proof.
