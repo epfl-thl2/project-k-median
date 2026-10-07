@@ -1,0 +1,37 @@
+name = "k-median-184"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["KMedian184", "Challenge", "Solution"]
+testDriver = "comparator_test"
+weakLeanArgs = ["-j2"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+weak.linter.style.header = false
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.30.0-rc1"
+
+[[input_dir]]
+name = "certificate_inputs"
+path = "certificates"
+text = true
+
+[[lean_lib]]
+name = "KMedian184"
+extraDepTargets = ["certificate_inputs"]
+
+[[lean_lib]]
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"
+
+[[lean_exe]]
+name = "comparator_test"
+root = "ComparatorTest"

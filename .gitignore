@@ -1,4 +1,6 @@
-/.lake
+/.lake/
+/bound-184/.lake/
+/bound-195/.lake/
 .DS_Store
 *.aux
 *.fdb_latexmk
@@ -7,4 +9,4 @@
 *.out
 *.synctex.gz
 __pycache__/
-/result/certificates/verify
+/bound-184/result/certificates/verify
