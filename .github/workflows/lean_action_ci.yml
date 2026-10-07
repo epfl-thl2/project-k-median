@@ -1,20 +1,24 @@
-name: Lean Action CI
+name: Lean proofs
 
 on:
   push:
   pull_request:
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
-  contents: read # Read access to repository contents
-  pages: write # Write access to GitHub Pages
-  id-token: write # Write access to ID tokens
+  contents: read
+
+concurrency:
+  group: lean-proofs-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  bound-184:
+    name: Bound 1.84345
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: bound-184
     steps:
       - uses: actions/checkout@v5
       - name: Audit statement against manuscript
@@ -22,20 +26,55 @@ jobs:
       - name: Cache checked build artifacts
         uses: actions/cache@v5
         with:
-          path: .lake
-          key: proof-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-${{ github.sha }}
-          restore-keys: proof-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('lean-toolchain', 'lake-manifest.json') }}-
+          path: bound-184/.lake
+          key: bound-184-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bound-184/lean-toolchain', 'bound-184/lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: bound-184-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bound-184/lean-toolchain', 'bound-184/lake-manifest.json') }}-
       - uses: leanprover/lean-action@v1
         with:
+          lake-package-directory: bound-184
           # Check reconstructed certificates with bounded concurrency below.
           build: "false"
           # The cache above saves after the bounded build, at the end of the job.
           use-github-cache: "false"
           # Comparator requires separately installed executables; see README.
           test: "false"
+          lint: "false"
+          use-mathlib-cache: "true"
       - name: Build proof with bounded concurrency
-        run: python3 scripts/build_proof.py
+        run: python3 scripts/build_proof.py --jobs 2
       - name: Audit complete standard Lean proof
         run: python3 scripts/audit_proof.py
       - name: Reject corrupted certificates
         run: python3 scripts/test_certificates.py
+
+  bound-195:
+    name: Bound 1.95
+    runs-on: ubuntu-latest
+    env:
+      LEAN_NUM_THREADS: "2"
+    defaults:
+      run:
+        working-directory: bound-195
+    steps:
+      - uses: actions/checkout@v5
+      - name: Cache checked build artifacts
+        uses: actions/cache@v5
+        with:
+          path: bound-195/.lake
+          key: bound-195-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bound-195/lean-toolchain', 'bound-195/lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: bound-195-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bound-195/lean-toolchain', 'bound-195/lake-manifest.json') }}-
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: bound-195
+          build: "false"
+          test: "false"
+          lint: "false"
+          use-mathlib-cache: "true"
+          use-github-cache: "false"
+      - name: Build independent specification
+        # Challenge imports all of Mathlib; build it separately to limit peak memory.
+        run: lake build Challenge
+      - name: Build completed formalization and solution
+        run: lake build Formalization195 Solution
+      - name: Audit final theorem axioms
+        run: python3 scripts/audit_proof.py
