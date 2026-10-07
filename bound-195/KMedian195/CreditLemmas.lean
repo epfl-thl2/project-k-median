@@ -1,7 +1,7 @@
-import Formalization195.ColumnConstruction
+import KMedian195.ColumnConstruction
 import Mathlib.Data.Fintype.Fin
 
-namespace Formalization195
+namespace KMedian195
 
 noncomputable section
 
@@ -2635,4 +2635,4 @@ end ProfileData
 
 end
 
-end Formalization195
+end KMedian195

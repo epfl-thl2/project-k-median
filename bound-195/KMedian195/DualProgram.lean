@@ -1,6 +1,6 @@
-import Formalization195.Basic
+import KMedian195.Basic
 
-namespace Formalization195
+namespace KMedian195
 
 /-- A lower-triangular `0/1` bidding pattern `b_{i,j}`. -/
 structure BiddingMatrix (n : ℕ) where
@@ -134,4 +134,4 @@ def FamilyUpperBound (Mcoeff bound : ℝ) : Prop :=
   ∀ n, n ≠ 0 → ∀ bidding : BiddingMatrix n,
     DualSolution.HasValueAtMost ({ Mcoeff := Mcoeff, bidding := bidding } : DualProgram n) bound
 
-end Formalization195
+end KMedian195

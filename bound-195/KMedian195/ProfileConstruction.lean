@@ -1,8 +1,8 @@
-import Formalization195.DualSolution
+import KMedian195.DualSolution
 import Mathlib.Data.Finset.Max
 import Mathlib.Tactic
 
-namespace Formalization195
+namespace KMedian195
 
 variable {n : ℕ}
 
@@ -369,13 +369,13 @@ def afterBudget (Ξ : PhaseTwoData I Γ) (i : Idx n) : ℝ :=
   tailBudget Ξ.hatG2 i
 
 def beforeBudget (Ξ : PhaseTwoData I Γ) (i : Idx n) : ℝ :=
-  Formalization195.beforeBudget Ξ.hatG2 i
+  KMedian195.beforeBudget Ξ.hatG2 i
 
 theorem afterBudget_nonneg (Ξ : PhaseTwoData I Γ) (i : Idx n) : 0 ≤ Ξ.afterBudget i :=
   tailBudget_nonneg_of_nonneg Ξ.hatG2_nonneg i
 
 theorem beforeBudget_nonneg (Ξ : PhaseTwoData I Γ) (i : Idx n) : 0 ≤ Ξ.beforeBudget i :=
-  Formalization195.beforeBudget_nonneg_of_nonneg Ξ.hatG2_nonneg i
+  KMedian195.beforeBudget_nonneg_of_nonneg Ξ.hatG2_nonneg i
 
 theorem beforeBudget_eq_self_add_afterBudget (Ξ : PhaseTwoData I Γ) (i : Idx n) :
     Ξ.beforeBudget i = Ξ.hatG2 i + Ξ.afterBudget i := by
@@ -859,4 +859,4 @@ end ProfileData
 
 end
 
-end Formalization195
+end KMedian195

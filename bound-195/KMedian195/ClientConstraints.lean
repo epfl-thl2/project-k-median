@@ -1,6 +1,6 @@
-import Formalization195.CreditLemmas
+import KMedian195.CreditLemmas
 
-namespace Formalization195
+namespace KMedian195
 
 noncomputable section
 
@@ -668,4 +668,4 @@ end ProfileData
 
 end
 
-end Formalization195
+end KMedian195

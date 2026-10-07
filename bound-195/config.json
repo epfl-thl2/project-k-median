@@ -2,8 +2,8 @@
   "challenge_module": "Challenge",
   "solution_module": "Solution",
   "theorem_names": [
-    "Formalization195.originalPrimalUpperBound_153_div_125_exact",
-    "Formalization195.originalPrimalUpperBound_195"
+    "KMedian195.originalPrimalUpperBound_153_div_125_exact",
+    "KMedian195.originalPrimalUpperBound_195"
   ],
   "permitted_axioms": [
     "propext",

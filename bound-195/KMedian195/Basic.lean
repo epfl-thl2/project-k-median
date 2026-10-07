@@ -6,7 +6,7 @@ import Mathlib.Data.Real.Basic
 
 open scoped BigOperators
 
-namespace Formalization195
+namespace KMedian195
 
 /-- Finite client/time indices for the size-`n` factor-revealing programs. -/
 abbrev Idx (n : ℕ) := Fin n
@@ -55,4 +55,4 @@ def lastIdx (n : ℕ) [NeZero n] : Idx n :=
 @[simp] theorem le_lastIdx [NeZero n] (i : Idx n) : i ≤ lastIdx n := by
   exact Fin.le_iff_val_le_val.mpr (Nat.le_pred_of_lt i.is_lt)
 
-end Formalization195
+end KMedian195

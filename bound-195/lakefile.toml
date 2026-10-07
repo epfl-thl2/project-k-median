@@ -1,7 +1,7 @@
 name = "k-median-195"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Formalization195", "Challenge", "Solution"]
+defaultTargets = ["KMedian195", "Challenge", "Solution"]
 testDriver = "comparator_test"
 weakLeanArgs = ["-j2"]
 
@@ -18,7 +18,7 @@ scope = "leanprover-community"
 rev = "v4.30.0-rc1"
 
 [[lean_lib]]
-name = "Formalization195"
+name = "KMedian195"
 
 [[lean_lib]]
 name = "Challenge"

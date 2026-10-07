@@ -1,8 +1,8 @@
-import Formalization195.UpperBound
+import KMedian195.UpperBound
 import Mathlib.Data.Finset.Lattice.Fold
 import Mathlib.Data.Finset.Max
 
-namespace Formalization195
+namespace KMedian195
 
 noncomputable section
 
@@ -2199,4 +2199,4 @@ theorem originalPrimalUpperBound_195 :
 
 end
 
-end Formalization195
+end KMedian195

@@ -1,4 +1,4 @@
-import Formalization195
+import KMedian195
 
 /-!
 The solution module checked by `leanprover/comparator`.

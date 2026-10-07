@@ -1,7 +1,7 @@
-import Formalization195.DualProgram
+import KMedian195.DualProgram
 import Mathlib.Data.Finset.Max
 
-namespace Formalization195
+namespace KMedian195
 
 variable {n : ℕ}
 
@@ -167,4 +167,4 @@ def ProcedureBoundedBy (I : ProcedureInput n) (procedure : AdaptiveProcedure I) 
     Prop :=
   ∀ Γ x, procedure Γ = some x → DualSolution.Feasible x I.program ∧ x.rho ≤ bound
 
-end Formalization195
+end KMedian195

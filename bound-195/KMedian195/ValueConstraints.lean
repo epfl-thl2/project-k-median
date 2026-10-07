@@ -1,6 +1,6 @@
-import Formalization195.ClientConstraints
+import KMedian195.ClientConstraints
 
-namespace Formalization195
+namespace KMedian195
 
 noncomputable section
 
@@ -734,4 +734,4 @@ end ProfileData
 
 end
 
-end Formalization195
+end KMedian195

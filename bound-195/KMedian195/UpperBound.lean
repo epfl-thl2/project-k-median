@@ -1,7 +1,7 @@
-import Formalization195.Feasibility
-import Formalization195.GoodAdvice
+import KMedian195.Feasibility
+import KMedian195.GoodAdvice
 
-namespace Formalization195
+namespace KMedian195
 
 noncomputable section
 
@@ -758,4 +758,4 @@ theorem familyUpperBound_195 :
 
 end
 
-end Formalization195
+end KMedian195

@@ -1,6 +1,6 @@
-import Formalization195.PoolConstraints
+import KMedian195.PoolConstraints
 
-namespace Formalization195
+namespace KMedian195
 
 noncomputable section
 
@@ -174,4 +174,4 @@ theorem certifiedProcedure_boundedBy
 
 end
 
-end Formalization195
+end KMedian195

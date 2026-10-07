@@ -1,8 +1,8 @@
-import Formalization195.ProfileConstruction
+import KMedian195.ProfileConstruction
 import Mathlib.Topology.Order.LeftRight
 import Mathlib.Topology.Order.IntermediateValue
 
-namespace Formalization195
+namespace KMedian195
 
 variable {n : ℕ}
 
@@ -1344,7 +1344,7 @@ variable {I : ProcedureInput n} {Γ : Advice I}
 theorem afterBudget_eq_beforeBudget_succ [NeZero n] (Ξ : PhaseTwoData I Γ) {i : Idx n}
     (hi : i < lastIdx n) :
     Ξ.afterBudget i = Ξ.beforeBudget (succIdx i hi) := by
-  unfold PhaseTwoData.afterBudget PhaseTwoData.beforeBudget tailBudget Formalization195.beforeBudget
+  unfold PhaseTwoData.afterBudget PhaseTwoData.beforeBudget tailBudget KMedian195.beforeBudget
   have hrange : strictSuffixRange i = suffixRange (succIdx i hi) := by
     ext j
     simp [mem_strictSuffixRange, mem_suffixRange, succIdx_le_iff hi]
@@ -1532,7 +1532,7 @@ theorem beforeBudget_eq_zero_of_frontier_lt
     {ℓ : Idx n} {lam : ℝ} {hlam : 0 ≤ lam ∧ lam ≤ 1}
     (Ξ : PhaseTwoData I (Advice.sectionAdvice I ℓ lam hlam)) {i : Idx n} (hℓi : ℓ < i) :
     Ξ.beforeBudget i = 0 := by
-  unfold PhaseTwoData.beforeBudget Formalization195.beforeBudget
+  unfold PhaseTwoData.beforeBudget KMedian195.beforeBudget
   refine Finset.sum_eq_zero ?_
   intro j hj
   have hij : i ≤ j := mem_suffixRange.mp hj
@@ -10020,4 +10020,4 @@ theorem canonicalPath_compatible
     Advice.nextSectionLeft, Advice.sectionRight] using
     (canonicalSectionOutput_toNextSectionLeft_eq (I := I) hγlo hγhi hℓ).symm
 
-end Formalization195
+end KMedian195

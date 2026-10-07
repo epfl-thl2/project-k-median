@@ -11,19 +11,19 @@ for `gamma = 153/125 = 1.224` over every dimension `n ≥ 1`.
 states two reference theorems with intentional `sorry` bodies. It imports only
 Mathlib. [Solution.lean](Solution.lean) imports the completed library proofs.
 
-- `Formalization195.originalPrimalUpperBound_153_div_125_exact`: every feasible
+- `KMedian195.originalPrimalUpperBound_153_div_125_exact`: every feasible
   objective value, in every dimension `n ≥ 1`, is at most
   `2 - (153/125 - 1)^2 = 1.949824`.
-- `Formalization195.originalPrimalUpperBound_195`: every such value is at most
+- `KMedian195.originalPrimalUpperBound_195`: every such value is at most
   `39/20 = 1.95`.
 
 ## Proof
 
-The proof uses dual fitting. [DualProgram.lean](Formalization195/DualProgram.lean)
-defines the dual program, and [DualSolution.lean](Formalization195/DualSolution.lean)
-develops its adaptive construction. [UpperBound.lean](Formalization195/UpperBound.lean)
+The proof uses dual fitting. [DualProgram.lean](KMedian195/DualProgram.lean)
+defines the dual program, and [DualSolution.lean](KMedian195/DualSolution.lean)
+develops its adaptive construction. [UpperBound.lean](KMedian195/UpperBound.lean)
 assembles the feasibility arguments into bounds for the dual family.
-[FactorRevealingPrimal.lean](Formalization195/FactorRevealingPrimal.lean) connects
+[FactorRevealingPrimal.lean](KMedian195/FactorRevealingPrimal.lean) connects
 that family to the original program and derives the two final bounds.
 
 ## Build and verification

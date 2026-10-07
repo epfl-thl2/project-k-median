@@ -8,7 +8,7 @@ The declarations below reproduce the part of the factor-revealing primal model t
 types of the two results checked by `config.json`.
 -/
 
-namespace Formalization195
+namespace KMedian195
 
 noncomputable section
 
@@ -88,4 +88,4 @@ theorem originalPrimalUpperBound_195 :
 
 end
 
-end Formalization195
+end KMedian195

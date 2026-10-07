@@ -1,6 +1,6 @@
-import Formalization195.ProfileConstruction
+import KMedian195.ProfileConstruction
 
-namespace Formalization195
+namespace KMedian195
 
 noncomputable section
 
@@ -531,4 +531,4 @@ end ProfileData
 
 end
 
-end Formalization195
+end KMedian195
