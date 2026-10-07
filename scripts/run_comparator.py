@@ -61,13 +61,18 @@ def main():
             "'--jobs', '2', command[2]]\n"
             "elif command and command[0] == 'lake':\n"
             f'    command[0] = {lake!r}\n'
-            f'os.execv({landrun!r}, [{landrun!r}, *args[:index], *command])\n'
+            'flags = args[:index]\n'
+            "if not flags or flags[-1] != '--':\n"
+            "    flags.append('--')\n"
+            f'os.execv({landrun!r}, [{landrun!r}, *flags, *command])\n'
         )
         shim.chmod(0o755)
         # Substitute before entering Landrun, so its --add-exec and --ldd flags
         # grant the actual Python interpreter and libraries. Keep every original
-        # sandbox flag. Install this shim after Lake configures PATH, so
-        # Comparator's subprocesses see it first.
+        # sandbox flag, then delimit the child command for Landrun versions that
+        # parse flags after positional arguments. This also preserves the
+        # exporter's own -- delimiter. Install this shim after Lake configures
+        # PATH, so Comparator's subprocesses see it first.
         launch = (
             'import os, sys\n'
             "os.environ['PATH'] = sys.argv[1] + os.pathsep + os.environ['PATH']\n"
