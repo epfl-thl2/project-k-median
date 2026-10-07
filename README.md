@@ -48,18 +48,3 @@ module. The proof audits reject dependencies on `sorryAx` and allow only
 including the certificate rejection tests for the current bound. Comparator's
 statement comparison and kernel replay require additional tools; follow the
 instructions in each project's README.
-
-## Provenance and maintenance
-
-The projects retain their original Git histories:
-
-- `bound-184` comes from the existing
-  [1.84345 formalization](https://github.com/epfl-thl2/project-k-median/tree/ab4eefdf967ea40cb2c9df69bceb77cc3b962b87),
-  ported from Lean / Mathlib `v4.34.0-rc2` to `v4.30.0-rc1`.
-- `bound-195` comes from the
-  [1.95 formalization](https://github.com/raresbuhai/k-median-195-lean/tree/7342c750ba1a364863f70fcdc2d22e418c1b5269).
-
-Keep the toolchain and Mathlib pins in both folders aligned when upgrading.
-Dependency upgrades are deliberate changes that must pass both projects' checks;
-the repository does not automatically update dependencies or publish Lean-version
-release tags.
