@@ -14,37 +14,32 @@ library, and Comparator specification. Run Lake commands inside the correspondin
 folder. Dependencies and build artifacts live in that folder's ignored `.lake`
 directory; there is no Lake project at the repository root.
 
-## Build and audit
+## Build and verification
 
 Install Lean through [Elan](https://github.com/leanprover/elan), and make `lean`,
-`lake`, and Python 3 available on `PATH`.
-
-For the current bound, starting at the repository root:
-
-```sh
-cd bound-184
-lake exe cache get
-python3 scripts/build_proof.py --jobs 2
-python3 scripts/audit_statement.py
-python3 scripts/audit_proof.py
-python3 scripts/test_certificates.py
-```
-
-For the previous bound, starting at the repository root:
+`lake`, and Python 3.11 or newer available on `PATH`. Both projects use the same
+build and verification commands. Starting at the repository root, choose a
+project:
 
 ```sh
-cd bound-195
+cd bound-184 # or bound-195
 lake exe cache get
-lake build Formalization195 Challenge Solution
-python3 scripts/audit_proof.py
+python3 ../scripts/build_proof.py --jobs 2
+lake test
 ```
 
-The `Challenge.lean` files intentionally contain two reference statements with
-`sorry` bodies. The completed proofs are supplied by each project's `Solution`
-module. The proof audits reject dependencies on `sorryAx` and allow only
-`propext`, `Quot.sound`, and `Classical.choice` in the final theorems.
+`lake test` runs [Comparator](https://github.com/leanprover/comparator), which
+compares the theorem statements, checks their permitted axioms, and replays the
+exported solution in Lean's kernel. It requires additional executables; follow
+the shared [setup instructions](docs/setup.md) before running it.
 
-[CI](.github/workflows/lean_action_ci.yml) checks the projects in separate jobs,
-including the certificate rejection tests for the current bound. Comparator's
-statement comparison and kernel replay require additional tools; follow the
-instructions in each project's README.
+Each `Challenge.lean` intentionally contains two reference statements with
+`sorry` bodies. Each `Solution` module supplies the completed proofs. Both
+Comparator configurations permit only `propext`, `Quot.sound`, and
+`Classical.choice`, and set `enable_nanoda` to `false`.
+
+The common builder limits concurrent Lean processes and applies each project's
+Lake compiler settings. It builds the library, `Challenge`, and `Solution` in
+dependency order. A fresh 1.84 build also checks its numerical certificates and
+can take several hours. [CI](.github/workflows/lean_action_ci.yml) uses the same
+build and Comparator verification stages for both projects.

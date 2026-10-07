@@ -48,5 +48,5 @@ invalid geometry cannot establish the final cover theorem.
 The supplied JSON files are the complete numerical inputs for a fresh build.
 The reader reconstructs witnesses for all 3,036 endpoints, and the shared Lean
 checkers verify them before the interval rules establish the finite covers.
-See the [build and audit instructions](../README.md#build-and-audit) to check
+See the [build and verification instructions](../README.md#build-and-verification) to check
 the certificates and the assembled proof.

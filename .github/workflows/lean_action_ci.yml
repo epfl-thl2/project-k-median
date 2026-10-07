@@ -14,68 +14,73 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  bound-184:
-    name: Bound 1.84345
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: bound-184
-    steps:
-      - uses: actions/checkout@v5
-      - name: Audit statement against manuscript
-        run: python3 scripts/audit_statement.py
-      - name: Cache checked build artifacts
-        uses: actions/cache@v5
-        with:
-          path: bound-184/.lake
-          key: bound-184-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bound-184/lean-toolchain', 'bound-184/lake-manifest.json') }}-${{ github.sha }}
-          restore-keys: bound-184-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bound-184/lean-toolchain', 'bound-184/lake-manifest.json') }}-
-      - uses: leanprover/lean-action@v1
-        with:
-          lake-package-directory: bound-184
-          # Check reconstructed certificates with bounded concurrency below.
-          build: "false"
-          # The cache above saves after the bounded build, at the end of the job.
-          use-github-cache: "false"
-          # Comparator requires separately installed executables; see README.
-          test: "false"
-          lint: "false"
-          use-mathlib-cache: "true"
-      - name: Build proof with bounded concurrency
-        run: python3 scripts/build_proof.py --jobs 2
-      - name: Audit complete standard Lean proof
-        run: python3 scripts/audit_proof.py
-      - name: Reject corrupted certificates
-        run: python3 scripts/test_certificates.py
-
-  bound-195:
-    name: Bound 1.95
-    runs-on: ubuntu-latest
+  comparator:
+    name: Comparator (${{ matrix.project }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [bound-184, bound-195]
     env:
       LEAN_NUM_THREADS: "2"
     defaults:
       run:
-        working-directory: bound-195
+        working-directory: ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v5
-      - name: Cache checked build artifacts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Cache project dependencies and compiled proofs
         uses: actions/cache@v5
         with:
-          path: bound-195/.lake
-          key: bound-195-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bound-195/lean-toolchain', 'bound-195/lake-manifest.json') }}-${{ github.sha }}
-          restore-keys: bound-195-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bound-195/lean-toolchain', 'bound-195/lake-manifest.json') }}-
+          path: ${{ matrix.project }}/.lake
+          key: proof-${{ runner.os }}-${{ runner.arch }}-${{ matrix.project }}-${{ hashFiles('**/lean-toolchain', '**/lake-manifest.json', '**/lakefile.toml', 'scripts/*.py') }}-${{ github.sha }}
+          restore-keys: proof-${{ runner.os }}-${{ runner.arch }}-${{ matrix.project }}-${{ hashFiles('**/lean-toolchain', '**/lake-manifest.json', '**/lakefile.toml', 'scripts/*.py') }}-
       - uses: leanprover/lean-action@v1
         with:
-          lake-package-directory: bound-195
+          lake-package-directory: ${{ matrix.project }}
           build: "false"
           test: "false"
           lint: "false"
           use-mathlib-cache: "true"
           use-github-cache: "false"
-      - name: Build independent specification
-        # Challenge imports all of Mathlib; build it separately to limit peak memory.
-        run: lake build Challenge
-      - name: Build completed formalization and solution
-        run: lake build Formalization195 Solution
-      - name: Audit final theorem axioms
-        run: python3 scripts/audit_proof.py
+      - name: Check out Comparator for Lean 4.30
+        uses: actions/checkout@v5
+        with:
+          repository: leanprover/comparator
+          ref: 0ff36dde148dfea82dbdcf3baf91d6e1a8195554
+          path: .lake/comparator
+      - name: Check out the matching exporter
+        uses: actions/checkout@v5
+        with:
+          repository: leanprover/lean4export
+          ref: fb517af7d71065b28c256348afdf764308acc369
+          path: .lake/lean4export
+      - name: Build Comparator
+        working-directory: .lake/comparator
+        run: lake build comparator
+      - name: Build exporter
+        working-directory: .lake/lean4export
+        run: lake build lean4export
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24.x"
+          cache: false
+      - name: Install Landrun
+        run: go install github.com/zouuup/landrun/cmd/landrun@811cfff51ceaf3d9843708aa6d22e9b84ccac8b4
+      - name: Add verification tools to PATH
+        run: |
+          echo "$GITHUB_WORKSPACE/.lake/comparator/.lake/build/bin" >> "$GITHUB_PATH"
+          echo "$GITHUB_WORKSPACE/.lake/lean4export/.lake/build/bin" >> "$GITHUB_PATH"
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Build and verify with Comparator
+        # The service executes as the runner user, with AF_UNIX disabled.
+        run: |
+          sudo systemd-run --uid="$(id -u)" --gid="$(id -g)" \
+            --wait --pipe --collect \
+            --property=RestrictAddressFamilies=~AF_UNIX \
+            --setenv="PATH=$PATH" --setenv="HOME=$HOME" \
+            --setenv=LEAN_NUM_THREADS=2 --working-directory="$PWD" \
+            "$(command -v lake)" test

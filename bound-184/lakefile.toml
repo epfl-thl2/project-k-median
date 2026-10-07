@@ -3,9 +3,10 @@ version = "0.1.0"
 keywords = ["math"]
 defaultTargets = ["KMedian184", "Challenge", "Solution"]
 testDriver = "comparator_test"
+weakLeanArgs = ["-j2"]
 
 [leanOptions]
-pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+pp.unicode.fun = true
 relaxedAutoImplicit = false
 weak.linter.mathlibStandardSet = true
 weak.linter.style.header = false
