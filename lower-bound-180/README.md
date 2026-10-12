@@ -59,3 +59,5 @@ and replay the proofs in Lean's kernel.
 - [Numerical certificate](refs/certificate_1802392.json) and
   [standalone Python verifier](refs/verify.py), with reproduction instructions
   in the reference.
+
+Written by Codex.

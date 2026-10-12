@@ -34,3 +34,5 @@ using exact rational and integer arithmetic in Lean.
 
 Follow the [build and verification instructions](../README.md#build-and-verification)
 to check the certificates and the assembled proof.
+
+Written by Codex.

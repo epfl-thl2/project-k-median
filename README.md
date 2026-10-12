@@ -33,3 +33,5 @@ statements, check permitted axioms, and replay the proofs in Lean's kernel.
 Certificate builds can take several hours. See the setup guide for build options
 and platform-specific instructions. [CI](.github/workflows/lean_action_ci.yml)
 builds and verifies the two upper-bound projects.
+
+Written by Codex.

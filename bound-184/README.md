@@ -44,3 +44,5 @@ and replay the proofs in Lean's kernel. The reference statements in
 
 A first build checks every certificate endpoint and interval and can take
 several hours. See the setup guide for build options.
+
+Written by Codex.

@@ -40,3 +40,5 @@ lake test
 
 `lake test` runs Comparator to check that the completed proofs establish the
 statements in `Challenge.lean`.
+
+Written by Codex.
