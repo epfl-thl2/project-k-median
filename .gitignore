@@ -1,6 +1,7 @@
 /.lake/
 /bound-184/.lake/
 /bound-195/.lake/
+/lower-bound-180/.lake/
 .DS_Store
 *.aux
 *.fdb_latexmk

@@ -1,0 +1,1139 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{microtype}
+\usepackage[unicode,hidelinks]{hyperref}
+\usepackage{enumitem}
+\setlength{\emergencystretch}{3em}
+\setlist{itemsep=3pt,topsep=5pt}
+\numberwithin{equation}{section}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\R}{\mathbb R}
+\newcommand{\Q}{\mathbb Q}
+\newcommand{\N}{\mathbb N}
+\newcommand{\FR}{\operatorname{FR}}
+\newcommand{\calR}{\mathcal R}
+\newcommand{\rstar}{r_\star}
+\newcommand{\Rzero}{R_0}
+\newcommand{\fl}[1]{\left\lfloor#1\right\rfloor}
+\newcommand{\ce}[1]{\left\lceil#1\right\rceil}
+\newcommand{\normrow}{\mathsf N_D}
+\newcommand{\efile}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\tagname}[1]{\texttt{\detokenize{#1}}}
+\DeclareMathOperator{\conv}{conv}
+\lstdefinestyle{code}{
+ basicstyle=\ttfamily\scriptsize,
+ columns=fullflexible,keepspaces=true,
+ showstringspaces=false,breaklines=true,
+ breakatwhitespace=false,
+ frame=single,framerule=0.3pt,
+ rulecolor=\color{black!30},
+ aboveskip=9pt,belowskip=9pt,
+ numbers=left,numberstyle=\tiny\color{black!55},
+ numbersep=7pt,xleftmargin=14pt,
+ tabsize=4,upquote=true
+}
+\lstset{style=code}
+\title{A Uniform Lower Bound of \texorpdfstring{$1.802392$}{1.802392}\protect\\
+for a General-Bid Factor-Revealing Program}
+\author{}
+\date{}
+\begin{document}
+\maketitle
+\vspace{-1.5em}
+\begin{abstract}
+We define a family of factor-revealing maximization problems associated with
+continuous, homogeneous, budget-feasible, monotone, superadditive bidding
+functions. We prove that, for every admissible bidding function $\beta$,
+\[
+ \sup_{n\ge1}\FR_n(\beta)>
+ \frac{225299}{125000}=1.802392.
+\]
+Consequently the infimum of these all-size values over admissible bidding
+functions is at least $1.802392$. The proof is computer-assisted. It combines
+explicit finite feasible configurations, necessary inequalities for bid values,
+a finite separation argument, and a rational-arithmetic certificate. The
+analytic reductions and exact certificate semantics are given here. The finite
+arithmetic calculation relies on the separately supplied certificate
+\efile{certificate_1802392.json} and verifier \efile{verify.py}.
+No regularity beyond the stated admissibility conditions is assumed, and no
+numerical optimizer is needed for verification.
+\end{abstract}
+
+\tableofcontents
+
+\section{The optimization problem and the theorem}\label{sec:program}
+
+For $u\in\R$, write $[u]^+=\max\{u,0\}$. All distances and radii below are
+nonnegative real numbers; zero distances are permitted.
+
+\begin{definition}[Admissible bidding function]\label{def:bid}
+A function $\beta:\R_{\ge0}^2\to\R_{\ge0}$ is \emph{admissible} if it has the
+following properties.
+\begin{enumerate}[label=(\roman*)]
+\item \emph{Nonnegativity:} $\beta(a,d)\ge0$ for $a,d\ge0$.
+\item \emph{Budget feasibility:} $\beta(a,d)\le[a-d]^+$ for $a,d\ge0$.
+\item \emph{Continuity:} $\beta$ is continuous in both arguments.
+\item \emph{Monotonicity:} it is nondecreasing in its first argument and
+nonincreasing in its second argument.
+\item \emph{Scale equivariance:} for $a>0$ and $d\ge0$,
+\[
+ \beta(a,d)=a\beta(1,d/a).
+\]
+\item \emph{Superadditivity along decreasing radii:} whenever
+$x_1\ge x_2\ge x_3\ge0$,
+\[
+ \beta(x_1,x_2)+\beta(x_2,x_3)\le\beta(x_1,x_3).
+\]
+\end{enumerate}
+\end{definition}
+
+Budget feasibility implies $\beta(0,d)=0$ and $\beta(a,a)=0$. Scale equivariance
+therefore implies full positive homogeneity,
+\begin{equation}\label{eq:homogeneity}
+ \beta(ca,cd)=c\beta(a,d)\qquad(c>0,\ a,d\ge0),
+\end{equation}
+including the cases in which an argument is zero.
+
+\begin{definition}[Factor-revealing program]\label{def:frp}
+For an admissible $\beta$ and an integer $n\ge1$, let $\FR_n(\beta)$ be the
+supremum of
+\begin{equation}\label{eq:objective}
+ \sum_{j=1}^{n}\left(\sum_{k=j}^{n}
+       \beta(r_{j,k},r_{j,k+1})+r_{j,n+1}\right)-f
+\end{equation}
+over variables
+\[
+ f\ge0,\quad d_j\ge0\ (1\le j\le n),\quad
+ r_{j,k}\ge0\ (1\le j\le k\le n+1),
+\]
+subject to
+\begin{align}
+ \sum_{j=1}^{n}d_j&=1,
+ &&\text{normalization},\label{eq:normalization}\\
+ r_{j,k+1}&\le r_{j,k},
+ &&1\le j\le k\le n,\label{eq:rowmono}\\
+ r_{k,k}&\le r_{j,k}+d_j+d_k,
+ &&1\le j<k\le n,\label{eq:triangle}\\
+ r_{j,\ell}&\le r_{k,\ell}+d_j+d_k,
+ &&\substack{1\le j,k<\ell\le n+1\\j\ne k},\label{eq:metric}\\
+ \sum_{j=1}^{k-1}\beta(r_{j,k},d_j)
+ +\sum_{j=k}^{n}\beta(r_{k,k},d_j)&\le f,
+ &&1\le k\le n.\label{eq:facility}
+\end{align}
+Define the extended-real all-size value
+\begin{equation}\label{eq:allsize}
+ \calR(\beta):=\sup_{n\ge1}\FR_n(\beta).
+\end{equation}
+\end{definition}
+
+The terminal terms $r_{j,n+1}$ in \eqref{eq:objective} are part of the
+definition. No ordering assumption on the diagonal entries $r_{j,j}$ is added
+to the program. Some feasible families used in the proof have ordered
+diagonals, which is a restriction on those families only.
+
+\begin{theorem}[Uniform lower bound]\label{thm:main}
+Every admissible bidding function satisfies
+\begin{equation}\label{eq:main}
+ \calR(\beta)>\rstar,
+ \qquad \rstar:=\frac{225299}{125000}=1.802392.
+\end{equation}
+In particular,
+\[
+ \inf_{\beta\ \mathrm{admissible}}\calR(\beta)\ge1.802392.
+\]
+\end{theorem}
+
+The strict inequality for each fixed function does not assert a strict
+inequality for the infimum. We do not claim that this lower bound is sharp.
+The theorem concerns precisely Definition~\ref{def:frp}; it does not assert a
+lower bound for any algorithm's actual approximation ratio.
+
+\paragraph{Proof structure and numerical evidence.}
+Assume, for contradiction, that $\calR(\beta)\le\rstar$. Many necessary
+inequalities will be derived using the weaker bound
+\begin{equation}\label{eq:R0}
+ \Rzero:=\frac{181}{100}=1.81>\rstar.
+\end{equation}
+Sections~\ref{sec:bidlemmas}--\ref{sec:rounding} establish the analytic
+reductions. Sections~\ref{sec:lift}--\ref{sec:finish} specify the exact finite
+proof system and complete the contradiction. The numerical certificate is
+supplied separately as \efile{certificate_1802392.json}. Its SHA-256 digest is
+\begin{center}\ttfamily\small
+4b429ea830a65fcc44fad9974e67f4bebbda\\
+005c61644d2cb99768df6df6debc
+\end{center}
+The line break in the displayed digest is typographic only. The verifier is
+supplied separately as \efile{verify.py}; Appendix~\ref{app:reproduce} gives
+instructions for running it on the certificate. Its acceptance is a finite
+integer/rational calculation, not a numerical-solver infeasibility verdict.
+
+\section{Necessary inequalities for bidding functions}\label{sec:bidlemmas}
+
+Throughout this section suppose $\calR(\beta)\le R$, with $1<R<2$, and set
+\begin{equation}\label{eq:gF}
+ g(x):=\beta(1,x),\qquad F(t):=\beta(t,1).
+\end{equation}
+Thus $g$ is nonincreasing, $g(x)=0$ for $x\ge1$, and
+$F(t)=t g(1/t)$ for $t>0$.
+
+\subsection{Singletons and the zero-distance normalization}
+
+\begin{lemma}\label{lem:singleton}
+For every $t\ge0$,
+\begin{equation}\label{eq:singleton}
+ F(t)\ge[t-R]^+.
+\end{equation}
+Moreover,
+\begin{equation}\label{eq:zero}
+ \beta(a,0)=a\quad(a\ge0),
+ \qquad
+ [1-Rx]^+\le g(x)\le1-x\quad(0\le x\le1).
+\end{equation}
+\end{lemma}
+\begin{proof}
+For $n=1$, set $d_1=1$, $r_{1,1}=r_{1,2}=t$, and $f=F(t)$.
+Every constraint holds and the objective is $t-F(t)$. Therefore
+$t-F(t)\le R$. Combine this with $F(t)\ge0$ to obtain
+\eqref{eq:singleton}. Budget feasibility and scale equivariance imply, for
+large $t$,
+\[
+ 1-R/t\le F(t)/t=\beta(1,1/t)\le1-1/t.
+\]
+Continuity gives $g(0)=1$. Homogeneity then gives $\beta(a,0)=a$; the case
+$a=0$ follows from budget feasibility. For $x>0$, applying the singleton
+bound at $t=1/x$ gives $g(x)\ge1-Rx$. The remaining assertions follow from
+nonnegativity and budget feasibility.
+\end{proof}
+
+\begin{lemma}[Positive inverse]\label{lem:inverse}
+The function $F$ is continuous and unbounded, and each $v>0$ has a unique
+preimage $A(v)>1$ with $F(A(v))=v$. The inverse $A$ is continuous on
+$(0,\infty)$.
+\end{lemma}
+\begin{proof}
+Unboundedness follows from \eqref{eq:singleton}. Further,
+$F(t)/t=g(1/t)$ is nondecreasing. If $u>t$ and $F(t)>0$, then
+$F(u)\ge(u/t)F(t)>F(t)$. Continuity, $F(1)=0$, and unboundedness now give
+existence and uniqueness of the positive inverse. Continuity of the inverse
+follows from continuity and strict increase on the positive part of the
+range.
+\end{proof}
+
+\subsection{An outlier construction at every radius}
+
+\begin{lemma}[Outlier inequality]\label{lem:outlier}
+For every $s>0$,
+\begin{equation}\label{eq:outlier-s}
+ s+\beta(s+1,s)-F(s)\le R.
+\end{equation}
+Equivalently, for $0<x<1$,
+\begin{equation}\label{eq:outlier-x}
+ g(x)\le R(1-x)-x+xg(1/x-1).
+\end{equation}
+\end{lemma}
+\begin{proof}
+Fix $m\ge1$ and put $T=s+1$. Use $n=m+1$ clients, the first with reference
+distance $1$ and the remaining $m$ with reference distance $0$. Set
+$f=mT+F(s)$. By continuity and monotonicity, there is $a_m\in[s,T]$ such that
+\[
+ ma_m+F(a_m)=mT+F(s).
+\]
+Give the first client diagonal $a_m$ and every subsequent entry $s$.
+Give each other client every entry $T$. The first facility constraint is the
+displayed equality. Every other facility constraint equals
+$F(s)+m\beta(T,0)=f$, by Lemma~\ref{lem:singleton}.
+The triangle and metric constraints hold since $T-s=1$ is the sum of the
+corresponding reference distances. Row monotonicity and normalization also
+hold. The objective is
+\[
+ s+\beta(a_m,s)-F(s).
+\]
+The defining equation gives
+$0\le T-a_m=(F(a_m)-F(s))/m\le(F(T)-F(s))/m$, so $a_m\to T$.
+Taking the limit proves \eqref{eq:outlier-s}.
+Finally substitute $x=s/(1+s)$, use homogeneity, and multiply by $1-x$ to
+obtain \eqref{eq:outlier-x}.
+\end{proof}
+
+\subsection{Superadditivity, the golden-ratio bound, and upper envelopes}
+
+\begin{lemma}\label{lem:super}
+For $0\le x,y\le1$,
+\begin{equation}\label{eq:super}
+ g(xy)\ge g(x)+xg(y).
+\end{equation}
+Consequently, for every integer $k\ge1$,
+\begin{equation}\label{eq:power}
+ g(x^k)\ge\left(\sum_{p=0}^{k-1}x^p\right)g(x).
+\end{equation}
+For $0<z<x<1$ one also has
+\begin{equation}\label{eq:chain}
+ g(z)\ge g(x)+xg(z/x).
+\end{equation}
+\end{lemma}
+\begin{proof}
+Apply superadditivity to $1\ge x\ge xy$ and use homogeneity.
+If $x=0$, the assertion follows directly from $g(0)=1$.
+Equation~\eqref{eq:power} follows by induction, and
+\eqref{eq:chain} is \eqref{eq:super} with $y=z/x$.
+\end{proof}
+
+Put $\varphi=(1+\sqrt5)/2$. The actual certificate uses $R=\Rzero>\varphi$.
+
+\begin{lemma}\label{lem:golden}
+If $R>\varphi$, then
+\begin{align}
+ g(x)&\le (R-1)(1-x) &&(1/2\le x\le1),\label{eq:halfbnd}\\
+ g(x)&\le R-\varphi &&(1/\varphi\le x\le1),\label{eq:goldenbnd}\\
+ g(x)&\le R-(1+\varphi)x &&(0\le x<1/\varphi).
+ \label{eq:goldenleft}
+\end{align}
+\end{lemma}
+\begin{proof}
+For $x\in[1/2,1)$, budget feasibility gives
+$g(1/x-1)\le2-1/x$. Substitution in \eqref{eq:outlier-x} yields
+\eqref{eq:halfbnd}. At $x=1/\varphi$, the map $x\mapsto1/x-1$ fixes $x$.
+Thus \eqref{eq:outlier-x} implies
+$(1-x)g(x)\le R(1-x)-x$, or $g(x)\le R-\varphi$.
+Monotonicity proves \eqref{eq:goldenbnd} on the entire stated interval.
+For $0<x<1/\varphi$, its transformed argument is greater than $1/\varphi$.
+If that argument exceeds $1$, its bid is zero; otherwise apply
+\eqref{eq:goldenbnd}. In both cases
+$g(1/x-1)\le R-\varphi$, since $R>\varphi$. Substitution gives
+\eqref{eq:goldenleft}. The endpoints follow directly.
+\end{proof}
+
+Here is the exact upper-envelope construction used by the verifier. Set
+\begin{equation}\label{eq:philow}
+ L=10^{12},\quad k_5=\fl{\sqrt{5L^2}},\quad
+ \varphi_-:=\frac{1+k_5/L}{2}
+ =\frac{3236067977499}{2000000000000}\le\varphi.
+\end{equation}
+The integer square-root check $k_5^2\le5L^2<(k_5+1)^2$ certifies the
+inequality. The condition $R^2-R-1>0$, together with $R>1$, certifies
+$R>\varphi$.
+
+Define $E_0(x)$ to be $1$ at $x=0$, $0$ for $x\ge1$, and, for $0<x<1$, the
+minimum of the applicable expressions
+\begin{equation}\label{eq:envelope-initial}
+\begin{gathered}
+ 1-x,\qquad (R-1)(1-x)\quad\text{if }x\ge\tfrac12,\\
+ R-\varphi_-\quad\text{if }x^2+x\ge1,\qquad
+ R-(1+\varphi_-)x\quad\text{if }x^2+x<1.
+\end{gathered}
+\end{equation}
+For $m\ge1$ and $0<x<1$, define recursively
+\begin{equation}\label{eq:envelope-rec}
+ E_m(x):=\min\{E_0(x),\ R(1-x)-x+xE_{m-1}(1/x-1)\},
+\end{equation}
+with the same endpoint values. Lemmas~\ref{lem:outlier} and
+\ref{lem:golden} imply by induction that $g(x)\le E_m(x)$.
+In particular, \eqref{eq:power} gives the further necessary inequality
+\begin{equation}\label{eq:envelope-power}
+ g(x)\le
+ \frac{E_m(x^k)}{\sum_{p=0}^{k-1}x^p}
+ \qquad(0<x<1,\ k\ge1).
+\end{equation}
+All quantities in these recursions are rational for the arguments used in
+the certificate. The algorithm uses a finite number of iterations; no
+convergence claim is required.
+
+\subsection{Harmonic configurations and certified logarithms}
+
+\begin{lemma}[Harmonic bound]\label{lem:harmonic}
+Let $2R-1<T\le3$ and set $u=F(T)$. Then
+\begin{equation}\label{eq:harmonic-general}
+ R\ge1-p+\frac{(T-1)p}{u}+p\log(u/p)
+ \qquad(0<p\le u),
+\end{equation}
+and
+\begin{equation}\label{eq:harmonic-optimized}
+ R\ge1+u\exp\bigl((T-1)/u-2\bigr).
+\end{equation}
+If a rational number $c$ satisfies
+\begin{equation}\label{eq:harmonic-test}
+ \frac{T-1}{2}<c<T-1,
+ \qquad
+ \log\frac{c}{R-1}>2-\frac{T-1}{c},
+\end{equation}
+then $F(T)>c$ and $g(1/T)>c/T$.
+\end{lemma}
+\begin{proof}
+The singleton bound implies $u\ge T-R>(T-1)/2>0$.
+Fix $0<p<u$, let $N$ be a positive integer, and set
+$M=\fl{Np/u}$. Give all $N$ clients raw reference distance $1$ and choose
+raw opening variable $Np$. The last $M$ clients have all entries equal to
+$T$. An earlier client with $\ell$ clients remaining has diagonal
+$A(Np/\ell)$ and all later entries $1$, where $A$ is the positive inverse
+from Lemma~\ref{lem:inverse}. Here $\ell=M+1,\ldots,N$, so its diagonal is
+at most $T$ and greater than $1$.
+
+Earlier frozen clients bid $F(1)=0$, and at an early event the remaining
+clients' bids sum to $\ell F(A(Np/\ell))=Np$. In the final block, every
+client of that block bids $u$, whether active or inactive, so the facility
+constraint is $Mu\le Np$. Radii $1$ and $T$ differ by at most $2$, the sum
+of two raw reference distances, and all diagonals are at most $T\le3$.
+Thus every triangle and metric constraint holds. Divide all variables by
+$N$. The resulting objective is
+\[
+ 1-p+(T-1)\frac MN+p\sum_{\ell=M+1}^{N}\frac1\ell.
+\]
+Letting $N\to\infty$ gives \eqref{eq:harmonic-general}; the endpoint $p=u$
+follows by continuity. The harmonic-sum limit can also be obtained by
+sandwiching the sum between the integrals of $1/x$ over
+$[M,N]$ and $[M+1,N+1]$ for sufficiently large $N$.
+
+The maximizing choice in \eqref{eq:harmonic-general} is
+$p=u\exp((T-1)/u-2)$, which belongs to $(0,u)$ because
+$u>(T-1)/2$. Substitution gives \eqref{eq:harmonic-optimized}.
+The function $w\mapsto1+w\exp((T-1)/w-2)$ is nonincreasing on
+$(0,T-1]$, since its derivative has the sign of $1-(T-1)/w$.
+Budget feasibility gives $u\le T-1$. If $u\le c$, then
+\eqref{eq:harmonic-test} would force the right-hand side of
+\eqref{eq:harmonic-optimized} to exceed $R$, a contradiction.
+\end{proof}
+
+For completeness, all logarithm comparisons are enclosed as follows.
+For $1\le z\le2$, set $y=(z-1)/(z+1)$. Termwise integration of the geometric
+series for $(1-y^2)^{-1}$ yields
+\begin{equation}\label{eq:logseries}
+ \log z=2\sum_{j=0}^{\infty}\frac{y^{2j+1}}{2j+1}.
+\end{equation}
+The first $n$ terms form a rational lower bound and the remaining tail is
+at most
+\begin{equation}\label{eq:logtail}
+ \frac{2y^{2n+1}}{(2n+1)(1-y^2)}.
+\end{equation}
+For $z>2$, repeatedly divide by $2$ and add the corresponding multiples of
+the interval for $\log2$. For $0<z<1$, negate the interval for $\log(1/z)$.
+The verifier uses $n=90$; every comparison in \eqref{eq:harmonic-test} is
+made against the lower endpoint of the resulting rational interval.
+
+\section{A finite family of feasible configurations}\label{sec:clients}
+
+\begin{definition}[One-drop client type]\label{def:type}
+A type is a triple $z=(d,a,s)$ satisfying
+\begin{equation}\label{eq:type}
+ d\ge0,\qquad 0\le s\le a\le1+d,\qquad 1-d\le s\le1+d.
+\end{equation}
+The reference distance is $d$, the diagonal radius is $a$, and the permanent
+post-diagonal radius is $s$.
+\end{definition}
+
+\begin{lemma}[Geometric feasibility]\label{lem:geometry}
+Take a finite multiset of types, order the clients by nondecreasing $a$, and
+set, before normalization,
+\begin{equation}\label{eq:type-rows}
+ d_j=d(z_j),\qquad r_{j,j}=a(z_j),\qquad
+ r_{j,k}=s(z_j)\quad(j<k\le n+1).
+\end{equation}
+All nonnegativity, row monotonicity, triangle, and metric constraints of
+Definition~\ref{def:frp} hold. The raw objective contribution of client $j$
+is $\beta(a(z_j),s(z_j))+s(z_j)$.
+\end{lemma}
+\begin{proof}
+Nonnegativity and row monotonicity follow from \eqref{eq:type}.
+For $j<k$,
+\[
+ a(z_k)\le1+d(z_k)\le s(z_j)+d(z_j)+d(z_k),
+\]
+which proves \eqref{eq:triangle}. For any two types,
+\[
+ s(z_j)-s(z_k)
+ \le(1+d(z_j))-(1-d(z_k))=d(z_j)+d(z_k).
+\]
+Interchanging the two types gives both directed metric inequalities,
+including those involving the terminal column. There is only one possible
+drop in each row; all later terms have the form $\beta(s,s)=0$.
+This proves the objective formula.
+\end{proof}
+
+Fix a finite increasing list of activation levels
+$\tau_0<\cdots<\tau_{T-1}$, and a finite type list $\mathcal Z$ whose diagonal
+radii belong to that list. For $z=(d,\tau_i,s)$, define the true contribution
+at a level by
+\begin{equation}\label{eq:trueB}
+ B^{\rm true}_{t,z}=
+ \begin{cases}
+  \beta(\tau_t,d),&t\le i,\\
+  \beta(s,d),&t>i.
+ \end{cases}
+\end{equation}
+Suppose $C_z\le\beta(\tau_i,s)+s$ and
+$B_{t,z}\ge B^{\rm true}_{t,z}$, with $B_{t,z}\ge0$.
+
+\begin{lemma}[Multiplicity bound]\label{lem:multiplicity}
+Let $m_z\ge0$ be arbitrary real multiplicities with
+$\Delta:=\sum_zd(z)m_z>0$. Then
+\begin{equation}\label{eq:multiplicity}
+ \frac{\sum_z C_zm_z-\max_t\sum_zB_{t,z}m_z}{\Delta}
+ \le\calR(\beta).
+\end{equation}
+\end{lemma}
+\begin{proof}
+First suppose all $m_z$ are rational. Multiply by a common denominator and
+create that many copies of each type. Order them as in
+Lemma~\ref{lem:geometry}. At the beginning of a level $\tau_t$, the
+facility contribution is at most $\sum_zB_{t,z}m_z$, up to the common
+multiplicity scale. Within a group of clients having the same diagonal,
+clients freeze from $\tau_t$ to radii at most $\tau_t$. Monotonicity in the
+first argument of $\beta$ implies that the true contribution cannot
+increase during this tie group. Thus a constraint at the start of each
+level dominates every facility constraint within that level. It does not
+matter if some of the listed levels have no clients.
+
+Choose the raw opening variable to be the maximum over the listed levels,
+and divide all raw variables by the positive reference-distance sum.
+Homogeneity gives a feasible point of Definition~\ref{def:frp}. The lower
+objective bound is the left-hand side of \eqref{eq:multiplicity}.
+Finally approximate real nonnegative multiplicities by rational ones.
+The denominator remains positive, and the numerator is continuous in the
+multiplicities because it is a linear function minus the maximum of finitely
+many linear functions. Taking limits proves the general case.
+\end{proof}
+
+\subsection{One common vector of dual weights}
+
+\begin{lemma}[Finite domination]\label{lem:domination}
+Let $B_0,\ldots,B_{T-1}$ and $c$ be vectors in a finite-dimensional real
+space. If
+\[
+ c\cdot m\le\max_t B_t\cdot m\qquad\text{for every }m\ge0,
+\]
+then there are $\lambda_t\ge0$ with $\sum_t\lambda_t=1$ and
+$c\le\sum_t\lambda_t B_t$ coordinatewise.
+\end{lemma}
+\begin{proof}
+Consider the closed convex set
+$K=\conv\{B_0,\ldots,B_{T-1}\}-\R_{\ge0}^{|\mathcal Z|}$.
+It is closed because it is the sum of a compact set and a closed set.
+If $c\notin K$, let $p\in K$ minimize $\|c-p\|$ and put $m=c-p$.
+Such a minimum exists by restricting to a sufficiently large closed ball.
+For every $z\in K$, differentiating the squared distance along the segment
+from $p$ to $z$ at its initial point gives $m\cdot(z-p)\le0$.
+Since $K$ is closed under subtracting each nonnegative coordinate direction,
+this inequality implies $m\ge0$. But
+\[
+ m\cdot c=m\cdot p+\|m\|^2>m\cdot p\ge\max_t m\cdot B_t,
+\]
+contrary to the hypothesis. Thus $c\in K$, which is exactly the stated
+coordinatewise domination.
+\end{proof}
+
+\begin{proposition}[Necessary client inequalities]\label{prop:dual}
+Suppose the type list contains a type with positive reference distance and
+$\calR(\beta)\le r$. Then there exists one vector $\lambda$ satisfying
+\begin{equation}\label{eq:lambda}
+ \lambda_t\ge0,\qquad\sum_{t=0}^{T-1}\lambda_t=1,
+\end{equation}
+such that, simultaneously for every type $z$,
+\begin{equation}\label{eq:clientdual}
+ C_z-\sum_t\lambda_tB_{t,z}\le r d(z).
+\end{equation}
+\end{proposition}
+\begin{proof}
+Apply Lemma~\ref{lem:multiplicity} and multiply by $\Delta$ to obtain
+\[
+ \sum_z(C_z-rd(z))m_z\le\max_t\sum_zB_{t,z}m_z
+\]
+whenever $m\ge0$ and $\Delta>0$. If $\Delta=0$, add a positive
+$\varepsilon$ multiple of a positive-distance type and let
+$\varepsilon\downarrow0$. This proves the same inequality for every
+$m\ge0$. Lemma~\ref{lem:domination}, with $c_z=C_z-rd(z)$, gives the result.
+\end{proof}
+
+The type list in this proposition is the \emph{union of all types used
+anywhere in the certificate}, not a changing list during verification.
+Under the contradictory assumption, choose a single $\lambda$ for this
+entire finite union at $r=\rstar$. All earlier deductions at
+$\Rzero\ge\rstar$ concern this same $g$ and this same $\lambda$.
+This resolves the quantifier issue when additional client rows appear later
+in the finite proof.
+
+\section{Finite sampling and one-sided arithmetic}\label{sec:rounding}
+
+\subsection{The exact grids}
+Set $q=81/80$. The activation levels are
+\begin{equation}\label{eq:timegrid}
+ \tau_t=q^t\qquad(0\le t<64).
+\end{equation}
+The sample grid is the increasing enumeration
+$0=x_0<x_1<\cdots<x_J=1$ of
+\begin{equation}\label{eq:samplegrid}
+ X=\{0\}\ \cup\ \{q^{-k}:0\le k\le153\}
+       \ \cup\ \{q^k-1:1\le k\le55\}.
+\end{equation}
+It has $210$ elements, so $J=209$. The coordinate $g(x_J)=g(1)=0$ is
+eliminated. Write
+\[
+ G_j=g(x_j)\quad(0\le j<J),\qquad G_J:=0.
+\]
+In particular, $G_0=1$.
+
+For $0\le x<1$, let
+\[
+ \iota_-(x)=\max\{j:x_j\le x\},\qquad
+ \iota_+(x)=\min\{j:x_j\ge x\}.
+\]
+For $x\ge1$, both indices are defined to be $J$. Monotonicity gives
+\begin{equation}\label{eq:sample-sandwich}
+ G_{\iota_+(x)}\le g(x)\le G_{\iota_-(x)}.
+\end{equation}
+Thus the lower and upper sample bids are
+\begin{equation}\label{eq:sample-bid}
+ \underline\beta(a,d)=
+ \begin{cases}aG_{\iota_+(d/a)},&a>d,\\0,&a\le d,\end{cases}
+ \quad
+ \overline\beta(a,d)=
+ \begin{cases}aG_{\iota_-(d/a)},&a>d,\\0,&a\le d.\end{cases}
+\end{equation}
+They satisfy $\underline\beta\le\beta\le\overline\beta$.
+For $d=0<a$ both bounds equal $aG_0=a$.
+
+The client family uses
+\begin{align}
+ C_z(G)&=s+\underline\beta(a,s),\label{eq:roundedC}\\
+ B_{t,z}(G)&=
+ \begin{cases}
+  \overline\beta(\tau_t,d),&\tau_t\le a,\\
+  \overline\beta(s,d),&\tau_t>a.
+ \end{cases}\label{eq:roundedB}
+\end{align}
+These bounds use only neighboring samples; they do not interpolate the
+unknown function.
+
+\subsection{Homogeneous row notation and downward rounding}
+An affine inequality in the sampled values is written homogeneously as
+$a\cdot G\le0$, using $G_0=1$ for its constant term. Any coefficient of
+$G_J=0$ is discarded before further operations.
+
+Set
+\begin{equation}\label{eq:DS}
+ D=S=10^{10}.
+\end{equation}
+For a finite rational row $a$, define
+\begin{equation}\label{eq:normalizer}
+ h(a):=\max\{1,\max_j|a_j|\},\qquad
+ (\normrow(a))_j:=\fl{D a_j/h(a)}.
+\end{equation}
+Zero coefficients may be omitted from a stored sparse row.
+
+\begin{lemma}[Safe row rounding]\label{lem:floor}
+If $y\ge0$ and $a\cdot y\le0$, then
+$\normrow(a)\cdot y\le0$. More generally, replacing any coefficient of a
+valid row by a smaller coefficient preserves validity for nonnegative
+variables.
+\end{lemma}
+\begin{proof}
+Coordinatewise, $\normrow(a)\le Da/h(a)$. Dotting with $y\ge0$ proves the
+claim. This argument applies to negative coefficients as well: floor means
+rounding toward $-\infty$, not rounding toward zero.
+\end{proof}
+
+The sample bounds in \eqref{eq:sample-sandwich} and the row rounding in
+\eqref{eq:normalizer} are distinct operations. Both are one-sided, and neither
+uses a numerical tolerance.
+
+\subsection{The initial sampled-bid rows}\label{subsec:rows}
+The following real inequalities are valid under $\calR(\beta)\le\Rzero$.
+The checker stores their integer normalizations \eqref{eq:normalizer}.
+Every subscript $J$ denotes the eliminated zero coordinate.
+\begin{align}
+ G_i-(1-x_i)G_0&\le0,
+ &&\text{\tagname{budget}},\label{eq:tag-budget}\\
+ -G_i+(1-\Rzero x_i)G_0&\le0,
+ &&\text{\tagname{single}},\label{eq:tag-single}\\
+ G_{i+1}-G_i&\le0,
+ &&\text{\tagname{monotone}},\label{eq:tag-mon}\\
+ G_i+\bigl(x_i-\Rzero(1-x_i)\bigr)G_0
+       -x_iG_{\iota_-(1/x_i-1)}&\le0,
+ &&\text{\tagname{outlier}}.\label{eq:tag-out}
+\end{align}
+There are also the following rows, with the indicated side conditions:
+\begin{align}
+ G_i+(\varphi_- -\Rzero)G_0&\le0,
+ &&\text{\tagname{golden}},\label{eq:tag-golden}\\
+ G_i+x_iG_j-G_{\iota_-(x_ix_j)}&\le0,
+ &&\text{\tagname{super}},\label{eq:tag-super}\\
+ \left(\sum_{p=0}^{k-1}x_i^p\right)G_i-G_{\iota_-(x_i^k)}&\le0,
+ &&\text{\tagname{power}},\label{eq:tag-power}\\
+ -G_i+\frac c{1/x_i}G_0&\le0,
+ &&\text{\tagname{harmonic}}.\label{eq:tag-harmonic}
+\end{align}
+Here \tagname{golden} requires $x_i^2+x_i\ge1$;
+\tagname{super} requires $0<x_i,x_j<1$; and \tagname{power} requires
+$0<x_i<1$ and $k\ge2$. For \tagname{harmonic}, the side conditions are
+exactly Lemma~\ref{lem:harmonic} with $T=1/x_i$ and $R=\Rzero$, including
+the certified strict logarithmic comparison. The strict conclusion of that
+lemma may safely be weakened to the non-strict row shown here.
+
+The rounded superadditivity rows follow because their positive terms use
+exact samples while the negative term uses an upper sample bound. The
+outlier row follows in the same way from \eqref{eq:outlier-x}.
+
+The initial tag list in the certificate contains $2201$ rows:
+\begin{center}
+\begin{tabular}{lr@{\qquad}lr}
+\toprule
+Tag & Count & Tag & Count\\
+\midrule
+\tagname{budget}&208&\tagname{single}&208\\
+\tagname{monotone}&208&\tagname{outlier}&208\\
+\tagname{golden}&55&\tagname{super}&676\\
+\tagname{power}&624&\tagname{harmonic}&14\\
+\bottomrule
+\end{tabular}
+\end{center}
+The tag records specify the exact indices and, where relevant, the rational
+$c$ values. Their validity does not depend on why these particular records
+were selected.
+
+\subsection{Additional analytic rows}
+The finite proof can append the following further necessary rows.
+For $0<u<1$, the tag \tagname{outlier_at} uses
+\begin{equation}\label{eq:tag-out-at}
+ G_{\iota_+(u)}+\bigl(u-\Rzero(1-u)\bigr)G_0
+      -uG_{\iota_-(1/u-1)}\le0.
+\end{equation}
+For $0<x_k<x_i<1$, the tag \tagname{chain_at} uses
+\begin{equation}\label{eq:tag-chain-at}
+ G_i+x_iG_{\iota_+(x_k/x_i)}-G_k\le0.
+\end{equation}
+The positive off-grid terms in these two rows are rounded downward.
+The tag \tagname{envelope_power} uses
+\begin{equation}\label{eq:tag-env}
+ G_i-\frac{E_m(x_i^k)}{\sum_{p=0}^{k-1}x_i^p}G_0\le0
+\end{equation}
+with the finite recursion \eqref{eq:envelope-rec}. The present certificate
+uses $m=12$ for these rows. Finally, the exact rows $-DG_i\le0$ express
+nonnegativity, including $-DG_0\le0$.
+
+\section{Lifted variables and a finite proof calculus}\label{sec:lift}
+
+Fix the one common $\lambda$ supplied by Proposition~\ref{prop:dual} for
+all $6833$ types at $r=\rstar$. Define
+\begin{equation}\label{eq:v}
+ v_{t,j}:=\lambda_tG_j,
+ \qquad 0\le t<T=64,\quad 0\le j<J=209.
+\end{equation}
+There are $TJ=13376$ such coordinates. If $e$ is the row with $e_{t,0}=1$
+and all other coefficients zero, then
+\begin{equation}\label{eq:ebox}
+ e\cdot v=1,\quad v\ge0,\quad v_{t,0}=\lambda_t,\quad
+ 0\le v_{t,j}\le(1-x_j)\lambda_t.
+\end{equation}
+Furthermore $G_j=\sum_tv_{t,j}$.
+
+The proof only needs to show that every necessary row holds for these
+\emph{genuine product variables}. It does not assert that every feasible
+point of a lifted linear relaxation admits a factorization
+\eqref{eq:v}.
+
+\subsection{Base lifts and client rows}
+Every stored integer bid row $a\cdot G\le0$ gives
+\begin{equation}\label{eq:base-lift}
+ \sum_ja_jv_{t,j}\le0\qquad\text{for each }t.
+\end{equation}
+For a type $z=(d,\tau_i,s)$, the raw client row is obtained from
+\begin{equation}\label{eq:raw-client}
+ C_z(G)-\sum_t\lambda_tB_{t,z}(G)-\Rzero d\le0
+\end{equation}
+by replacing $G_j$ by $\sum_tv_{t,j}$, each $\lambda_tG_j$ by $v_{t,j}$,
+and the constant $s-\Rzero d$ by $(s-\Rzero d)e\cdot v$.
+The normalized integer row is then stored. Proposition~\ref{prop:dual},
+$\rstar\le\Rzero$, and Lemma~\ref{lem:floor} prove its necessity.
+
+\subsection{Deriving and relifting bid inequalities}
+Suppose an exact certificate step proves
+\begin{equation}\label{eq:derived-g}
+ \sum_jc_j\sum_tv_{t,j}\le b.
+\end{equation}
+For the genuine variables, this is $c\cdot G\le bG_0$.
+Thus one may append the bid row
+$\normrow(c-be_0)$ and its $T$ separate lifts
+\eqref{eq:base-lift}. The same $G$ appears in every block, which is why
+relifting a derived inequality is valid.
+
+\subsection{Products with derived dual-weight inequalities}
+Suppose an earlier certified step proves
+\begin{equation}\label{eq:lambda-cut}
+ \sum_th_t\lambda_t\le b.
+\end{equation}
+For any already valid stored bid row $a\cdot G\le0$,
+\begin{equation}\label{eq:product-exact}
+ \sum_t(b-h_t)\sum_ja_jv_{t,j}
+ =\left(b-\sum_th_t\lambda_t\right)(a\cdot G)\le0.
+\end{equation}
+Therefore the integer row
+\begin{equation}\label{eq:product-floor}
+ P_{t,j}=\fl{(b-h_t)a_j}
+\end{equation}
+is valid. This last rounding is directly applied to the already-integer
+$a_j$; it does not apply \eqref{eq:normalizer} a second time.
+
+Individual $b-h_t$ need not be nonnegative. The proof is the scalar product
+identity \eqref{eq:product-exact}, followed by coefficientwise downward
+rounding. It would not be valid to justify the row by treating each block
+multiplier as separately nonnegative.
+
+\subsection{Strengthening client rows to the final threshold}
+Let $p_z$ be the raw rational coefficient vector in
+\eqref{eq:raw-client}, and let $h_z=h(p_z)$ be its normalization scale.
+The raw row at a smaller threshold $R'$, with
+$\rstar\le R'\le\Rzero$, is
+\[
+ p_z+(\Rzero-R')d(z)e.
+\]
+If the original integer row is $A_z=\normrow(p_z)$, the verifier appends
+\begin{equation}\label{eq:refine}
+ A'_z=A_z+\nu_ze,
+ \qquad
+ \nu_z=\fl{D(\Rzero-R')d(z)/h_z}.
+\end{equation}
+This preserves the \emph{original} scale $h_z$.
+For constant coordinates, $\lfloor u\rfloor+\lfloor w\rfloor\le u+w$;
+for all other coordinates the same base rounding is retained. Hence
+\[
+ A'_z\le \frac D{h_z}
+       \bigl(p_z+(\Rzero-R')d(z)e\bigr)
+\]
+coordinatewise. Since the raw row is necessary at $R'$ for the common
+$\lambda$ chosen at $\rstar$, \eqref{eq:refine} is valid.
+The final certificate applies this rule to $400$ existing client rows, with
+$R'=\rstar$. No new geometric configuration is asserted at this step.
+
+\section{Exact checking of derived inequalities}\label{sec:arithmetic}
+
+All global rows have integer coefficients and the orientation
+$A_i\cdot v\le0$. Row indices refer only to rows already available at the
+step being checked.
+
+For $j>0$, put
+\begin{equation}\label{eq:Uj}
+ U_j:=\ce{D(1-x_j)}.
+\end{equation}
+Then \eqref{eq:ebox} implies
+$v_{t,j}\le(U_j/D)\lambda_t$.
+
+\begin{lemma}[Budget-aware residual certificate]\label{lem:residual}
+Let $c$ be a rational objective row for which every $SDc_{t,j}$ is an
+integer. Choose nonnegative integers $m_i$, a signed integer $\mu$, and
+define the integer residual
+\begin{equation}\label{eq:Q}
+ Q_{t,j}:=\sum_im_iA_{i,t,j}+\mu D e_{t,j}-SDc_{t,j}.
+\end{equation}
+Set
+\begin{equation}\label{eq:error}
+ E:=\max_{0\le t<T}\left\{
+ -DQ_{t,0}+\sum_{j=1}^{J-1}\max\{-Q_{t,j},0\}\,U_j
+ \right\}.
+\end{equation}
+For every genuine $v$ satisfying the available rows,
+\begin{equation}\label{eq:witnessbound}
+ c\cdot v\le H:=\frac{\mu D^2+E}{SD^2}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Nonnegativity of the multipliers gives
+\[
+ Q\cdot v
+ =\sum_im_iA_i\cdot v+\mu D-SD(c\cdot v)
+ \le\mu D-SD(c\cdot v).
+\]
+For each block, the bounds \eqref{eq:ebox} and \eqref{eq:Uj} give
+\[
+ -\sum_jQ_{t,j}v_{t,j}
+ \le\left(-Q_{t,0}+\sum_{j>0}
+       \max\{-Q_{t,j},0\}\frac{U_j}{D}\right)\lambda_t.
+\]
+Sum over $t$ and use $\sum_t\lambda_t=1$ to obtain
+$-Q\cdot v\le E/D$. Substitution and division by $SD$ give
+\eqref{eq:witnessbound}.
+\end{proof}
+
+A witness records its objective $c$, its nonnegative integer multipliers,
+$\mu$, and a rational \emph{reported upper bound} $b$. The checker verifies
+exactly that the recorded objective is the expected one and that $H\le b$.
+It then uses $c\cdot v\le b$. In particular, numerical residuals are never
+discarded; \eqref{eq:error} charges every one in the conservative direction.
+
+For a bid-cut step, $c_{t,j}$ is independent of $t$ and equals the requested
+bid direction. For a dual-weight-cut step, $c_{t,0}=h_t$ and all other
+coefficients are zero. For the terminal contradiction, $c=0$.
+
+\section{The finite certificate and completion of the proof}\label{sec:finish}
+
+\subsection{Data and deterministic reconstruction}
+The JSON object contains exact rational strings for grid values, distances,
+radii, directions, and reported bounds. Integer fields specify indices,
+scales, and witness multipliers. The essential fields are:
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Field & Meaning\\
+\midrule
+\tagname{kind} & The value \tagname{geom}\\
+\tagname{R}, \tagname{target_R} & $\Rzero=181/100$, $\rstar=225299/125000$\\
+\tagname{D}, \tagname{S} & The two exact scales $10^{10}$\\
+\tagname{xs}, \tagname{times} & The grids \eqref{eq:samplegrid}, \eqref{eq:timegrid}\\
+\tagname{gtags}, \tagname{base_grows} & The initial $2201$ bid-row tags\\
+\tagname{types} & $1067$ initial records $(i,d,s)$ with $a=\tau_i$\\
+\tagname{proof} & The ordered list of $156$ proof events\\
+\bottomrule
+\end{tabular}
+\end{center}
+A later \tagname{clients} event adds $5766$ types. These and the initial
+ones are $6833$ distinct geometries, each checked against
+\eqref{eq:type}. The list includes one zero-reference-distance type and at
+least one positive-reference-distance type.
+
+All indices are zero-based. Initially the global rows are ordered by first
+listing the $64$ lifts of bid row $0$, then the $64$ lifts of bid row $1$,
+and so on, followed by the $1067$ initial client rows. Thus the starting
+number of global rows is
+\[
+ 2201\cdot64+1067=141931.
+\]
+All later rows are appended in the order specified in the event list.
+Appendix~\ref{app:format} specifies the row numbering rules; the separately
+supplied \efile{verify.py} implements them.
+
+The proof-event counts are
+\begin{center}
+\begin{tabular}{@{}lrp{7.3cm}@{}}
+\toprule
+Event & Count & Effect\\
+\midrule
+\tagname{axiom}&1&Store the $209$ nonnegativity bid rows.\\
+\tagname{axiom_g}&15&Append $1419$ analytic bid rows and their lifts.\\
+\tagname{envelope_axioms}&1&Append $208$ envelope-power bid rows and their lifts.\\
+\tagname{g}&7&Verify, store, and lift a derived bid inequality.\\
+\tagname{lambda}&14&Verify a dual-weight inequality and append designated products.\\
+\tagname{clients}&1&Append the $5766$ additional geometric client rows.\\
+\tagname{product}&115&Append further products using earlier dual-weight cuts.\\
+\tagname{refined_clients}&1&Tighten $400$ client rows to $\rstar$.\\
+\tagname{contradiction}&1&Verify a strictly negative upper bound on the zero objective.\\
+\bottomrule
+\end{tabular}
+\end{center}
+The completed system has $4044$ stored bid rows and $259756$ global rows.
+There are $22$ arithmetic witnesses: $7$ bid cuts, $14$ dual-weight cuts,
+and the terminal contradiction.
+
+\subsection{Soundness of the proof interpreter}
+
+\begin{proposition}[Certificate soundness]\label{prop:soundness}
+Under the assumption $\calR(\beta)\le\rstar$, every global row and every
+stored bid inequality reconstructed by the verifier is valid for the genuine
+variables \eqref{eq:v}. Every accepted witness gives the asserted upper
+bound. Therefore acceptance of the terminal negative-bound witness is a
+contradiction.
+\end{proposition}
+\begin{proof}
+Choose the common $\lambda$ for the union of all client types as specified
+after Proposition~\ref{prop:dual}. The initial bid rows are valid by
+Section~\ref{sec:bidlemmas}, the sample sandwich, and
+Lemma~\ref{lem:floor}. Their lifts are valid because $\lambda_t\ge0$.
+The initial client rows are valid by Proposition~\ref{prop:dual} and
+one-sided rounding.
+
+Induct on the proof-event index. An analytic-axiom event is valid by
+\eqref{eq:tag-out-at}, \eqref{eq:tag-chain-at},
+\eqref{eq:tag-super}, or \eqref{eq:tag-env}, as applicable.
+A client event is valid by its explicitly checked geometry and
+Proposition~\ref{prop:dual}. A derived bid inequality follows from
+Lemma~\ref{lem:residual}, then may be relifted as in
+\eqref{eq:derived-g}. A derived dual-weight inequality also follows from
+Lemma~\ref{lem:residual}; its designated products are justified by
+\eqref{eq:product-exact}--\eqref{eq:product-floor}. A subsequent product
+event is identical, except that its dual-weight inequality was proved at an
+earlier event. The interpreter checks these earlier-index requirements.
+A client refinement is valid by \eqref{eq:refine}.
+Thus every row available to the next witness is necessary for the genuine
+variables. Finally a witness with $c=0$ and reported bound $b<0$ gives
+$0\le b<0$, which is impossible.
+\end{proof}
+
+\subsection{The checked arithmetic result}
+The final witness uses $12484$ multiplier records and the signed integer
+\[
+ \mu=-24859.
+\]
+Exact evaluation of \eqref{eq:Q}--\eqref{eq:witnessbound} verifies a bound
+no larger than the recorded value
+\begin{equation}\label{eq:negative}
+ b_{\rm final}=-\frac{1241}{500000000}.
+\end{equation}
+Its objective list is empty, meaning $c=0$. Thus its accepted assertion is
+\[
+ 0\le-\frac{1241}{500000000}<0.
+\]
+The separately supplied verifier \efile{verify.py} reconstructs the raw axioms,
+grid, client rows, normalizations, intermediate inequalities, and final
+residual correction.
+It checks the complete certificate in one run and does not use an
+optimization solver.
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+If $\calR(\beta)=+\infty$, the conclusion is immediate. Otherwise suppose
+$\calR(\beta)\le\rstar$. All reductions and necessary inequalities proved
+above apply. The separately supplied \efile{certificate_1802392.json} is
+accepted by \efile{verify.py}, which implements the exact checks of
+Sections~\ref{sec:lift}--\ref{sec:finish} and Appendix~\ref{app:format},
+with final bound \eqref{eq:negative}. The reproduction command is given in
+Appendix~\ref{app:reproduce}. Proposition~\ref{prop:soundness} therefore gives a
+contradiction. Hence $\calR(\beta)>\rstar$ for every admissible $\beta$.
+Taking the infimum proves the stated non-strict minimax lower bound.
+\end{proof}
+
+\paragraph{What the calculation establishes.}
+The finite data are essential to the computer-assisted portion of the proof.
+The analytic part proves why acceptance of those data implies the theorem;
+the verifier supplies the reproducible finite arithmetic calculation.
+This is not a proof-assistant formalization. No claim is made that a
+particular bid is extremal, that the sample system exactly describes all
+admissible bids, or that $\rstar$ is the best possible lower bound.
+
+\appendix
+\section{Certificate format and indexing details}\label{app:format}
+
+This appendix specifies the event semantics sufficiently to reimplement the
+checker. The executable implementation is supplied separately as
+\efile{verify.py}.
+A sparse row is a map from coordinate indices to rational or integer
+coefficients; coefficients at the same index are added before normalization.
+A lifted coordinate $(t,j)$ is flattened as $tJ+j$.
+
+\subsection{Initial tag records}
+The initial records have one of the following forms:
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+Record & Defining inequality\\
+\midrule
+\tagname{[budget,i]} & \eqref{eq:tag-budget}\\
+\tagname{[single,i]} & \eqref{eq:tag-single}\\
+\tagname{[monotone,i]} & \eqref{eq:tag-mon}\\
+\tagname{[outlier,i]} & \eqref{eq:tag-out}\\
+\tagname{[golden,i]} & \eqref{eq:tag-golden}\\
+\tagname{[super,i,j]} & \eqref{eq:tag-super}\\
+\tagname{[power,i,k]} & \eqref{eq:tag-power}\\
+\tagname{[harmonic,i,c]} & \eqref{eq:tag-harmonic}, with \eqref{eq:harmonic-test}\\
+\bottomrule
+\end{tabular}
+\end{center}
+Later analytic tags additionally have the forms
+\begin{center}
+\tagname{[outlier_at,u]},\qquad \tagname{[chain_at,i,k]},\\[3pt]
+\tagname{[envelope_power,i,k,m]}.
+\end{center}
+Their rational arguments and indices are part of the certificate, not
+floating-point inputs. The verifier checks their side conditions.
+
+\subsection{Witness records}
+A witness has fields \tagname{mode}, \tagname{objective},
+\tagname{multipliers}, \tagname{mu}, and \tagname{upper}.
+Here \tagname{mode} is \tagname{budget}; \tagname{objective} is a list of
+pairs $(\text{coordinate},\text{rational coefficient})$;
+\tagname{multipliers} is a list of pairs
+$(\text{already available row index},\text{nonnegative integer})$;
+\tagname{mu} is a signed integer; and \tagname{upper} is the reported rational
+bound. Equation~\eqref{eq:Q} must be integral at every coordinate.
+The witness objective must exactly match the objective prescribed by its
+containing event.
+
+\subsection{Events}
+The \tagname{axiom} event names \tagname{nonnegative_g} and gives coordinate
+indices. It appends $-De_j$ to the stored bid-row list, but appends no global
+rows. These bid rows can later be used in products. Nonnegativity of $v$ is
+already part of the mathematical invariant \eqref{eq:ebox}.
+
+An \tagname{axiom_g} or \tagname{envelope_axioms} event contains a list of
+analytic tags. For each tag in order, its normalized row is appended to the
+bid-row list, then its $T$ lifts are appended to the global row list in
+increasing time order.
+
+A \tagname{clients} event contains a list of $(i,d,s)$ records. For each in
+order, check \eqref{eq:type} with $a=\tau_i$, build
+\eqref{eq:raw-client}, and append its normalized row.
+
+A \tagname{g} event gives a sparse direction $c$, a bound $b$, and a witness.
+Its lifted objective repeats $c$ identically in every time block. Check the
+witness, check that its reported bound equals $b$, append
+$\normrow(c-be_0)$ to the bid-row list, and append all its time-block lifts.
+
+A \tagname{lambda} event gives a sparse direction $h$, a bound $b$, a
+witness, and a list of stored bid-row indices. Its objective is supported on
+coordinates $(t,0)$ with coefficients $h_t$. After verifying the witness and
+bound, append the product row \eqref{eq:product-floor} for each designated
+bid-row index, in list order. The bound $(h,b)$ is also available for later
+product events. There is no extra direct global row for the weight
+inequality unless a requested product supplies it.
+
+A \tagname{product} event identifies an earlier \tagname{lambda} event by
+its zero-based proof-event index and lists bid-row indices that already
+exist. Append their product rows using that earlier event's $(h,b)$.
+
+A \tagname{refined_clients} event supplies $R'$ and a list of original
+client-row indices. Check $\rstar\le R'\le\Rzero$, reconstruct each source
+row's original normalization scale, and append \eqref{eq:refine}. The
+present certificate uses only ordinary client rows as sources.
+
+Finally, \tagname{contradiction} contains a witness for the empty objective.
+It must have negative reported bound. The checker rejects a file without a
+terminal contradiction and rejects any event after that contradiction.
+
+\section{Reproduction}\label{app:reproduce}
+
+\subsection{Certificate verification}
+The computer-assisted calculation requires the separately supplied files
+\efile{certificate_1802392.json} and \efile{verify.py}. The verifier implements
+the proof calculus and exact arithmetic checks described in
+Sections~\ref{sec:lift}--\ref{sec:finish} and Appendix~\ref{app:format}.
+It is specialized to the stated grids, constants, and certificate and uses
+only Python's standard library. Integer and rational operations decide every
+assertion; a floating-point clock is used only to display elapsed time.
+
+Place both files in one directory and use Python 3.10 or later with assertions
+enabled. From that directory, run
+\begin{lstlisting}[language=bash,numbers=none]
+python verify.py certificate_1802392.json
+\end{lstlisting}
+Do not use Python's optimization flag or enable optimization through
+\texttt{PYTHONOPTIMIZE}; the executable rejects execution with assertions
+disabled. The expected final output includes
+\begin{lstlisting}[numbers=none]
+COMPLETE EXACT CERTIFICATE VERIFIED.
+Assumed upper bound: 225299/125000
+Impossible conclusion: 0 <= -1241/500000000
+Therefore every admissible beta has sup_n FR_n(beta) > 225299/125000
+\end{lstlisting}
+The verification log is supplementary evidence, not an input to the proof.
+The numerical certificate is checked from its contents on every run.
+
+\subsection{Compilation}
+The certificate and verifier are required for the arithmetic verification,
+while this TeX file compiles without them, bibliography files, or image files.
+A standard LaTeX installation with the packages named in its preamble suffices.
+Run
+\begin{lstlisting}[language=bash,numbers=none]
+pdflatex -interaction=nonstopmode -halt-on-error frp_lower_bound_1802392.tex
+pdflatex -interaction=nonstopmode -halt-on-error frp_lower_bound_1802392.tex
+\end{lstlisting}
+The later passes resolve the table of contents and internal cross-references.
+Repeat the second command if LaTeX requests another pass.
+
+\end{document}

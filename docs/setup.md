@@ -1,18 +1,18 @@
 # Build and Comparator setup
 
-These instructions apply to both `bound-184` and `bound-195`. Run project
-commands inside the selected project directory.
+These instructions apply to `bound-184`, `bound-195`, and `lower-bound-180`.
+Run project commands inside the selected project directory.
 
 ## Prerequisites
 
 Install Lean through [Elan](https://github.com/leanprover/elan) and make `lean`,
-`lake`, and Python 3.11 or newer available on `PATH`. Both projects pin Lean and
+`lake`, and Python 3.11 or newer available on `PATH`. All three projects pin Lean and
 Mathlib to `v4.30.0-rc1` and use the same dependency revisions and compiler
 settings.
 
 ## Building a project
 
-From either project directory:
+From the selected project directory:
 
 ```sh
 lake exe cache get
@@ -22,7 +22,7 @@ python3 ../scripts/build_proof.py --jobs 2
 The shared [builder](../scripts/build_proof.py) builds the project's library,
 `Challenge`, and `Solution`, following the default targets in `lakefile.toml`.
 It invokes the pinned Lean in dependency order, with the package search paths
-and compiler options from the Lake configuration. Both projects default to two
+and compiler options from the Lake configuration. All projects default to two
 Lean threads per process, and the builder defaults to two concurrent processes.
 
 The cache in `.lake/proof-build` tracks local sources and their transitive
@@ -48,7 +48,7 @@ with `lake build lean4export`, each from its own checkout. Put both checkouts'
 
 ## Running Comparator
 
-From either project directory:
+From the selected project directory:
 
 ```sh
 lake test
@@ -68,7 +68,7 @@ process. It checks the build fingerprints and rebuilds stale modules before
 export. Comparator compares the theorem statements, checks their axiom
 dependencies, and replays the exported solution in Lean's kernel.
 
-Both configurations use `Challenge` and `Solution`, select two theorems, permit
+All three configurations use `Challenge` and `Solution`, select two theorems, permit
 only `propext`, `Quot.sound`, and `Classical.choice`, and set `enable_nanoda` to
 `false`. The two `declaration uses 'sorry'` warnings from each `Challenge.lean`
 are expected: these are the trusted reference statements whose proofs are
