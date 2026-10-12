@@ -8,7 +8,7 @@ All three use Lean and Mathlib **`v4.30.0-rc1`**.
 | Project | Bound | Proof |
 | --- | --- | --- |
 | [bound-184](bound-184/README.md) | `36869/20000 = 1.84345` | Analytic reductions with kernel-checked numerical certificates |
-| [bound-195](bound-195/README.md) | `2 - (153/125 - 1)^2 = 1.949824 ≤ 1.95` | Dual-fitting argument for `gamma = 153/125` |
+| [bound-195](bound-195/README.md) | `2 - (gamma - 1)^2`, giving `1.949824 ≤ 1.95` at `gamma = 153/125` | Dual-fitting argument for `1 ≤ gamma ≤ 153/125` |
 | [lower-bound-180](lower-bound-180/README.md) | Lower bound `225299/125000 = 1.802392` | Analytic constructions, common client weights, and a kernel-checked integer certificate |
 
 Each folder has its own `lean-toolchain`, `lakefile.toml`, and

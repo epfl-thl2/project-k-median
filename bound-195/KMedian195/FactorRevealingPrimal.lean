@@ -1,6 +1,7 @@
 import KMedian195.UpperBound
 import Mathlib.Data.Finset.Lattice.Fold
 import Mathlib.Data.Finset.Max
+import Mathlib.Topology.Order.DenselyOrdered
 
 namespace KMedian195
 
@@ -106,6 +107,23 @@ def Feasible (gamma : ℝ) (x : OriginalPrimalSolution n) : Prop :=
     (0 ≤ x.f) ∧
     (∀ j, 0 ≤ x.d j) ∧
     (∀ j ell, 0 ≤ x.r j ell)
+
+/-- Increasing the bid's distance multiplier only relaxes the facility constraints. -/
+theorem Feasible.mono_gamma {gamma gamma' : ℝ} {x : OriginalPrimalSolution n}
+    (hx : x.Feasible gamma) (hγ : gamma ≤ gamma') : x.Feasible gamma' := by
+  rcases hx with ⟨hnorm, hrow, htriangle, hmetric, hfacility, hf, hd, hr⟩
+  refine ⟨hnorm, hrow, htriangle, hmetric, ?_, hf, hd, hr⟩
+  intro k
+  refine le_trans (Finset.sum_le_sum ?_) (hfacility k)
+  intro j _
+  split_ifs <;>
+    exact max_le_max (sub_le_sub_left (mul_le_mul_of_nonneg_right hγ (hd j)) _) le_rfl
+
+/-- For a fixed finite configuration, its objective is continuous in the bid parameter. -/
+theorem continuous_objective (x : OriginalPrimalSolution n) :
+    Continuous (fun gamma => x.objective gamma) := by
+  unfold objective bidValue
+  fun_prop
 
 end OriginalPrimalSolution
 
@@ -2183,11 +2201,42 @@ theorem originalPrimalUpperBound_of_familyUpperBound
       (x := x.toLinearized gamma) (y := y) hxLin hy (le_trans zero_le_one hγ)
   exact le_trans hbridge (le_trans hweak hρ)
 
+/-- The generic dual construction transfers to the original program for `1 < γ ≤ 1.224`. -/
+theorem originalPrimalUpperBound_exact_of_one_lt
+    {gamma : ℝ} (hγlo : 1 < gamma) (hγhi : gamma ≤ (153 : ℝ) / 125) :
+    OriginalPrimalUpperBound gamma (2 - (gamma - 1) ^ 2) := by
+  exact originalPrimalUpperBound_of_familyUpperBound
+    (familyUpperBound_exact_of_one_lt hγlo hγhi) (le_of_lt hγlo)
+
+/-- Close the endpoint `γ = 1` by continuity of each feasible configuration's objective. -/
+theorem originalPrimalUpperBound_one : OriginalPrimalUpperBound 1 2 := by
+  intro n hn x hx
+  have hclosed : IsClosed {gamma : ℝ | x.objective gamma ≤ 2} :=
+    isClosed_le x.continuous_objective continuous_const
+  have hsubset : Set.Ioc (1 : ℝ) ((153 : ℝ) / 125) ⊆
+      {gamma : ℝ | x.objective gamma ≤ 2} := by
+    intro gamma hγ
+    have hbound := originalPrimalUpperBound_exact_of_one_lt hγ.1 hγ.2 n hn x
+      (hx.mono_gamma (le_of_lt hγ.1))
+    exact le_trans hbound (sub_le_self _ (sq_nonneg _))
+  have hmem : (1 : ℝ) ∈ closure (Set.Ioc (1 : ℝ) ((153 : ℝ) / 125)) := by
+    rw [closure_Ioc (by norm_num : (1 : ℝ) ≠ (153 : ℝ) / 125)]
+    norm_num
+  exact closure_minimal hsubset hclosed hmem
+
+/-- The exact factor-revealing bound throughout the closed parameter interval `[1, 1.224]`. -/
+theorem originalPrimalUpperBound_exact
+    (gamma : ℝ) (hγlo : 1 ≤ gamma) (hγhi : gamma ≤ (153 : ℝ) / 125) :
+    OriginalPrimalUpperBound gamma (2 - (gamma - 1) ^ 2) := by
+  rcases eq_or_lt_of_le hγlo with hγ | hγ
+  · subst gamma
+    simpa using originalPrimalUpperBound_one
+  · exact originalPrimalUpperBound_exact_of_one_lt hγ hγhi
+
 theorem originalPrimalUpperBound_153_div_125_exact :
     OriginalPrimalUpperBound ((153 : ℝ) / 125)
       (2 - (((153 : ℝ) / 125) - 1) ^ 2) := by
-  apply originalPrimalUpperBound_of_familyUpperBound familyUpperBound_153_div_125_exact
-  norm_num
+  exact originalPrimalUpperBound_exact _ (by norm_num) le_rfl
 
 theorem originalPrimalUpperBound_195 :
     OriginalPrimalUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by

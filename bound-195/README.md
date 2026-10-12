@@ -3,7 +3,7 @@
 A Lean / Mathlib proof of an upper bound on the factor-revealing program in
 Definition `def:frp` of the
 [original paper source](https://github.com/raresbuhai/k-median-195-lean/blob/7342c750ba1a364863f70fcdc2d22e418c1b5269/Paper/paper-source/approximation-guarantee.tex),
-for `gamma = 153/125 = 1.224` over every dimension `n ≥ 1`.
+for every `gamma ∈ [1, 153/125] = [1, 1.224]` over every dimension `n ≥ 1`.
 
 ## Statements
 
@@ -11,11 +11,14 @@ for `gamma = 153/125 = 1.224` over every dimension `n ≥ 1`.
 states two reference theorems with intentional `sorry` bodies. It imports only
 Mathlib. [Solution.lean](Solution.lean) imports the completed library proofs.
 
-- `KMedian195.originalPrimalUpperBound_153_div_125_exact`: every feasible
-  objective value, in every dimension `n ≥ 1`, is at most
-  `2 - (153/125 - 1)^2 = 1.949824`.
-- `KMedian195.originalPrimalUpperBound_195`: every such value is at most
-  `39/20 = 1.95`.
+- `KMedian195.originalPrimalUpperBound_exact`: for every
+  `1 ≤ gamma ≤ 153/125`, every feasible objective value in every dimension
+  `n ≥ 1` is at most `2 - (gamma - 1)^2`.
+- `KMedian195.originalPrimalUpperBound_195`: at `gamma = 153/125`, every such
+  value is at most `39/20 = 1.95`.
+
+The library also retains `originalPrimalUpperBound_153_div_125_exact` as the
+endpoint corollary with bound `2 - (153/125 - 1)^2 = 1.949824`.
 
 ## Proof
 
@@ -24,7 +27,10 @@ defines the dual program, and [DualSolution.lean](KMedian195/DualSolution.lean)
 develops its adaptive construction. [UpperBound.lean](KMedian195/UpperBound.lean)
 assembles the feasibility arguments into bounds for the dual family.
 [FactorRevealingPrimal.lean](KMedian195/FactorRevealingPrimal.lean) connects
-that family to the original program and derives the two final bounds.
+that family to the original program. The dual construction covers
+`1 < gamma ≤ 153/125`. At `gamma = 1`, every feasible configuration remains
+feasible for larger parameters, and its objective is continuous in `gamma`;
+closing the interval gives the bound `2` at that endpoint.
 
 ## Build and verification
 

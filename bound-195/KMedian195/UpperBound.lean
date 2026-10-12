@@ -716,36 +716,41 @@ theorem familyUpperBound_195_of_restrictedGoodAdvicePointwiseContinuityFamilyFro
   exact restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
     (by nlinarith) hpoint
 
+theorem restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_of_one_lt
+    {Mcoeff : ℝ} (hγlo : 1 < Mcoeff) (hγhi : Mcoeff ≤ (153 : ℝ) / 125) :
+    RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo Mcoeff := by
+  intro n _ hn1 bidding
+  let I : ProcedureInput n := ProcedureInput.forced Mcoeff bidding
+  have hγ : 1 < I.program.Mcoeff := by
+    simpa [I, ProcedureInput.forced, DualProgram.forceFinalRowOne] using hγlo
+  have hγhi' : I.program.Mcoeff ≤ (153 : ℝ) / 125 := by
+    simpa [I, ProcedureInput.forced, DualProgram.forceFinalRowOne] using hγhi
+  refine ⟨canonicalPath I (le_of_lt hγ) hγhi', ?_, ?_, ?_, ?_⟩
+  · exact canonicalPath_compatible (I := I) (le_of_lt hγ) hγhi'
+  · intro ℓ lam hlam
+    exact canonicalPath_continuousWithinAt (I := I) hγ hγhi' hlam
+  · exact canonicalPath_firstOutput_R0_le_one (I := I) hγ hγhi'
+  · exact canonicalPath_lastOutput_R0_ge_one (I := I) (le_of_lt hγ) hγhi'
+
 theorem restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_153_div_125 :
     RestrictedGoodAdvicePointwiseContinuityFamilyFromTwo ((153 : ℝ) / 125) := by
-  intro n _ hn1 bidding
-  let I : ProcedureInput n := ProcedureInput.forced ((153 : ℝ) / 125) bidding
-  have hγ : 1 < I.program.Mcoeff := by
-    norm_num [I, ProcedureInput.forced, DualProgram.forceFinalRowOne]
-  have hγlo : 1 ≤ I.program.Mcoeff := le_of_lt hγ
-  have hγhi : I.program.Mcoeff ≤ (153 : ℝ) / 125 := by
-    simp [I, ProcedureInput.forced, DualProgram.forceFinalRowOne]
-  refine ⟨canonicalPath I hγlo hγhi, ?_, ?_, ?_, ?_⟩
-  · exact canonicalPath_compatible (I := I) hγlo hγhi
-  · intro ℓ lam hlam
-    exact canonicalPath_continuousWithinAt (I := I) hγ hγhi hlam
-  · exact canonicalPath_firstOutput_R0_le_one (I := I) hγ hγhi
-  · exact canonicalPath_lastOutput_R0_ge_one (I := I) hγlo hγhi
+  exact restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_of_one_lt (by norm_num) le_rfl
+
+/-- The generic construction bounds every dual family for `1 < γ ≤ 1.224`. -/
+theorem familyUpperBound_exact_of_one_lt
+    {Mcoeff : ℝ} (hγlo : 1 < Mcoeff) (hγhi : Mcoeff ≤ (153 : ℝ) / 125) :
+    FamilyUpperBound Mcoeff (2 - (Mcoeff - 1) ^ 2) := by
+  refine familyUpperBound_of_restrictedSuccessfulFamilyFromTwo hγlo hγhi ?_ le_rfl ?_
+  · nlinarith [mul_nonneg (sub_nonneg.mpr (le_of_lt hγlo)) (sub_nonneg.mpr hγhi)]
+  · exact
+      restrictedSuccessfulFamilyFromTwo_of_restrictedProfileFamilyFromTwo hγlo hγhi
+        (restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
+          hγlo (restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_of_one_lt hγlo hγhi))
 
 theorem familyUpperBound_153_div_125_exact :
     FamilyUpperBound ((153 : ℝ) / 125)
       (2 - (((153 : ℝ) / 125) - 1) ^ 2) := by
-  refine familyUpperBound_of_restrictedSuccessfulFamilyFromTwo ?_ ?_ ?_ ?_ ?_
-  · nlinarith
-  · linarith
-  · nlinarith
-  · exact le_rfl
-  · exact
-      restrictedSuccessfulFamilyFromTwo_of_restrictedProfileFamilyFromTwo
-        (by nlinarith) (by linarith)
-        (restrictedProfileFamilyFromTwo_of_restrictedGoodAdvicePointwiseContinuityFamilyFromTwo
-          (by nlinarith)
-          restrictedGoodAdvicePointwiseContinuityFamilyFromTwo_153_div_125)
+  exact familyUpperBound_exact_of_one_lt (by norm_num) le_rfl
 
 theorem familyUpperBound_195 :
     FamilyUpperBound ((153 : ℝ) / 125) ((39 : ℝ) / 20) := by

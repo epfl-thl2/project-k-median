@@ -77,9 +77,10 @@ def OriginalPrimalUpperBound (gamma bound : ℝ) : Prop :=
   ∀ n, n ≠ 0 → ∀ x : OriginalPrimalSolution n,
     x.Feasible gamma → x.objective gamma ≤ bound
 
-theorem originalPrimalUpperBound_153_div_125_exact :
-    OriginalPrimalUpperBound ((153 : ℝ) / 125)
-      (2 - (((153 : ℝ) / 125) - 1) ^ 2) := by
+/-- The exact factor-revealing bound throughout the closed parameter interval `[1, 1.224]`. -/
+theorem originalPrimalUpperBound_exact
+    (gamma : ℝ) (hγlo : 1 ≤ gamma) (hγhi : gamma ≤ (153 : ℝ) / 125) :
+    OriginalPrimalUpperBound gamma (2 - (gamma - 1) ^ 2) := by
   sorry
 
 theorem originalPrimalUpperBound_195 :
