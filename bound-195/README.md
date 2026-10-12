@@ -41,4 +41,5 @@ lake test
 `lake test` runs Comparator to check that the completed proofs establish the
 statements in `Challenge.lean`.
 
-Written by Codex.
+All Lean code in this project, including the proofs, and this README were
+written by Codex.

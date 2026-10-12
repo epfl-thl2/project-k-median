@@ -34,4 +34,5 @@ Certificate builds can take several hours. See the setup guide for build options
 and platform-specific instructions. [CI](.github/workflows/lean_action_ci.yml)
 builds and verifies the two upper-bound projects.
 
-Written by Codex.
+All Lean code in this repository, including the proofs, and this README were
+written by Codex.

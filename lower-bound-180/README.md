@@ -60,4 +60,5 @@ and replay the proofs in Lean's kernel.
   [standalone Python verifier](refs/verify.py), with reproduction instructions
   in the reference.
 
-Written by Codex.
+All Lean code in this project, including the proofs, and this README were
+written by Codex.
