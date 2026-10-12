@@ -1,0 +1,94 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newcommand{\FR}{\operatorname{FR}}
+\newcommand{\pos}[1]{\left[#1\right]^+}
+
+\title{The Factor-Revealing Program and the $1.95$ Upper Bound}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+This note restates the program and upper-bound theorem from
+\emph{A Better-Than-$2$ Approximation for k-Median, Part I: The Power of
+General Bids}, Definition \texttt{def:frp} and Theorem
+\texttt{thm:1.95-frp}. It gives a self-contained statement reference for
+the accompanying Lean formalization.
+
+For a real number $u$, write $\pos{u}=\max\{u,0\}$. For $\gamma\ge1$, let
+\[
+  \beta_\gamma(a,d)=\pos{a-\gamma d},\qquad a,d\ge0.
+\]
+All finite decimals below denote exact rational numbers.
+
+\begin{definition}[Factor-revealing program]\label{def:frp}
+Fix an integer $n\ge1$. The variables are nonnegative real numbers
+\[
+  f,\qquad d_j\ (1\le j\le n),\qquad
+  r_{j,k}\ (1\le j\le n,\ j\le k\le n+1).
+\]
+Let $\FR_n(\beta_\gamma)$ be the supremum of
+\begin{equation}\label{eq:objective}
+  \sum_{j=1}^n\left(
+    \sum_{k=j}^n\beta_\gamma(r_{j,k},r_{j,k+1})+r_{j,n+1}
+  \right)-f
+\end{equation}
+subject to
+\begin{align}
+  \sum_{j=1}^n d_j&=1,
+    &&\text{(normalization)},\label{eq:normalization}\\
+  r_{j,k+1}&\le r_{j,k},
+    &&1\le j\le k\le n,\label{eq:row}\\
+  r_{k,k}&\le r_{j,k}+d_j+d_k,
+    &&1\le j<k\le n,\label{eq:triangle}\\
+  r_{j,\ell}&\le r_{k,\ell}+d_j+d_k,
+    &&\substack{1\le j,k<\ell\le n+1\\j\ne k},\label{eq:metric}\\
+  \sum_{j=1}^{k-1}\beta_\gamma(r_{j,k},d_j)
+    +\sum_{j=k}^n\beta_\gamma(r_{k,k},d_j)&\le f,
+    &&1\le k\le n.\label{eq:facility}
+\end{align}
+The supremum is interpreted in the extended real numbers.
+\end{definition}
+
+Zero distances and radii are allowed. The terminal radii $r_{j,n+1}$
+occur in the objective, row monotonicity, and metric inequalities.
+The program imposes no ordering on its diagonal entries $r_{j,j}$.
+
+\begin{theorem}[Uniform upper bound]\label{thm:1.95-frp}
+For every $\gamma\in[1,153/125]=[1,1.224]$,
+\[
+  \sup_{n\ge1}\FR_n(\beta_\gamma)\le 2-(\gamma-1)^2.
+\]
+Equivalently, every feasible objective value in every positive finite
+dimension is at most $2-(\gamma-1)^2$.
+\end{theorem}
+
+\begin{corollary}
+At $\gamma=153/125$,
+\[
+  \sup_{n\ge1}\FR_n(\beta_{153/125})
+  \le \frac{30466}{15625}=1.949824<1.9499<1.95.
+\]
+\end{corollary}
+
+\paragraph{Lean statements.}
+\texttt{Challenge.lean} defines the program and states
+\nolinkurl{KMedian195.originalPrimalUpperBound_exact}, which gives the
+bound throughout the closed parameter interval, and
+\nolinkurl{KMedian195.originalPrimalUpperBound_195}, which gives the
+$39/20=1.95$ specialization. The proofs are supplied by
+\texttt{Solution.lean}.
+
+The paper's LMP approximation guarantee follows by applying its separate
+FRP-to-algorithm reduction to this upper bound.
+
+\end{document}
