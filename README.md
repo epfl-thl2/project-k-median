@@ -36,3 +36,8 @@ builds and verifies the two upper-bound projects.
 
 All Lean code in this repository, including the proofs, and this README were
 written by Codex.
+
+## License
+
+Copyright (c) 2026 Rares Buhai. Released under the Apache License, Version 2.0;
+see [LICENSE](LICENSE).

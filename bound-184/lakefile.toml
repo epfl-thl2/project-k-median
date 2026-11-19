@@ -1,5 +1,6 @@
 name = "k-median-184"
 version = "0.1.0"
+license = "Apache-2.0"
 keywords = ["math"]
 defaultTargets = ["KMedian184", "Challenge", "Solution"]
 testDriver = "comparator_test"
