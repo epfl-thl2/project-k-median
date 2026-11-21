@@ -36,4 +36,4 @@ Follow the [build and verification instructions](../README.md#build-and-verifica
 to check the certificates and the assembled proof.
 
 All Lean code in this project, including the proofs, and this README were
-written by Codex.
+written with GPT (OpenAI).

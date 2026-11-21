@@ -42,4 +42,4 @@ lake test
 statements in `Challenge.lean`.
 
 All Lean code in this project, including the proofs, and this README were
-written by Codex.
+written with GPT (OpenAI).

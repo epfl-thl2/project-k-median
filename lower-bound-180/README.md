@@ -61,4 +61,4 @@ and replay the proofs in Lean's kernel.
   in the reference.
 
 All Lean code in this project, including the proofs, and this README were
-written by Codex.
+written with GPT (OpenAI).

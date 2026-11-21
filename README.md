@@ -35,7 +35,7 @@ and platform-specific instructions. [CI](.github/workflows/lean_action_ci.yml)
 builds and verifies the two upper-bound projects.
 
 All Lean code in this repository, including the proofs, and this README were
-written by Codex.
+written with GPT (OpenAI).
 
 ## License
 
